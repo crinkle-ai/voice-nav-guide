@@ -289,6 +289,21 @@ export function BottomVoiceBar() {
         let msg: LiveServerMessage;
         try { msg = JSON.parse(raw); } catch { return; }
 
+        if (msg.setupComplete) {
+          ws.send(
+            JSON.stringify({
+              clientContent: {
+                turns: [{
+                  role: "user",
+                  parts: [{ text: "[SESSION_START] Greet the user warmly, introduce yourself as the Medicare Navigator, and describe what you can help with in ONE short sentence. Then ask how you can help." }],
+                }],
+                turnComplete: true,
+              },
+            }),
+          );
+        }
+
+
         if (msg.serverContent?.modelTurn?.parts) {
           for (const part of msg.serverContent.modelTurn.parts) {
             if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
