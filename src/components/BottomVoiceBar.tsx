@@ -140,12 +140,19 @@ export function BottomVoiceBar() {
           }));
           result = { count: res.doctors.length, doctors: top };
         } else if (fc.name === "filter_plans") {
-          const args = (fc.args ?? {}) as {
-            type?: string;
-            maxPremium?: number;
-            needsDrug?: boolean;
-            needsDental?: boolean;
-            needsVision?: boolean;
+          const raw = (fc.args ?? {}) as {
+            type?: unknown;
+            maxPremium?: unknown;
+            needsDrug?: unknown;
+            needsDental?: unknown;
+            needsVision?: unknown;
+          };
+          const args = {
+            type: typeof raw.type === "string" ? raw.type : undefined,
+            maxPremium: typeof raw.maxPremium === "number" ? raw.maxPremium : undefined,
+            needsDrug: typeof raw.needsDrug === "boolean" ? raw.needsDrug : undefined,
+            needsDental: typeof raw.needsDental === "boolean" ? raw.needsDental : undefined,
+            needsVision: typeof raw.needsVision === "boolean" ? raw.needsVision : undefined,
           };
           navigate({ to: "/compare-plans" });
           dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
