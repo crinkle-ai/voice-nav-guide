@@ -119,19 +119,18 @@ export function BottomVoiceBar() {
           dispatch({ type: "SET_HIGHLIGHT", section: fc.args.section });
           result = { highlighted: fc.args.section };
         } else if (fc.name === "search_doctors") {
-          const args = (fc.args ?? {}) as { specialty?: string; city?: string; name?: string };
+          const raw = (fc.args ?? {}) as { specialty?: unknown; city?: unknown; name?: unknown };
+          const args = {
+            specialty: typeof raw.specialty === "string" ? raw.specialty : undefined,
+            city: typeof raw.city === "string" ? raw.city : undefined,
+            name: typeof raw.name === "string" && raw.name.trim() ? raw.name : undefined,
+          };
           navigate({ to: "/find-doctors" });
           dispatch({
             type: "SET_DOCTOR_VOICE_FILTERS",
             filters: { specialty: args.specialty, city: args.city, name: args.name },
           });
-          const res = await fetchDoctors({
-            data: {
-              specialty: args.specialty,
-              city: args.city,
-              name: args.name,
-            },
-          });
+          const res = await fetchDoctors({ data: args });
           const top = res.doctors.slice(0, 5).map((d) => ({
             name: d.name,
             specialty: d.specialty,
