@@ -100,7 +100,7 @@ export function BottomVoiceBar() {
   }, []);
 
   const handleToolCall = useCallback(
-    (fc: { id: string; name: string; args?: Record<string, unknown> }) => {
+    async (fc: { id: string; name: string; args?: Record<string, unknown> }) => {
       let result: Record<string, unknown> = { ok: true };
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
@@ -111,6 +111,56 @@ export function BottomVoiceBar() {
           highlightSection(fc.args.section);
           dispatch({ type: "SET_HIGHLIGHT", section: fc.args.section });
           result = { highlighted: fc.args.section };
+        } else if (fc.name === "search_doctors") {
+          const args = (fc.args ?? {}) as { specialty?: string; city?: string; name?: string };
+          navigate({ to: "/find-doctors" });
+          dispatch({
+            type: "SET_DOCTOR_VOICE_FILTERS",
+            filters: { specialty: args.specialty, city: args.city, name: args.name },
+          });
+          const res = await fetchDoctors({
+            data: {
+              specialty: args.specialty,
+              city: args.city,
+              name: args.name,
+            },
+          });
+          const top = res.doctors.slice(0, 5).map((d) => ({
+            name: d.name,
+            specialty: d.specialty,
+            city: d.city,
+            state: d.state,
+            accepting_new_patients: d.accepting_new_patients,
+          }));
+          result = { count: res.doctors.length, doctors: top };
+        } else if (fc.name === "filter_plans") {
+          const args = (fc.args ?? {}) as {
+            type?: string;
+            maxPremium?: number;
+            needsDrug?: boolean;
+            needsDental?: boolean;
+            needsVision?: boolean;
+          };
+          navigate({ to: "/compare-plans" });
+          dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
+          const res = await fetchPlans({ data: args });
+          const top = res.plans.slice(0, 5).map((p) => ({
+            name: p.name,
+            carrier: p.carrier,
+            type: p.type,
+            monthly_premium: Number(p.monthly_premium),
+            drug_coverage: p.drug_coverage,
+            star_rating: p.star_rating,
+          }));
+          result = { count: res.plans.length, plans: top };
+        } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
+          const term = fc.args.term as string;
+          navigate({ to: "/learn" });
+          setTimeout(() => {
+            highlightSection(`glossary-${term}`);
+            dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
+          }, 400);
+          result = { term, definition: GLOSSARY[term] ?? "See the highlighted glossary card." };
         } else {
           result = { ok: false, reason: "unknown tool or args" };
         }
@@ -128,7 +178,7 @@ export function BottomVoiceBar() {
         );
       }
     },
-    [navigate, highlightSection, dispatch],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
   );
 
   const playPcm = useCallback((b64: string) => {
