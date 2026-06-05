@@ -392,10 +392,11 @@ export function BottomVoiceBar() {
       const message = e instanceof Error ? e.message : "Failed to start";
       setErrorMsg(message);
       setStatus("error");
+      startingRef.current = false;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption]);
+  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio]);
 
   useEffect(() => {
     mutedRef.current = muted;
