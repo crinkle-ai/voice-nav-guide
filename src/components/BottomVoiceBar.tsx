@@ -82,11 +82,18 @@ export function BottomVoiceBar() {
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
     if (captionTimerRef.current) clearTimeout(captionTimerRef.current);
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
+  }, []);
+
+  const clearIdleTimers = useCallback(() => {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
   const highlightSection = useCallback((sectionId: string) => {
