@@ -297,16 +297,29 @@ export function BottomVoiceBar() {
             }
           }
         }
+        if (msg.serverContent?.inputTranscription?.text) {
+          clearIdleTimers();
+        }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
         }
         if (msg.serverContent?.turnComplete) {
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+          clearIdleTimers();
+          idleWarningRef.current = setTimeout(() => {
+            setCaption("Session ending in 5 seconds — say something to keep going");
+          }, 15000);
+          idleTimerRef.current = setTimeout(() => {
+            stop();
+            setCaption("Session ended to save tokens. Tap Start anytime.");
+          }, 20000);
         }
         if (msg.serverContent?.interrupted) {
           playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+          clearIdleTimers();
         }
         if (msg.toolCall?.functionCalls) {
+          clearIdleTimers();
           for (const fc of msg.toolCall.functionCalls) handleToolCall(fc);
         }
       };
