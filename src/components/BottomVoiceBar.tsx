@@ -204,6 +204,9 @@ export function BottomVoiceBar() {
         playCtxRef.current = playCtx;
         playHeadRef.current = 0;
 
+        // Reset so the route-tracker effect sends the current path immediately.
+        lastSentPathRef.current = null;
+
         setStatus("live");
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
       };
