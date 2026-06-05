@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useCallback, type ReactNode } from "react";
 
 export type PageKey = "home" | "education" | "doctor-lookup" | "plan-comparison";
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
@@ -17,6 +17,9 @@ export interface AppState {
   navigatorOpen: boolean;
   voiceState: VoiceState;
   transcript: Message[];
+  pendingPrompt: string | null;
+  savedDoctorIds: string[];
+  comparePlanIds: string[];
   journey: {
     visitedPages: string[];
     completedSteps: string[];
@@ -31,7 +34,10 @@ type Action =
   | { type: "TOGGLE_NAVIGATOR"; open?: boolean }
   | { type: "SET_VOICE_STATE"; voiceState: VoiceState }
   | { type: "ADD_MESSAGE"; message: Message }
-  | { type: "COMPLETE_STEP"; step: string };
+  | { type: "COMPLETE_STEP"; step: string }
+  | { type: "SET_PENDING_PROMPT"; prompt: string | null }
+  | { type: "TOGGLE_SAVED_DOCTOR"; id: string }
+  | { type: "TOGGLE_COMPARE_PLAN"; id: string };
 
 const initialState: AppState = {
   currentPage: "home",
@@ -40,6 +46,9 @@ const initialState: AppState = {
   navigatorOpen: false,
   voiceState: "idle",
   transcript: [],
+  pendingPrompt: null,
+  savedDoctorIds: [],
+  comparePlanIds: [],
   journey: {
     visitedPages: [],
     completedSteps: [],
@@ -80,11 +89,25 @@ function reducer(state: AppState, action: Action): AppState {
       if (state.journey.completedSteps.includes(action.step)) return state;
       return {
         ...state,
-        journey: {
-          ...state.journey,
-          completedSteps: [...state.journey.completedSteps, action.step],
-        },
+        journey: { ...state.journey, completedSteps: [...state.journey.completedSteps, action.step] },
       };
+    case "SET_PENDING_PROMPT":
+      return { ...state, pendingPrompt: action.prompt };
+    case "TOGGLE_SAVED_DOCTOR": {
+      const has = state.savedDoctorIds.includes(action.id);
+      return {
+        ...state,
+        savedDoctorIds: has
+          ? state.savedDoctorIds.filter((x) => x !== action.id)
+          : [...state.savedDoctorIds, action.id],
+      };
+    }
+    case "TOGGLE_COMPARE_PLAN": {
+      const has = state.comparePlanIds.includes(action.id);
+      if (has) return { ...state, comparePlanIds: state.comparePlanIds.filter((x) => x !== action.id) };
+      if (state.comparePlanIds.length >= 3) return state;
+      return { ...state, comparePlanIds: [...state.comparePlanIds, action.id] };
+    }
     default:
       return state;
   }
@@ -111,4 +134,37 @@ export function useTrackPage(page: PageKey, path: string) {
   useEffect(() => {
     dispatch({ type: "SET_PAGE", page, path });
   }, [dispatch, page, path]);
+}
+
+/** Consume highlighted section: scrolls to + flashes the element, then clears. */
+export function useHighlightConsumer() {
+  const { state, dispatch } = useApp();
+  useEffect(() => {
+    const sec = state.highlightedSection;
+    if (!sec) return;
+    const el = document.getElementById(sec);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
+      const t = setTimeout(() => {
+        el.classList.remove("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
+        dispatch({ type: "SET_HIGHLIGHT", section: null });
+      }, 2400);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => dispatch({ type: "SET_HIGHLIGHT", section: null }), 800);
+      return () => clearTimeout(t);
+    }
+  }, [state.highlightedSection, dispatch]);
+}
+
+export function useOpenNavigatorWithPrompt() {
+  const { dispatch } = useApp();
+  return useCallback(
+    (prompt: string) => {
+      dispatch({ type: "SET_PENDING_PROMPT", prompt });
+      dispatch({ type: "TOGGLE_NAVIGATOR", open: true });
+    },
+    [dispatch],
+  );
 }
