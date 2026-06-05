@@ -230,10 +230,16 @@ export function BottomVoiceBar() {
     const startAt = Math.max(now, playHeadRef.current);
     src.start(startAt);
     playHeadRef.current = startAt + buffer.duration;
+    activeSourcesRef.current.add(src);
+    src.onended = () => {
+      activeSourcesRef.current.delete(src);
+      try { src.disconnect(); } catch { /* noop */ }
+    };
   }, []);
 
   const stop = useCallback(() => {
     clearIdleTimers();
+    stopAllAudio();
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
@@ -245,13 +251,17 @@ export function BottomVoiceBar() {
     micCtxRef.current = null;
     playCtxRef.current = null;
     playHeadRef.current = 0;
+    startingRef.current = false;
+    greetedRef.current = false;
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers]);
+  }, [dispatch, clearIdleTimers, stopAllAudio]);
 
   const start = useCallback(async () => {
-    if (status === "connecting" || status === "live") return;
+    if (startingRef.current || status === "connecting" || status === "live") return;
+    startingRef.current = true;
+    greetedRef.current = false;
     clearIdleTimers();
     setErrorMsg(null);
     setStatus("connecting");
