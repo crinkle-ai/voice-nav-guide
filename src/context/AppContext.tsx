@@ -10,6 +10,19 @@ export interface Message {
   timestamp: number;
 }
 
+export interface DoctorVoiceFilters {
+  specialty?: string;
+  city?: string;
+  name?: string;
+}
+export interface PlanVoiceFilters {
+  type?: string;
+  maxPremium?: number;
+  needsDrug?: boolean;
+  needsDental?: boolean;
+  needsVision?: boolean;
+}
+
 export interface AppState {
   currentPage: PageKey;
   previousPage: string | null;
@@ -20,6 +33,8 @@ export interface AppState {
   pendingPrompt: string | null;
   savedDoctorIds: string[];
   comparePlanIds: string[];
+  doctorVoiceFilters: DoctorVoiceFilters | null;
+  planVoiceFilters: PlanVoiceFilters | null;
   journey: {
     visitedPages: string[];
     completedSteps: string[];
@@ -37,7 +52,9 @@ type Action =
   | { type: "COMPLETE_STEP"; step: string }
   | { type: "SET_PENDING_PROMPT"; prompt: string | null }
   | { type: "TOGGLE_SAVED_DOCTOR"; id: string }
-  | { type: "TOGGLE_COMPARE_PLAN"; id: string };
+  | { type: "TOGGLE_COMPARE_PLAN"; id: string }
+  | { type: "SET_DOCTOR_VOICE_FILTERS"; filters: DoctorVoiceFilters | null }
+  | { type: "SET_PLAN_VOICE_FILTERS"; filters: PlanVoiceFilters | null };
 
 const initialState: AppState = {
   currentPage: "home",
@@ -49,6 +66,8 @@ const initialState: AppState = {
   pendingPrompt: null,
   savedDoctorIds: [],
   comparePlanIds: [],
+  doctorVoiceFilters: null,
+  planVoiceFilters: null,
   journey: {
     visitedPages: [],
     completedSteps: [],
@@ -108,6 +127,10 @@ function reducer(state: AppState, action: Action): AppState {
       if (state.comparePlanIds.length >= 3) return state;
       return { ...state, comparePlanIds: [...state.comparePlanIds, action.id] };
     }
+    case "SET_DOCTOR_VOICE_FILTERS":
+      return { ...state, doctorVoiceFilters: action.filters };
+    case "SET_PLAN_VOICE_FILTERS":
+      return { ...state, planVoiceFilters: action.filters };
     default:
       return state;
   }

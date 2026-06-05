@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { searchDoctors } from "@/lib/catalog.functions";
@@ -38,6 +38,21 @@ function FindDoctors() {
     queryKey: ["doctors", filters],
     queryFn: () => fetchDoctors({ data: filters }),
   });
+
+  // Voice agent can pre-fill filters via context.
+  useEffect(() => {
+    const vf = state.doctorVoiceFilters;
+    if (!vf) return;
+    if (vf.name !== undefined) setName(vf.name ?? "");
+    if (vf.specialty !== undefined) setSpecialty(vf.specialty || "All");
+    if (vf.city !== undefined) setCity(vf.city ?? "");
+    setFilters({
+      name: vf.name?.trim() || undefined,
+      specialty: vf.specialty && vf.specialty !== "All" ? vf.specialty : undefined,
+      city: vf.city?.trim() || undefined,
+    });
+    dispatch({ type: "SET_DOCTOR_VOICE_FILTERS", filters: null });
+  }, [state.doctorVoiceFilters, dispatch]);
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();

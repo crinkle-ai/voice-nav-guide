@@ -40,6 +40,19 @@ function ComparePlans() {
 
   useEffect(() => { if (touched) dispatch({ type: "COMPLETE_STEP", step: "plan-comparison" }); }, [touched, dispatch]);
 
+  // Voice agent can pre-fill filters via context.
+  useEffect(() => {
+    const vf = state.planVoiceFilters;
+    if (!vf) return;
+    if (vf.type !== undefined) setType(vf.type || "All");
+    if (typeof vf.maxPremium === "number") setMaxPremium(vf.maxPremium);
+    if (typeof vf.needsDrug === "boolean") setNeedsDrug(vf.needsDrug);
+    if (typeof vf.needsDental === "boolean") setNeedsDental(vf.needsDental);
+    if (typeof vf.needsVision === "boolean") setNeedsVision(vf.needsVision);
+    setTouched(true);
+    dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: null });
+  }, [state.planVoiceFilters, dispatch]);
+
   const filters = useMemo(() => ({
     type: type === "All" ? undefined : type,
     maxPremium,

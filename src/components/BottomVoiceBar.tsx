@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Loader2, PhoneOff } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
+import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+
+const GLOSSARY: Record<string, string> = {
+  premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
+  deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
+  copay: "A flat dollar amount you pay for a specific service, like $20 for a doctor visit.",
+  coinsurance: "Your share of a cost as a percentage — for example, you pay 20% and the plan pays 80%.",
+  "out-of-pocket-max": "The most you'll pay in a year. Once you hit it, the plan covers 100% of covered care.",
+  network: "The doctors and hospitals your plan has contracts with. In-network care costs less.",
+  formulary: "The list of prescription drugs your plan covers and what tier each one is on.",
+};
 
 type Status = "idle" | "connecting" | "live" | "error";
 
@@ -51,6 +63,8 @@ function base64ToInt16(b64: string): Int16Array {
 export function BottomVoiceBar() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
+  const fetchDoctors = useServerFn(searchDoctors);
+  const fetchPlans = useServerFn(listPlans);
 
   const [status, setStatus] = useState<Status>("idle");
   const [caption, setCaption] = useState<string>("");
@@ -86,7 +100,7 @@ export function BottomVoiceBar() {
   }, []);
 
   const handleToolCall = useCallback(
-    (fc: { id: string; name: string; args?: Record<string, unknown> }) => {
+    async (fc: { id: string; name: string; args?: Record<string, unknown> }) => {
       let result: Record<string, unknown> = { ok: true };
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
@@ -97,6 +111,56 @@ export function BottomVoiceBar() {
           highlightSection(fc.args.section);
           dispatch({ type: "SET_HIGHLIGHT", section: fc.args.section });
           result = { highlighted: fc.args.section };
+        } else if (fc.name === "search_doctors") {
+          const args = (fc.args ?? {}) as { specialty?: string; city?: string; name?: string };
+          navigate({ to: "/find-doctors" });
+          dispatch({
+            type: "SET_DOCTOR_VOICE_FILTERS",
+            filters: { specialty: args.specialty, city: args.city, name: args.name },
+          });
+          const res = await fetchDoctors({
+            data: {
+              specialty: args.specialty,
+              city: args.city,
+              name: args.name,
+            },
+          });
+          const top = res.doctors.slice(0, 5).map((d) => ({
+            name: d.name,
+            specialty: d.specialty,
+            city: d.city,
+            state: d.state,
+            accepting_new_patients: d.accepting_new_patients,
+          }));
+          result = { count: res.doctors.length, doctors: top };
+        } else if (fc.name === "filter_plans") {
+          const args = (fc.args ?? {}) as {
+            type?: string;
+            maxPremium?: number;
+            needsDrug?: boolean;
+            needsDental?: boolean;
+            needsVision?: boolean;
+          };
+          navigate({ to: "/compare-plans" });
+          dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
+          const res = await fetchPlans({ data: args });
+          const top = res.plans.slice(0, 5).map((p) => ({
+            name: p.name,
+            carrier: p.carrier,
+            type: p.type,
+            monthly_premium: Number(p.monthly_premium),
+            drug_coverage: p.drug_coverage,
+            star_rating: p.star_rating,
+          }));
+          result = { count: res.plans.length, plans: top };
+        } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
+          const term = fc.args.term as string;
+          navigate({ to: "/learn" });
+          setTimeout(() => {
+            highlightSection(`glossary-${term}`);
+            dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
+          }, 400);
+          result = { term, definition: GLOSSARY[term] ?? "See the highlighted glossary card." };
         } else {
           result = { ok: false, reason: "unknown tool or args" };
         }
@@ -114,7 +178,7 @@ export function BottomVoiceBar() {
         );
       }
     },
-    [navigate, highlightSection, dispatch],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
   );
 
   const playPcm = useCallback((b64: string) => {
