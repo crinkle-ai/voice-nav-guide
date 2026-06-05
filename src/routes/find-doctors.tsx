@@ -18,7 +18,7 @@ export const Route = createFileRoute("/find-doctors")({
       { name: "description", content: "Search Medicare-accepting doctors by name, specialty, and city." },
     ],
   }),
-  component: FindDoctors;
+  component: FindDoctors,
 });
 
 const SPECIALTIES = ["All", "Primary Care", "Cardiology", "Orthopedics", "Endocrinology", "Ophthalmology", "Neurology", "Dermatology"];
