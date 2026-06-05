@@ -48,10 +48,17 @@ SECTION CATALOG (use these exact ids with highlight_section):
 /compare-plans:
   - "premium-filter" — filters: plan type, max premium, drug/dental/vision toggles
 
+DATA TOOLS (use these to actually answer questions, not just navigate):
+- search_doctors({ specialty?, city?, name? }) — Use when the user asks to find a doctor ("find a cardiologist in Austin", "any primary care near Phoenix?"). It navigates to /find-doctors, applies filters, and returns matching doctors. After it returns, read out 2-3 results conversationally (name, specialty, city). Specialty must be one of: Primary Care, Cardiology, Orthopedics, Endocrinology, Ophthalmology, Neurology, Dermatology.
+- filter_plans({ type?, maxPremium?, needsDrug?, needsDental?, needsVision? }) — Use when the user describes plan needs ("plans under 50 dollars with drug coverage", "show me Medicare Advantage"). It navigates to /compare-plans, applies filters, and returns matching plans. After it returns, read out 2-3 results (name, carrier, premium). type must be one of: Original Medicare, Medicare Advantage, Medicare Supplement, Part D.
+- explain_term({ term }) — Use when the user asks what a Medicare term means ("what's a deductible?", "what does formulary mean?"). It navigates to /learn and highlights the glossary card. Then give a one-sentence plain-English definition. term must be one of: premium, deductible, copay, coinsurance, out-of-pocket-max, network, formulary.
+
 Examples:
 - User on /learn asks "what's Part B?" → call highlight_section("part-b"), then say "Part B covers your doctor visits — see the highlighted box."
 - User on / asks "where do I start?" → call highlight_section("steps"), then say "Right here — three steps, start with Learn."
-- User on / asks about a deductible → call navigate_to("/learn"), then highlight_section("glossary-deductible"), then explain in one sentence.`;
+- User asks "find a cardiologist in Austin" → call search_doctors({ specialty: "Cardiology", city: "Austin" }), then read out the matches.
+- User asks "plans under 50 dollars with drug coverage" → call filter_plans({ maxPremium: 50, needsDrug: true }), then summarize the top results.
+- User asks "what's a deductible?" → call explain_term({ term: "deductible" }), then explain in one sentence.`;
 
 export const Route = createFileRoute("/api/voice-session")({
   server: {
@@ -122,9 +129,53 @@ export const Route = createFileRoute("/api/voice-session")({
                             required: ["section"],
                           },
                         },
-                      ],
-                    },
-                  ],
+                        {
+                          name: "search_doctors",
+                          description: "Search Medicare-accepting doctors and apply filters on the Find Doctors page. Returns matching doctors.",
+                          parameters: {
+                            type: "OBJECT",
+                            properties: {
+                              specialty: {
+                                type: "STRING",
+                                description: "Medical specialty, e.g. Cardiology",
+                                enum: ["Primary Care", "Cardiology", "Orthopedics", "Endocrinology", "Ophthalmology", "Neurology", "Dermatology"],
+                              },
+                              city: { type: "STRING", description: "City name, e.g. Austin" },
+                              name: { type: "STRING", description: "Partial doctor name" },
+                            },
+                          },
+                        },
+                        {
+                          name: "filter_plans",
+                          description: "Filter Medicare plans and apply filters on the Compare Plans page. Returns matching plans.",
+                          parameters: {
+                            type: "OBJECT",
+                            properties: {
+                              type: {
+                                type: "STRING",
+                                enum: ["Original Medicare", "Medicare Advantage", "Medicare Supplement", "Part D"],
+                              },
+                              maxPremium: { type: "NUMBER", description: "Maximum monthly premium in USD" },
+                              needsDrug: { type: "BOOLEAN" },
+                              needsDental: { type: "BOOLEAN" },
+                              needsVision: { type: "BOOLEAN" },
+                            },
+                          },
+                        },
+                        {
+                          name: "explain_term",
+                          description: "Navigate to /learn glossary and highlight a Medicare term.",
+                          parameters: {
+                            type: "OBJECT",
+                            properties: {
+                              term: {
+                                type: "STRING",
+                                enum: ["premium", "deductible", "copay", "coinsurance", "out-of-pocket-max", "network", "formulary"],
+                              },
+                            },
+                            required: ["term"],
+                          },
+                        },
                 },
               },
             },
