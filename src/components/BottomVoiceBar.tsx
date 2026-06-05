@@ -82,11 +82,18 @@ export function BottomVoiceBar() {
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
     if (captionTimerRef.current) clearTimeout(captionTimerRef.current);
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
+  }, []);
+
+  const clearIdleTimers = useCallback(() => {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
   const highlightSection = useCallback((sectionId: string) => {
@@ -199,6 +206,7 @@ export function BottomVoiceBar() {
   }, []);
 
   const stop = useCallback(() => {
+    clearIdleTimers();
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
@@ -213,10 +221,11 @@ export function BottomVoiceBar() {
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch]);
+  }, [dispatch, clearIdleTimers]);
 
   const start = useCallback(async () => {
     if (status === "connecting" || status === "live") return;
+    clearIdleTimers();
     setErrorMsg(null);
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
@@ -288,16 +297,29 @@ export function BottomVoiceBar() {
             }
           }
         }
+        if (msg.serverContent?.inputTranscription?.text) {
+          clearIdleTimers();
+        }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
         }
         if (msg.serverContent?.turnComplete) {
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+          clearIdleTimers();
+          idleWarningRef.current = setTimeout(() => {
+            setCaption("Session ending in 5 seconds — say something to keep going");
+          }, 15000);
+          idleTimerRef.current = setTimeout(() => {
+            stop();
+            setCaption("Session ended to save tokens. Tap Start anytime.");
+          }, 20000);
         }
         if (msg.serverContent?.interrupted) {
           playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+          clearIdleTimers();
         }
         if (msg.toolCall?.functionCalls) {
+          clearIdleTimers();
           for (const fc of msg.toolCall.functionCalls) handleToolCall(fc);
         }
       };
