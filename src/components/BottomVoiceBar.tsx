@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Loader2, PhoneOff } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
 
 type Status = "idle" | "connecting" | "live" | "error";
@@ -57,6 +57,8 @@ export function BottomVoiceBar() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const lastSentPathRef = useRef<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
@@ -202,6 +204,9 @@ export function BottomVoiceBar() {
         playCtxRef.current = playCtx;
         playHeadRef.current = 0;
 
+        // Reset so the route-tracker effect sends the current path immediately.
+        lastSentPathRef.current = null;
+
         setStatus("live");
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
       };
@@ -253,6 +258,23 @@ export function BottomVoiceBar() {
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+
+  // Push current route to the model so it knows where the user is.
+  useEffect(() => {
+    if (status !== "live") return;
+    if (lastSentPathRef.current === pathname) return;
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    lastSentPathRef.current = pathname;
+    ws.send(
+      JSON.stringify({
+        clientContent: {
+          turns: [{ role: "user", parts: [{ text: `[CURRENT PAGE: ${pathname}]` }] }],
+          turnComplete: false,
+        },
+      }),
+    );
+  }, [pathname, status]);
 
   useEffect(() => {
     return () => { stop(); };
