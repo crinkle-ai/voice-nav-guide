@@ -1,24 +1,155 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PagePlaceholder } from "@/components/PagePlaceholder";
-import { useTrackPage } from "@/context/AppContext";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { listPlans } from "@/lib/catalog.functions";
+import { useApp, useTrackPage, useHighlightConsumer } from "@/context/AppContext";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
     meta: [
-      { title: "Compare Plans — Medicare Navigator" },
-      { name: "description", content: "Compare Medicare plans side-by-side." },
+      { title: "Compare Medicare Plans — Side by side" },
+      { name: "description", content: "Filter and compare Medicare plans by premium, deductible, drug, dental, vision and hearing coverage." },
     ],
   }),
   component: ComparePlans,
 });
 
+const TYPES = ["All", "Original Medicare", "Medicare Advantage", "Medicare Supplement", "Part D"];
+
 function ComparePlans() {
   useTrackPage("plan-comparison", "/compare-plans");
+  useHighlightConsumer();
+  const { state, dispatch } = useApp();
+  const fetchPlans = useServerFn(listPlans);
+
+  const [type, setType] = useState("All");
+  const [maxPremium, setMaxPremium] = useState(300);
+  const [needsDrug, setNeedsDrug] = useState(false);
+  const [needsDental, setNeedsDental] = useState(false);
+  const [needsVision, setNeedsVision] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  useEffect(() => { if (touched) dispatch({ type: "COMPLETE_STEP", step: "plan-comparison" }); }, [touched, dispatch]);
+
+  const filters = useMemo(() => ({
+    type: type === "All" ? undefined : type,
+    maxPremium,
+    needsDrug: needsDrug || undefined,
+    needsDental: needsDental || undefined,
+    needsVision: needsVision || undefined,
+  }), [type, maxPremium, needsDrug, needsDental, needsVision]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["plans", filters],
+    queryFn: () => fetchPlans({ data: filters }),
+  });
+  const plans = data?.plans ?? [];
+  const selected = plans.filter((p) => state.comparePlanIds.includes(p.id));
+
+  const onChange = (fn: () => void) => () => { setTouched(true); fn(); };
+
   return (
-    <PagePlaceholder
-      title="Compare Plans"
-      description="See your Medicare options side-by-side — premiums, coverage, and out-of-pocket costs."
-      comingNext="Plan comparison table with filters for premium, deductible, drug coverage, and provider network."
-    />
+    <main className="mx-auto max-w-6xl px-6 py-12 pb-32">
+      <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl">Compare Medicare plans</h1>
+      <p className="mt-4 text-xl text-muted-foreground">
+        Use the filters to narrow things down. Pick up to 3 plans to compare side-by-side.
+      </p>
+
+      <section id="premium-filter" className="mt-8 grid gap-5 rounded-xl border bg-card p-5 md:grid-cols-2">
+        <div>
+          <label className="text-sm font-semibold text-foreground">Plan type</label>
+          <Select value={type} onValueChange={(v) => { setTouched(true); setType(v); }}>
+            <SelectTrigger className="mt-2 h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="text-sm font-semibold text-foreground">Max monthly premium: <span className="text-primary">${maxPremium}</span></label>
+          <Slider value={[maxPremium]} min={0} max={300} step={5} onValueChange={(v) => { setTouched(true); setMaxPremium(v[0]); }} className="mt-4" />
+        </div>
+        <ToggleRow label="Needs prescription drug coverage" checked={needsDrug} onChange={(v) => { setTouched(true); setNeedsDrug(v); }} />
+        <ToggleRow label="Needs dental coverage" checked={needsDental} onChange={(v) => { setTouched(true); setNeedsDental(v); }} />
+        <ToggleRow label="Needs vision coverage" checked={needsVision} onChange={(v) => { setTouched(true); setNeedsVision(v); }} />
+      </section>
+
+      <section className="mt-8 overflow-hidden rounded-xl border bg-card">
+        {isLoading ? (
+          <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">Pick</TableHead>
+                <TableHead>Plan</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Premium</TableHead>
+                <TableHead className="text-right">Deductible</TableHead>
+                <TableHead className="text-center">Drug</TableHead>
+                <TableHead className="text-center">Dental</TableHead>
+                <TableHead className="text-center">Vision</TableHead>
+                <TableHead className="text-right">Stars</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {plans.map((p) => {
+                const checked = state.comparePlanIds.includes(p.id);
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <Checkbox checked={checked} onCheckedChange={() => { setTouched(true); dispatch({ type: "TOGGLE_COMPARE_PLAN", id: p.id }); }} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-semibold text-foreground">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{p.carrier}</div>
+                    </TableCell>
+                    <TableCell><Badge variant="outline">{p.type}</Badge></TableCell>
+                    <TableCell className="text-right tabular-nums">${Number(p.monthly_premium).toFixed(2)}</TableCell>
+                    <TableCell className="text-right tabular-nums">${Number(p.annual_deductible).toFixed(0)}</TableCell>
+                    <TableCell className="text-center">{p.drug_coverage ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}</TableCell>
+                    <TableCell className="text-center">{p.dental ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}</TableCell>
+                    <TableCell className="text-center">{p.vision ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p.star_rating ?? "—"}</TableCell>
+                  </TableRow>
+                );
+              })}
+              {plans.length === 0 && (
+                <TableRow><TableCell colSpan={9} className="py-10 text-center text-muted-foreground">No plans match those filters.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </section>
+
+      {selected.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 py-3 backdrop-blur md:px-8">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
+            <span className="text-sm font-semibold text-muted-foreground">Comparing ({selected.length}/3):</span>
+            {selected.map((p) => (
+              <Badge key={p.id} className="text-sm cursor-pointer" onClick={() => dispatch({ type: "TOGGLE_COMPARE_PLAN", id: p.id })}>
+                {p.name} ×
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center justify-between rounded-lg border bg-background px-4 py-3">
+      <span className="text-base text-foreground">{label}</span>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </label>
   );
 }

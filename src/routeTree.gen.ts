@@ -13,6 +13,7 @@ import { Route as LearnRouteImport } from './routes/learn'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
@@ -34,18 +35,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
+  '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
+  '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
+  '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/compare-plans' | '/find-doctors' | '/learn'
+  fullPaths: '/' | '/compare-plans' | '/find-doctors' | '/learn' | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/compare-plans' | '/find-doctors' | '/learn'
-  id: '__root__' | '/' | '/compare-plans' | '/find-doctors' | '/learn'
+  to: '/' | '/compare-plans' | '/find-doctors' | '/learn' | '/api/chat'
+  id:
+    | '__root__'
+    | '/'
+    | '/compare-plans'
+    | '/find-doctors'
+    | '/learn'
+    | '/api/chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   ComparePlansRoute: typeof ComparePlansRoute
   FindDoctorsRoute: typeof FindDoctorsRoute
   LearnRoute: typeof LearnRoute
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +115,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComparePlansRoute: ComparePlansRoute,
   FindDoctorsRoute: FindDoctorsRoute,
   LearnRoute: LearnRoute,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
