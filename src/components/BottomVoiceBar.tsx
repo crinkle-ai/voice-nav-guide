@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Loader2, PhoneOff } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
+import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+
+const GLOSSARY: Record<string, string> = {
+  premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
+  deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
+  copay: "A flat dollar amount you pay for a specific service, like $20 for a doctor visit.",
+  coinsurance: "Your share of a cost as a percentage — for example, you pay 20% and the plan pays 80%.",
+  "out-of-pocket-max": "The most you'll pay in a year. Once you hit it, the plan covers 100% of covered care.",
+  network: "The doctors and hospitals your plan has contracts with. In-network care costs less.",
+  formulary: "The list of prescription drugs your plan covers and what tier each one is on.",
+};
 
 type Status = "idle" | "connecting" | "live" | "error";
 
