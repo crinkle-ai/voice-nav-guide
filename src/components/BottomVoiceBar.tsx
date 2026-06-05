@@ -63,6 +63,8 @@ function base64ToInt16(b64: string): Int16Array {
 export function BottomVoiceBar() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
+  const fetchDoctors = useServerFn(searchDoctors);
+  const fetchPlans = useServerFn(listPlans);
 
   const [status, setStatus] = useState<Status>("idle");
   const [caption, setCaption] = useState<string>("");
