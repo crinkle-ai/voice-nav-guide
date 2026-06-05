@@ -9,8 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LearnRouteImport } from './routes/learn'
+import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
+import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
 
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindDoctorsRoute = FindDoctorsRouteImport.update({
+  id: '/find-doctors',
+  path: '/find-doctors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComparePlansRoute = ComparePlansRouteImport.update({
+  id: '/compare-plans',
+  path: '/compare-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +37,61 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/compare-plans': typeof ComparePlansRoute
+  '/find-doctors': typeof FindDoctorsRoute
+  '/learn': typeof LearnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compare-plans': typeof ComparePlansRoute
+  '/find-doctors': typeof FindDoctorsRoute
+  '/learn': typeof LearnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/compare-plans': typeof ComparePlansRoute
+  '/find-doctors': typeof FindDoctorsRoute
+  '/learn': typeof LearnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/compare-plans' | '/find-doctors' | '/learn'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/compare-plans' | '/find-doctors' | '/learn'
+  id: '__root__' | '/' | '/compare-plans' | '/find-doctors' | '/learn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComparePlansRoute: typeof ComparePlansRoute
+  FindDoctorsRoute: typeof FindDoctorsRoute
+  LearnRoute: typeof LearnRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/find-doctors': {
+      id: '/find-doctors'
+      path: '/find-doctors'
+      fullPath: '/find-doctors'
+      preLoaderRoute: typeof FindDoctorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare-plans': {
+      id: '/compare-plans'
+      path: '/compare-plans'
+      fullPath: '/compare-plans'
+      preLoaderRoute: typeof ComparePlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +104,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComparePlansRoute: ComparePlansRoute,
+  FindDoctorsRoute: FindDoctorsRoute,
+  LearnRoute: LearnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

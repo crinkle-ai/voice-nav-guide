@@ -11,6 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppProvider } from "@/context/AppContext";
+import { TopNav } from "@/components/TopNav";
+import { VoiceNavigator } from "@/components/VoiceNavigator";
+
 
 function NotFoundComponent() {
   return (
@@ -118,8 +122,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <TopNav />
+          <Outlet />
+          <VoiceNavigator />
+        </div>
+      </AppProvider>
     </QueryClientProvider>
   );
 }
+
