@@ -256,6 +256,23 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
+  // Push current route to the model so it knows where the user is.
+  useEffect(() => {
+    if (status !== "live") return;
+    if (lastSentPathRef.current === pathname) return;
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    lastSentPathRef.current = pathname;
+    ws.send(
+      JSON.stringify({
+        clientContent: {
+          turns: [{ role: "user", parts: [{ text: `[CURRENT PAGE: ${pathname}]` }] }],
+          turnComplete: false,
+        },
+      }),
+    );
+  }, [pathname, status]);
+
   useEffect(() => {
     return () => { stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
