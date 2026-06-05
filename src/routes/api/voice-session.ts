@@ -60,6 +60,78 @@ Examples:
 - User asks "plans under 50 dollars with drug coverage" → call filter_plans({ maxPremium: 50, needsDrug: true }), then summarize the top results.
 - User asks "what's a deductible?" → call explain_term({ term: "deductible" }), then explain in one sentence.`;
 
+const TOOLS = [
+  {
+    functionDeclarations: [
+      {
+        name: "navigate_to",
+        description: "Navigate the live website to one of the app pages.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            page: { type: "STRING", enum: ["/", "/learn", "/find-doctors", "/compare-plans"] },
+          },
+          required: ["page"],
+        },
+      },
+      {
+        name: "highlight_section",
+        description: "Scroll to and outline a section by id on the current page.",
+        parameters: {
+          type: "OBJECT",
+          properties: { section: { type: "STRING", description: "Section id, e.g. part-a" } },
+          required: ["section"],
+        },
+      },
+      {
+        name: "search_doctors",
+        description: "Search Medicare-accepting doctors and apply filters on the Find Doctors page. Returns matching doctors.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            specialty: {
+              type: "STRING",
+              description: "Medical specialty, e.g. Cardiology",
+              enum: ["Primary Care", "Cardiology", "Orthopedics", "Endocrinology", "Ophthalmology", "Neurology", "Dermatology"],
+            },
+            city: { type: "STRING", description: "City name, e.g. Austin" },
+            name: { type: "STRING", description: "Partial doctor name" },
+          },
+        },
+      },
+      {
+        name: "filter_plans",
+        description: "Filter Medicare plans and apply filters on the Compare Plans page. Returns matching plans.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            type: { type: "STRING", enum: ["Original Medicare", "Medicare Advantage", "Medicare Supplement", "Part D"] },
+            maxPremium: { type: "NUMBER", description: "Maximum monthly premium in USD" },
+            needsDrug: { type: "BOOLEAN" },
+            needsDental: { type: "BOOLEAN" },
+            needsVision: { type: "BOOLEAN" },
+          },
+        },
+      },
+      {
+        name: "explain_term",
+        description: "Navigate to /learn glossary and highlight a Medicare term.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            term: {
+              type: "STRING",
+              enum: ["premium", "deductible", "copay", "coinsurance", "out-of-pocket-max", "network", "formulary"],
+            },
+          },
+          required: ["term"],
+        },
+      },
+    ],
+  },
+];
+
+
 export const Route = createFileRoute("/api/voice-session")({
   server: {
     handlers: {
@@ -101,84 +173,8 @@ export const Route = createFileRoute("/api/voice-session")({
                       startOfSpeechSensitivity: "START_SENSITIVITY_HIGH",
                     },
                   },
-                  tools: [
-                    {
-                      functionDeclarations: [
-                        {
-                          name: "navigate_to",
-                          description: "Navigate the live website to one of the app pages.",
-                          parameters: {
-                            type: "OBJECT",
-                            properties: {
-                              page: {
-                                type: "STRING",
-                                enum: ["/", "/learn", "/find-doctors", "/compare-plans"],
-                              },
-                            },
-                            required: ["page"],
-                          },
-                        },
-                        {
-                          name: "highlight_section",
-                          description: "Scroll to and outline a section by id on the current page.",
-                          parameters: {
-                            type: "OBJECT",
-                            properties: {
-                              section: { type: "STRING", description: "Section id, e.g. part-a" },
-                            },
-                            required: ["section"],
-                          },
-                        },
-                        {
-                          name: "search_doctors",
-                          description: "Search Medicare-accepting doctors and apply filters on the Find Doctors page. Returns matching doctors.",
-                          parameters: {
-                            type: "OBJECT",
-                            properties: {
-                              specialty: {
-                                type: "STRING",
-                                description: "Medical specialty, e.g. Cardiology",
-                                enum: ["Primary Care", "Cardiology", "Orthopedics", "Endocrinology", "Ophthalmology", "Neurology", "Dermatology"],
-                              },
-                              city: { type: "STRING", description: "City name, e.g. Austin" },
-                              name: { type: "STRING", description: "Partial doctor name" },
-                            },
-                          },
-                        },
-                        {
-                          name: "filter_plans",
-                          description: "Filter Medicare plans and apply filters on the Compare Plans page. Returns matching plans.",
-                          parameters: {
-                            type: "OBJECT",
-                            properties: {
-                              type: {
-                                type: "STRING",
-                                enum: ["Original Medicare", "Medicare Advantage", "Medicare Supplement", "Part D"],
-                              },
-                              maxPremium: { type: "NUMBER", description: "Maximum monthly premium in USD" },
-                              needsDrug: { type: "BOOLEAN" },
-                              needsDental: { type: "BOOLEAN" },
-                              needsVision: { type: "BOOLEAN" },
-                            },
-                          },
-                        },
-                        {
-                          name: "explain_term",
-                          description: "Navigate to /learn glossary and highlight a Medicare term.",
-                          parameters: {
-                            type: "OBJECT",
-                            properties: {
-                              term: {
-                                type: "STRING",
-                                enum: ["premium", "deductible", "copay", "coinsurance", "out-of-pocket-max", "network", "formulary"],
-                              },
-                            },
-                            required: ["term"],
-                          },
-                        },
-                      ],
-                    },
-                  ],
+                  tools: TOOLS,
+
                 },
               },
             },
