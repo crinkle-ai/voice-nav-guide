@@ -67,9 +67,9 @@ function ComparePlans() {
       <section id="premium-filter" className="mt-8 grid gap-5 rounded-xl border bg-card p-5 md:grid-cols-2">
         <div>
           <label className="text-sm font-semibold text-foreground">Plan type</label>
-          <Select value={type} onValueChange={onChange(() => {}) as unknown as (v: string) => void}>
+          <Select value={type} onValueChange={(v) => { setTouched(true); setType(v); }}>
             <SelectTrigger className="mt-2 h-11"><SelectValue /></SelectTrigger>
-            <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t} onClick={() => { setTouched(true); setType(t); }}>{t}</SelectItem>)}</SelectContent>
+            <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div>
