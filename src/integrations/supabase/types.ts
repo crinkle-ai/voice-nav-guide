@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      doctors: {
+        Row: {
+          accepting_new_patients: boolean
+          address: string
+          city: string
+          created_at: string
+          id: string
+          languages: string[]
+          medicare_assignment: boolean
+          name: string
+          network_tags: string[]
+          phone: string
+          specialty: string
+          state: string
+          zip: string
+        }
+        Insert: {
+          accepting_new_patients?: boolean
+          address: string
+          city: string
+          created_at?: string
+          id?: string
+          languages?: string[]
+          medicare_assignment?: boolean
+          name: string
+          network_tags?: string[]
+          phone: string
+          specialty: string
+          state: string
+          zip: string
+        }
+        Update: {
+          accepting_new_patients?: boolean
+          address?: string
+          city?: string
+          created_at?: string
+          id?: string
+          languages?: string[]
+          medicare_assignment?: boolean
+          name?: string
+          network_tags?: string[]
+          phone?: string
+          specialty?: string
+          state?: string
+          zip?: string
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          annual_deductible: number
+          carrier: string
+          created_at: string
+          dental: boolean
+          drug_coverage: boolean
+          hearing: boolean
+          highlights: string[]
+          id: string
+          monthly_premium: number
+          name: string
+          oop_max: number | null
+          star_rating: number | null
+          summary: string
+          type: string
+          vision: boolean
+        }
+        Insert: {
+          annual_deductible: number
+          carrier: string
+          created_at?: string
+          dental?: boolean
+          drug_coverage?: boolean
+          hearing?: boolean
+          highlights?: string[]
+          id?: string
+          monthly_premium: number
+          name: string
+          oop_max?: number | null
+          star_rating?: number | null
+          summary: string
+          type: string
+          vision?: boolean
+        }
+        Update: {
+          annual_deductible?: number
+          carrier?: string
+          created_at?: string
+          dental?: boolean
+          drug_coverage?: boolean
+          hearing?: boolean
+          highlights?: string[]
+          id?: string
+          monthly_premium?: number
+          name?: string
+          oop_max?: number | null
+          star_rating?: number | null
+          summary?: string
+          type?: string
+          vision?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
