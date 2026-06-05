@@ -78,12 +78,15 @@ export function BottomVoiceBar() {
   const micCtxRef = useRef<AudioContext | null>(null);
   const playCtxRef = useRef<AudioContext | null>(null);
   const playHeadRef = useRef<number>(0);
+  const activeSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startingRef = useRef(false);
+  const greetedRef = useRef(false);
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
@@ -96,14 +99,32 @@ export function BottomVoiceBar() {
     if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
+  const stopAllAudio = useCallback(() => {
+    for (const src of activeSourcesRef.current) {
+      try { src.stop(); } catch { /* noop */ }
+      try { src.disconnect(); } catch { /* noop */ }
+    }
+    activeSourcesRef.current.clear();
+    playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+  }, []);
+
+  // Highlight a section, polling for the element since navigation may not have
+  // rendered the target route yet.
   const highlightSection = useCallback((sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-4", "ring-primary", "ring-offset-2", "rounded-lg", "transition-shadow");
-    setTimeout(() => {
-      el.classList.remove("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
-    }, 3000);
+    let attempts = 0;
+    const tryIt = () => {
+      const el = document.getElementById(sectionId);
+      if (!el) {
+        if (attempts++ < 30) setTimeout(tryIt, 100);
+        return;
+      }
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ring-4", "ring-primary", "ring-offset-2", "rounded-lg", "transition-shadow");
+      setTimeout(() => {
+        el.classList.remove("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
+      }, 3000);
+    };
+    tryIt();
   }, []);
 
   const handleToolCall = useCallback(
@@ -130,6 +151,7 @@ export function BottomVoiceBar() {
             type: "SET_DOCTOR_VOICE_FILTERS",
             filters: { specialty: args.specialty, city: args.city, name: args.name },
           });
+          highlightSection("doctor-results");
           const res = await fetchDoctors({ data: args });
           const top = res.doctors.slice(0, 5).map((d) => ({
             name: d.name,
@@ -156,6 +178,7 @@ export function BottomVoiceBar() {
           };
           navigate({ to: "/compare-plans" });
           dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
+          highlightSection("premium-filter");
           const res = await fetchPlans({ data: args });
           const top = res.plans.slice(0, 5).map((p) => ({
             name: p.name,
@@ -169,10 +192,8 @@ export function BottomVoiceBar() {
         } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
           const term = fc.args.term as string;
           navigate({ to: "/learn" });
-          setTimeout(() => {
-            highlightSection(`glossary-${term}`);
-            dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
-          }, 400);
+          highlightSection(`glossary-${term}`);
+          dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
           result = { term, definition: GLOSSARY[term] ?? "See the highlighted glossary card." };
         } else {
           result = { ok: false, reason: "unknown tool or args" };
@@ -209,10 +230,16 @@ export function BottomVoiceBar() {
     const startAt = Math.max(now, playHeadRef.current);
     src.start(startAt);
     playHeadRef.current = startAt + buffer.duration;
+    activeSourcesRef.current.add(src);
+    src.onended = () => {
+      activeSourcesRef.current.delete(src);
+      try { src.disconnect(); } catch { /* noop */ }
+    };
   }, []);
 
   const stop = useCallback(() => {
     clearIdleTimers();
+    stopAllAudio();
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
@@ -224,13 +251,17 @@ export function BottomVoiceBar() {
     micCtxRef.current = null;
     playCtxRef.current = null;
     playHeadRef.current = 0;
+    startingRef.current = false;
+    greetedRef.current = false;
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers]);
+  }, [dispatch, clearIdleTimers, stopAllAudio]);
 
   const start = useCallback(async () => {
-    if (status === "connecting" || status === "live") return;
+    if (startingRef.current || status === "connecting" || status === "live") return;
+    startingRef.current = true;
+    greetedRef.current = false;
     clearIdleTimers();
     setErrorMsg(null);
     setStatus("connecting");
@@ -287,6 +318,7 @@ export function BottomVoiceBar() {
         lastSentPathRef.current = null;
 
         setStatus("live");
+        startingRef.current = false;
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
       };
 
@@ -295,7 +327,8 @@ export function BottomVoiceBar() {
         let msg: LiveServerMessage;
         try { msg = JSON.parse(raw); } catch { return; }
 
-        if (msg.setupComplete) {
+        if (msg.setupComplete && !greetedRef.current) {
+          greetedRef.current = true;
           ws.send(
             JSON.stringify({
               clientContent: {
@@ -336,7 +369,9 @@ export function BottomVoiceBar() {
           }, 20000);
         }
         if (msg.serverContent?.interrupted) {
-          playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+          // Barge-in: stop any already-scheduled audio so the user only hears
+          // the new turn, not the tail of the previous one.
+          stopAllAudio();
           clearIdleTimers();
         }
         if (msg.toolCall?.functionCalls) {
@@ -357,10 +392,11 @@ export function BottomVoiceBar() {
       const message = e instanceof Error ? e.message : "Failed to start";
       setErrorMsg(message);
       setStatus("error");
+      startingRef.current = false;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption]);
+  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio]);
 
   useEffect(() => {
     mutedRef.current = muted;
