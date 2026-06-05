@@ -206,6 +206,7 @@ export function BottomVoiceBar() {
   }, []);
 
   const stop = useCallback(() => {
+    clearIdleTimers();
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
@@ -220,10 +221,11 @@ export function BottomVoiceBar() {
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch]);
+  }, [dispatch, clearIdleTimers]);
 
   const start = useCallback(async () => {
     if (status === "connecting" || status === "live") return;
+    clearIdleTimers();
     setErrorMsg(null);
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
