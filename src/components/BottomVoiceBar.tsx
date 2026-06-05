@@ -408,7 +408,7 @@ export function BottomVoiceBar() {
               : caption
                 ? caption
                 : isLive
-                  ? (muted ? "Mic muted — tap to unmute" : "Listening… just start talking")
+                  ? (muted ? "Mic muted — tap to unmute" : "")
                   : isConnecting
                     ? "Connecting…"
                     : "Tap Start to talk to your guide"}
