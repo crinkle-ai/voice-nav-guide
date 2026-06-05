@@ -318,6 +318,7 @@ export function BottomVoiceBar() {
         lastSentPathRef.current = null;
 
         setStatus("live");
+        startingRef.current = false;
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
       };
 
@@ -326,7 +327,8 @@ export function BottomVoiceBar() {
         let msg: LiveServerMessage;
         try { msg = JSON.parse(raw); } catch { return; }
 
-        if (msg.setupComplete) {
+        if (msg.setupComplete && !greetedRef.current) {
+          greetedRef.current = true;
           ws.send(
             JSON.stringify({
               clientContent: {
@@ -367,7 +369,9 @@ export function BottomVoiceBar() {
           }, 20000);
         }
         if (msg.serverContent?.interrupted) {
-          playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+          // Barge-in: stop any already-scheduled audio so the user only hears
+          // the new turn, not the tail of the previous one.
+          stopAllAudio();
           clearIdleTimers();
         }
         if (msg.toolCall?.functionCalls) {
