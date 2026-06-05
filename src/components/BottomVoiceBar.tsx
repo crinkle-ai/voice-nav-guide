@@ -57,6 +57,8 @@ export function BottomVoiceBar() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const lastSentPathRef = useRef<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
