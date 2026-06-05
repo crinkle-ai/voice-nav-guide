@@ -81,14 +81,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "POC" },
+      { name: "description", content: "Medicare Navigator AI is a voice-guided web application that acts as an AI navigation layer for Medicare users." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "POC" },
+      { property: "og:description", content: "Medicare Navigator AI is a voice-guided web application that acts as an AI navigation layer for Medicare users." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "POC" },
+      { name: "twitter:description", content: "Medicare Navigator AI is a voice-guided web application that acts as an AI navigation layer for Medicare users." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02a7da9a-f3e5-4b1d-8fb6-ed9f17b1fc22/id-preview-274ab0b2--238000df-1070-45dc-bb4f-6137aea93105.lovable.app-1780692324248.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02a7da9a-f3e5-4b1d-8fb6-ed9f17b1fc22/id-preview-274ab0b2--238000df-1070-45dc-bb4f-6137aea93105.lovable.app-1780692324248.png" },
     ],
     links: [
       {
