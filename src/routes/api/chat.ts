@@ -18,7 +18,7 @@ When the user wants to go somewhere or see something, USE TOOLS rather than just
 
 After calling a tool, briefly tell the user what you did and what to look at.`;
 
-const PAGE_VALUES = ["/", "/learn", "/find-doctors", "/compare-plans"] as const;
+const PAGE_VALUES: ["/", "/learn", "/find-doctors", "/compare-plans"] = ["/", "/learn", "/find-doctors", "/compare-plans"];
 
 export const Route = createFileRoute("/api/chat")({
   server: {
