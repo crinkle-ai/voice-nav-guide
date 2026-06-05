@@ -31,7 +31,7 @@ function Home() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       {/* Hero */}
-      <section className="grid gap-10 md:grid-cols-[1.3fr_1fr] md:items-center">
+      <section id="hero" className="grid gap-10 md:grid-cols-[1.3fr_1fr] md:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
             <ShieldCheck className="h-4 w-4" /> Friendly • Plain language • Voice-guided
@@ -51,7 +51,7 @@ function Home() {
             </Button>
           </div>
         </div>
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div id="try-asking" className="rounded-2xl border bg-card p-6 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <MessageCircleQuestion className="h-4 w-4" /> Try asking…
           </div>
@@ -70,7 +70,7 @@ function Home() {
       </section>
 
       {/* Steps */}
-      <section className="mt-16">
+      <section id="steps" className="mt-16">
         <h2 className="text-3xl font-bold text-foreground">Three steps. Take them in any order.</h2>
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           <StepCard to="/learn" icon={<BookOpen className="h-6 w-6" />} step="1" title="Learn the basics" desc="Parts A, B, C, D — without the jargon." done={visited("/learn")} />
@@ -80,7 +80,7 @@ function Home() {
       </section>
 
       {/* Trust strip */}
-      <section className="mt-16 grid gap-4 rounded-xl border bg-muted/40 p-6 md:grid-cols-3">
+      <section id="trust" className="mt-16 grid gap-4 rounded-xl border bg-muted/40 p-6 md:grid-cols-3">
         <TrustItem icon={<Heart className="h-5 w-5" />} title="Senior-friendly" desc="Large type, simple language, read-aloud support." />
         <TrustItem icon={<Mic className="h-5 w-5" />} title="Voice-first" desc="Ask out loud. We'll answer and take you there." />
         <TrustItem icon={<ShieldCheck className="h-5 w-5" />} title="No sales pitch" desc="Education first. We never push a specific plan." />
