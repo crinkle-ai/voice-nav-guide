@@ -13,7 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider } from "@/context/AppContext";
 import { TopNav } from "@/components/TopNav";
-import { VoiceNavigator } from "@/components/VoiceNavigator";
+import { BottomVoiceBar } from "@/components/BottomVoiceBar";
 
 
 function NotFoundComponent() {
@@ -123,10 +123,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background pb-24 text-foreground">
           <TopNav />
           <Outlet />
-          <VoiceNavigator />
+          <BottomVoiceBar />
         </div>
       </AppProvider>
     </QueryClientProvider>
