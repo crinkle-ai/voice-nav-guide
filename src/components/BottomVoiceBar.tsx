@@ -78,12 +78,15 @@ export function BottomVoiceBar() {
   const micCtxRef = useRef<AudioContext | null>(null);
   const playCtxRef = useRef<AudioContext | null>(null);
   const playHeadRef = useRef<number>(0);
+  const activeSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startingRef = useRef(false);
+  const greetedRef = useRef(false);
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
@@ -96,14 +99,32 @@ export function BottomVoiceBar() {
     if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
+  const stopAllAudio = useCallback(() => {
+    for (const src of activeSourcesRef.current) {
+      try { src.stop(); } catch { /* noop */ }
+      try { src.disconnect(); } catch { /* noop */ }
+    }
+    activeSourcesRef.current.clear();
+    playHeadRef.current = playCtxRef.current?.currentTime ?? 0;
+  }, []);
+
+  // Highlight a section, polling for the element since navigation may not have
+  // rendered the target route yet.
   const highlightSection = useCallback((sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-4", "ring-primary", "ring-offset-2", "rounded-lg", "transition-shadow");
-    setTimeout(() => {
-      el.classList.remove("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
-    }, 3000);
+    let attempts = 0;
+    const tryIt = () => {
+      const el = document.getElementById(sectionId);
+      if (!el) {
+        if (attempts++ < 30) setTimeout(tryIt, 100);
+        return;
+      }
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ring-4", "ring-primary", "ring-offset-2", "rounded-lg", "transition-shadow");
+      setTimeout(() => {
+        el.classList.remove("ring-4", "ring-primary", "ring-offset-2", "rounded-lg");
+      }, 3000);
+    };
+    tryIt();
   }, []);
 
   const handleToolCall = useCallback(
