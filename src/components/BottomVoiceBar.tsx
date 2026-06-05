@@ -151,6 +151,7 @@ export function BottomVoiceBar() {
             type: "SET_DOCTOR_VOICE_FILTERS",
             filters: { specialty: args.specialty, city: args.city, name: args.name },
           });
+          highlightSection("doctor-results");
           const res = await fetchDoctors({ data: args });
           const top = res.doctors.slice(0, 5).map((d) => ({
             name: d.name,
@@ -177,6 +178,7 @@ export function BottomVoiceBar() {
           };
           navigate({ to: "/compare-plans" });
           dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
+          highlightSection("premium-filter");
           const res = await fetchPlans({ data: args });
           const top = res.plans.slice(0, 5).map((p) => ({
             name: p.name,
@@ -190,10 +192,8 @@ export function BottomVoiceBar() {
         } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
           const term = fc.args.term as string;
           navigate({ to: "/learn" });
-          setTimeout(() => {
-            highlightSection(`glossary-${term}`);
-            dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
-          }, 400);
+          highlightSection(`glossary-${term}`);
+          dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
           result = { term, definition: GLOSSARY[term] ?? "See the highlighted glossary card." };
         } else {
           result = { ok: false, reason: "unknown tool or args" };
