@@ -94,7 +94,7 @@ function ComparePlans() {
         <ToggleRow label="Needs vision coverage" checked={needsVision} onChange={(v) => { setTouched(true); setNeedsVision(v); }} />
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-xl border bg-card">
+      <section id="plan-results" className="mt-8 overflow-hidden rounded-xl border bg-card scroll-mt-24">
         {isLoading ? (
           <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
         ) : (

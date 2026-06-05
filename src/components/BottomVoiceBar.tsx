@@ -178,7 +178,7 @@ export function BottomVoiceBar() {
           };
           navigate({ to: "/compare-plans" });
           dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
-          highlightSection("premium-filter");
+          highlightSection("plan-results");
           const res = await fetchPlans({ data: args });
           const top = res.plans.slice(0, 5).map((p) => ({
             name: p.name,
