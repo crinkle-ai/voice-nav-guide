@@ -309,6 +309,9 @@ export function BottomVoiceBar() {
           navigate({ to: "/learn" });
           dispatch({ type: "SET_HIGHLIGHT", section });
           setTimeout(() => highlightSection(section), 400);
+        } else if (fc.name === "request_agent_callback") {
+          respond({ ok: true, opened: true });
+          openAgentCallback();
         } else {
           respond({ ok: false, reason: "unknown tool or args" });
         }
@@ -316,7 +319,7 @@ export function BottomVoiceBar() {
         respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
       }
     },
-    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans, openAgentCallback],
   );
 
 
