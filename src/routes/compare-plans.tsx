@@ -11,7 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
@@ -37,6 +38,7 @@ function ComparePlans() {
   const [needsDental, setNeedsDental] = useState(false);
   const [needsVision, setNeedsVision] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [enrollStarted, setEnrollStarted] = useState(false);
 
   useEffect(() => { if (touched) dispatch({ type: "COMPLETE_STEP", step: "plan-comparison" }); }, [touched, dispatch]);
 
@@ -139,6 +141,44 @@ function ComparePlans() {
               )}
             </TableBody>
           </Table>
+        )}
+      </section>
+
+      <section
+        id="enroll-now"
+        className="mt-8 overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 shadow-sm scroll-mt-24 md:p-8"
+      >
+        {enrollStarted ? (
+          <div className="flex items-start gap-4">
+            <CheckCircle2 className="mt-1 h-8 w-8 shrink-0 text-primary" />
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Enrollment started</h2>
+              <p className="mt-1 text-base text-muted-foreground">
+                (Demo) In a real flow, you'd now confirm your information, verify your Medicare number, and submit your application — typically under 10 minutes.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                <ShieldCheck className="h-3.5 w-3.5" /> Final step
+              </div>
+              <h2 className="mt-3 text-2xl font-bold text-foreground md:text-3xl">
+                Ready? Enroll online in minutes.
+              </h2>
+              <p className="mt-2 text-base text-muted-foreground">
+                You've reviewed your options and confirmed your doctors. Complete your Medicare enrollment online — no phone calls required.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              onClick={() => setEnrollStarted(true)}
+              className="h-14 px-8 text-lg font-semibold shadow-md md:shrink-0"
+            >
+              Start Enrollment <ArrowRight className="h-5 w-5" />
+            </Button>
+          </div>
         )}
       </section>
 
