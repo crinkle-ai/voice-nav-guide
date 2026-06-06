@@ -124,7 +124,7 @@ const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Sl
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
-    <div className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
+    <div data-slide-shell className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
       {eyebrow && (
         <div className="mb-3 md:mb-6 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</div>
       )}
