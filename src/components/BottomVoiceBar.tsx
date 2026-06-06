@@ -244,10 +244,17 @@ export function BottomVoiceBar() {
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
           const raw = fc.args.page as string;
-          const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
+          let page = (raw === "/" ? "/home" : raw) as
+            | "/home" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
+          // Enforce auth gate client-side too: if AI tries to send the user
+          // to a protected page while signed-out, route them through login.
+          if (page === "/my-plans" && !isAuthed()) {
+            page = "/login";
+            try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+          }
           lastSentPathRef.current = page;
           respond({ ok: true, navigated: page });
-          navigate({ to: page });
+          navigate({ to: page === "/login" ? "/login" : page, ...(page === "/login" ? { search: { redirect: "/my-plans" } } : {}) } as Parameters<typeof navigate>[0]);
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
           const section = fc.args.section;
           respond({ ok: true, highlighted: section });
