@@ -56,13 +56,21 @@ const GLOSSARY = [
 function Learn() {
   useTrackPage("education", "/learn");
   useHighlightConsumer();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const [openId, setOpenId] = useState<string>("");
   const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (openId) dispatch({ type: "COMPLETE_STEP", step: "education" });
   }, [openId, dispatch]);
+
+  // Auto-expand the accordion item when the AI highlights a Medicare part
+  useEffect(() => {
+    const section = state.highlightedSection;
+    if (section && PARTS.some((p) => p.id === section)) {
+      setOpenId(section);
+    }
+  }, [state.highlightedSection]);
 
   const readAloud = (id: string, text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
