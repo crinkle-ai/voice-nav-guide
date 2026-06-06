@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,12 +17,11 @@ function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const total = 5;
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const next = useCallback(() => {
-    setIndex((i) => {
-      if (i >= total - 1) return i;
-      return i + 1;
-    });
+    setIndex((i) => (i >= total - 1 ? i : i + 1));
   }, []);
   const prev = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
   const launch = useCallback(() => navigate({ to: "/home" }), [navigate]);
@@ -37,10 +36,30 @@ function SlideDeck() {
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev, launch, index]);
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) next();
+      else prev();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground group">
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-background text-foreground group"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Slides */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden pb-24">
         {SLIDES.map((Slide, i) => (
           <div
             key={i}
@@ -53,39 +72,39 @@ function SlideDeck() {
         ))}
       </div>
 
-      {/* Controls */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      {/* Controls — always visible on mobile, hover-reveal on desktop */}
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between px-3 md:px-6 md:opacity-0 md:transition-opacity md:duration-300 md:group-hover:opacity-100">
         <button
           onClick={prev}
           disabled={index === 0}
-          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-card/90 border shadow-lg backdrop-blur transition hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed"
+          className="pointer-events-auto flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-card/90 border shadow-lg backdrop-blur transition hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="h-7 w-7" />
+          <ChevronLeft className="h-5 w-5 md:h-7 md:w-7" />
         </button>
         <button
           onClick={next}
           disabled={index === total - 1}
-          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-card/90 border shadow-lg backdrop-blur transition hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed"
+          className="pointer-events-auto flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-card/90 border shadow-lg backdrop-blur transition hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Next slide"
         >
-          <ChevronRight className="h-7 w-7" />
+          <ChevronRight className="h-5 w-5 md:h-7 md:w-7" />
         </button>
       </div>
 
       {/* Counter + progress */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4">
-        <div className="flex gap-2">
+      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 md:gap-4 z-10">
+        <div className="flex gap-1.5 md:gap-2">
           {Array.from({ length: total }).map((_, i) => (
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`h-1.5 rounded-full transition-all ${i === index ? "w-10 bg-primary" : "w-6 bg-muted hover:bg-muted-foreground/40"}`}
+              className={`h-1.5 rounded-full transition-all ${i === index ? "w-6 md:w-10 bg-primary" : "w-3 md:w-6 bg-muted hover:bg-muted-foreground/40"}`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
-        <span className="text-sm font-medium text-muted-foreground tabular-nums">
+        <span className="text-xs md:text-sm font-medium text-muted-foreground tabular-nums">
           {index + 1} of {total}
         </span>
       </div>
@@ -99,9 +118,9 @@ const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Sl
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
-    <div className="h-full w-full flex flex-col justify-center px-12 md:px-24 max-w-7xl mx-auto">
+    <div className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
       {eyebrow && (
-        <div className="mb-6 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</div>
+        <div className="mb-3 md:mb-6 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</div>
       )}
       {children}
     </div>
@@ -111,14 +130,14 @@ function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?
 function Slide1(_: SlideProps) {
   return (
     <SlideShell eyebrow="Crinkle Health">
-      <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] max-w-5xl">
+      <h1 className="text-2xl sm:text-4xl md:text-7xl font-bold tracking-tight leading-[1.1] max-w-5xl">
         Medicare decisions are complex.{" "}
         <span className="text-primary">The experience should make them simpler.</span>
       </h1>
-      <p className="mt-10 text-xl md:text-2xl text-muted-foreground">
+      <p className="mt-4 md:mt-10 text-base sm:text-lg md:text-2xl text-muted-foreground">
         Voice-Guided Medicare Journey Navigator
       </p>
-      <div className="mt-12 h-1 w-24 bg-primary rounded-full" />
+      <div className="mt-6 md:mt-12 h-1 w-16 md:w-24 bg-primary rounded-full" />
     </SlideShell>
   );
 }
@@ -133,19 +152,19 @@ function Slide2(_: SlideProps) {
   ];
   return (
     <SlideShell eyebrow="The Problem">
-      <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight max-w-4xl">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-4xl">
         Today's Medicare shopping experience is <span className="text-primary">overwhelming.</span>
       </h2>
-      <p className="mt-8 text-lg md:text-xl text-muted-foreground">Consumers often…</p>
-      <ul className="mt-6 grid gap-3 md:grid-cols-2 max-w-4xl">
+      <p className="mt-3 md:mt-8 text-sm md:text-xl text-muted-foreground">Consumers often…</p>
+      <ul className="mt-3 md:mt-6 grid gap-2 md:gap-3 md:grid-cols-2 max-w-4xl">
         {pains.map((p) => (
-          <li key={p} className="flex items-start gap-3 text-lg md:text-xl text-foreground">
-            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
+          <li key={p} className="flex items-start gap-2 md:gap-3 text-sm md:text-xl text-foreground">
+            <span className="mt-1.5 md:mt-2 h-1.5 w-1.5 md:h-2 md:w-2 shrink-0 rounded-full bg-primary" />
             <span>{p}</span>
           </li>
         ))}
       </ul>
-      <p className="mt-10 max-w-3xl text-base md:text-lg italic text-muted-foreground border-l-4 border-primary pl-4">
+      <p className="mt-4 md:mt-10 max-w-3xl text-xs md:text-lg italic text-muted-foreground border-l-4 border-primary pl-3 md:pl-4">
         Current guided journeys rely on static screens that don't adapt when users have questions or need help.
       </p>
     </SlideShell>
@@ -154,26 +173,26 @@ function Slide2(_: SlideProps) {
 
 function Slide3(_: SlideProps) {
   const caps = [
-    { icon: <Mic className="h-7 w-7" />, label: "Natural Voice Conversations" },
-    { icon: <Compass className="h-7 w-7" />, label: "Intelligent Website Navigation" },
-    { icon: <BookOpen className="h-7 w-7" />, label: "Medicare Education" },
-    { icon: <Headphones className="h-7 w-7" />, label: "Human Support Handoff" },
+    { icon: <Mic className="h-5 w-5 md:h-7 md:w-7" />, label: "Natural Voice Conversations" },
+    { icon: <Compass className="h-5 w-5 md:h-7 md:w-7" />, label: "Intelligent Website Navigation" },
+    { icon: <BookOpen className="h-5 w-5 md:h-7 md:w-7" />, label: "Medicare Education" },
+    { icon: <Headphones className="h-5 w-5 md:h-7 md:w-7" />, label: "Human Support Handoff" },
   ];
   return (
     <SlideShell eyebrow="The Solution">
-      <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
         Introducing the <span className="text-primary">Voice-Guided Medicare Journey Navigator.</span>
       </h2>
-      <p className="mt-8 text-xl md:text-2xl text-muted-foreground">
+      <p className="mt-3 md:mt-8 text-sm md:text-2xl text-muted-foreground">
         Users speak. The website responds.
       </p>
-      <div className="mt-12 grid gap-5 md:grid-cols-2 max-w-4xl">
+      <div className="mt-4 md:mt-12 grid gap-2 md:gap-5 md:grid-cols-2 max-w-4xl">
         {caps.map((c) => (
-          <div key={c.label} className="flex items-center gap-4 rounded-xl border bg-card p-5 shadow-sm">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div key={c.label} className="flex items-center gap-3 md:gap-4 rounded-xl border bg-card p-3 md:p-5 shadow-sm">
+            <div className="flex h-10 w-10 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               {c.icon}
             </div>
-            <div className="text-lg md:text-xl font-semibold">{c.label}</div>
+            <div className="text-sm md:text-xl font-semibold">{c.label}</div>
           </div>
         ))}
       </div>
@@ -196,10 +215,10 @@ function Slide4(_: SlideProps) {
   ];
   return (
     <SlideShell eyebrow="Business Impact">
-      <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight">
         Why this <span className="text-primary">matters.</span>
       </h2>
-      <div className="mt-12 grid gap-8 md:grid-cols-2 max-w-5xl">
+      <div className="mt-4 md:mt-12 grid gap-3 md:gap-8 md:grid-cols-2 max-w-5xl">
         <ImpactCol title="User Outcomes" items={user} />
         <ImpactCol title="Business Outcomes" items={biz} />
       </div>
@@ -209,12 +228,12 @@ function Slide4(_: SlideProps) {
 
 function ImpactCol({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="rounded-2xl border bg-card p-8 shadow-sm">
-      <div className="text-sm font-semibold uppercase tracking-wider text-primary">{title}</div>
-      <ul className="mt-5 space-y-3">
+    <div className="rounded-2xl border bg-card p-4 md:p-8 shadow-sm">
+      <div className="text-[10px] md:text-sm font-semibold uppercase tracking-wider text-primary">{title}</div>
+      <ul className="mt-3 md:mt-5 space-y-2 md:space-y-3">
         {items.map((i) => (
-          <li key={i} className="flex items-start gap-3 text-lg">
-            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
+          <li key={i} className="flex items-start gap-2 md:gap-3 text-sm md:text-lg">
+            <span className="mt-1.5 md:mt-2 h-1.5 w-1.5 md:h-2 md:w-2 shrink-0 rounded-full bg-primary" />
             <span>{i}</span>
           </li>
         ))}
@@ -226,19 +245,19 @@ function ImpactCol({ title, items }: { title: string; items: string[] }) {
 function Slide5({ onLaunch }: SlideProps) {
   return (
     <SlideShell eyebrow="Live Demo">
-      <h2 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight max-w-5xl">
+      <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold tracking-tight leading-tight max-w-5xl">
         See it <span className="text-primary">in action.</span>
       </h2>
-      <p className="mt-8 max-w-3xl text-lg md:text-2xl text-muted-foreground">
+      <p className="mt-3 md:mt-8 max-w-3xl text-sm md:text-2xl text-muted-foreground">
         This prototype demonstrates how the Voice-Guided Medicare Navigator guides users through education, doctor lookup, and plan comparison — using only natural conversation.
       </p>
-      <div className="mt-12">
+      <div className="mt-6 md:mt-12">
         <Button
           onClick={onLaunch}
           size="lg"
-          className="h-16 px-10 text-xl gap-3 shadow-lg shadow-primary/30"
+          className="h-12 md:h-16 px-6 md:px-10 text-base md:text-xl gap-2 md:gap-3 shadow-lg shadow-primary/30"
         >
-          Launch the Demo <ArrowRight className="h-6 w-6" />
+          Launch the Demo <ArrowRight className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
       </div>
     </SlideShell>
