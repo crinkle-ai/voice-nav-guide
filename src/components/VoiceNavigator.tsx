@@ -432,7 +432,7 @@ export function VoiceNavigator() {
                   {/* Status */}
                   <div className="flex items-center gap-2 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
                     <CheckCircle2 className="h-4 w-4" />
-                    Request sent — expect a call within 1 business day
+                    A licensed agent will call you back in just a moment
                   </div>
                 </div>
               );

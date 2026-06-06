@@ -733,7 +733,7 @@ export function BottomVoiceBar() {
                   <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
                     <div className="font-semibold text-foreground">✓ Sent to Salesforce</div>
                     <div className="mt-0.5 text-muted-foreground">
-                      Lead created in CRM · expect a call within 1 business day · {cbSnapshot.submittedAt}
+                      Priority callback — an agent will be with you shortly · {cbSnapshot.submittedAt}
                     </div>
                   </div>
                 </div>
