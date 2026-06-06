@@ -477,6 +477,10 @@ export function BottomVoiceBar() {
         }
         if (msg.serverContent?.inputTranscription?.text) {
           clearIdleTimers();
+          turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
+          if (callbackPhase === "hidden" && matchesAgentIntent(turnTranscriptRef.current)) {
+            openAgentCallback();
+          }
         }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
