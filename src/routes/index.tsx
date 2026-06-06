@@ -27,6 +27,11 @@ function SlideDeck() {
   const launch = useCallback(() => navigate({ to: "/home" }), [navigate]);
 
   useEffect(() => {
+    const shell = document.querySelector(`[data-slide-index="${index}"] [data-slide-shell]`);
+    if (shell) shell.scrollTop = 0;
+  }, [index]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") next();
       else if (e.key === "ArrowLeft") prev();
