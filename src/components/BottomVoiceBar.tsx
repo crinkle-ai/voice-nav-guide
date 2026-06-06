@@ -255,7 +255,11 @@ export function BottomVoiceBar() {
           }
           lastSentPathRef.current = page;
           respond({ ok: true, navigated: page });
-          navigate({ to: page === "/login" ? "/login" : page, ...(page === "/login" ? { search: { redirect: "/my-plans" } } : {}) } as Parameters<typeof navigate>[0]);
+          if (page === "/login") {
+            navigate({ to: "/login", search: { redirect: "/my-plans" } });
+          } else {
+            navigate({ to: page });
+          }
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
           const section = fc.args.section;
           respond({ ok: true, highlighted: section });
