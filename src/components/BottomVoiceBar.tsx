@@ -557,7 +557,133 @@ export function BottomVoiceBar() {
   const isConnecting = status === "connecting";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+    <>
+      {callbackPhase !== "hidden" && (
+        <div className="fixed inset-x-0 bottom-[76px] z-50 flex justify-center px-4 sm:bottom-[84px]">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary/30 bg-card shadow-2xl animate-in slide-in-from-bottom-4">
+            {callbackPhase === "form" && (
+              <>
+                <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Phone className="h-5 w-5" />
+                    <h3 className="text-base font-semibold">Request a callback</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCallbackPhase("hidden")}
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <form
+                  onSubmit={(e) => { e.preventDefault(); submitCallback(); }}
+                  className="space-y-3 px-4 py-4"
+                >
+                  <p className="text-xs text-muted-foreground">
+                    Drop in your phone number — a licensed Medicare agent will call you back with everything you've covered today.
+                  </p>
+                  <div className="space-y-1.5">
+                    <label htmlFor="cb-phone" className="text-xs font-semibold">
+                      Phone number <span className="text-destructive">*</span>
+                    </label>
+                    <input
+                      id="cb-phone"
+                      type="tel"
+                      autoFocus
+                      autoComplete="tel"
+                      value={cbPhone}
+                      onChange={(e) => setCbPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="cb-name" className="text-xs font-semibold text-muted-foreground">
+                      Name <span className="font-normal">(optional)</span>
+                    </label>
+                    <input
+                      id="cb-name"
+                      autoComplete="name"
+                      value={cbName}
+                      onChange={(e) => setCbName(e.target.value)}
+                      placeholder="Jane Smith"
+                      className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!cbPhone.trim()}
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    <Phone className="h-4 w-4" /> Request Callback
+                  </button>
+                </form>
+              </>
+            )}
+            {callbackPhase === "confirmed" && cbSnapshot && (
+              <>
+                <div className="flex items-center justify-between border-b bg-emerald-50 px-4 py-3 dark:bg-emerald-950/30">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <h3 className="text-base font-semibold">Callback Confirmed</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCallbackPhase("hidden")}
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="space-y-3 px-4 py-4 text-sm">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your info</div>
+                    <dl className="mt-1.5 space-y-1">
+                      {cbSnapshot.name && (
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-muted-foreground">Name</dt>
+                          <dd className="font-medium">{cbSnapshot.name}</dd>
+                        </div>
+                      )}
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Phone</dt>
+                        <dd className="font-medium">{cbSnapshot.phone}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Shared context</div>
+                    <ul className="mt-1.5 space-y-1">
+                      {cbSnapshot.topics.map((t) => (
+                        <li key={t} className="flex items-start gap-2">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {cbSnapshot.visitedPages.length > 0 && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Pages visited: {cbSnapshot.visitedPages.join(", ")}
+                      </div>
+                    )}
+                  </div>
+                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                    <div className="font-semibold text-foreground">✓ Sent to Salesforce</div>
+                    <div className="mt-0.5 text-muted-foreground">
+                      Lead created in CRM · expect a call within 1 business day · {cbSnapshot.submittedAt}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
           M
