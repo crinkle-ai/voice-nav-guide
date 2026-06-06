@@ -59,6 +59,8 @@ SECTION CATALOG (use these exact ids with highlight_section):
 
 /compare-plans:
   - "premium-filter" — filters: plan type, max premium, drug/dental/vision toggles
+  - "plan-results" — the results table
+  - "enroll-now" — the green "Start Enrollment" call-to-action (the FINAL step)
 
 DATA TOOLS (use these to actually answer questions, not just navigate):
 - search_doctors({ specialty?, city?, name? }) — Use when the user asks to find a doctor ("find a cardiologist in Austin", "any primary care near Phoenix?"). It navigates to /find-doctors, applies filters, and returns matching doctors. CRITICAL: only mention doctors that appear in the tool's returned "doctors" array — never invent names or recall doctors from earlier turns. If count is 1, say "I found one match" and name only that doctor. If count is 0, say no matches and suggest loosening a filter. Only pass a "name" argument if the user actually said a doctor's name — never pass true/false or a placeholder. Specialty must be one of: Primary Care, Cardiology, Orthopedics, Endocrinology, Ophthalmology, Neurology, Dermatology.
