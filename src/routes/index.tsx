@@ -68,6 +68,7 @@ function SlideDeck() {
         {SLIDES.map((Slide, i) => (
           <div
             key={i}
+            data-slide-index={i}
             className={`absolute inset-0 transition-all duration-500 ease-out ${
               i === index ? "opacity-100 translate-x-0" : i < index ? "opacity-0 -translate-x-8 pointer-events-none" : "opacity-0 translate-x-8 pointer-events-none"
             }`}
