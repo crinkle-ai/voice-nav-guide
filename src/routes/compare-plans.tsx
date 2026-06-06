@@ -38,6 +38,7 @@ function ComparePlans() {
   const [needsDental, setNeedsDental] = useState(false);
   const [needsVision, setNeedsVision] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [enrollStarted, setEnrollStarted] = useState(false);
 
   useEffect(() => { if (touched) dispatch({ type: "COMPLETE_STEP", step: "plan-comparison" }); }, [touched, dispatch]);
 
