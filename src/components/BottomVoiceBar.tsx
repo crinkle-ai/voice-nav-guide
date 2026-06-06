@@ -330,17 +330,33 @@ export function BottomVoiceBar() {
 
         if (msg.setupComplete && !greetedRef.current) {
           greetedRef.current = true;
-          ws.send(
-            JSON.stringify({
-              clientContent: {
-                turns: [{
-                  role: "user",
-                  parts: [{ text: "[SESSION_START] Greet the user warmly, introduce yourself as the Medicare Navigator, and describe what you can help with in ONE short sentence. Then ask how you can help." }],
-                }],
-                turnComplete: true,
-              },
-            }),
-          );
+          const hasIntroduced = typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
+          if (hasIntroduced) {
+            ws.send(
+              JSON.stringify({
+                clientContent: {
+                  turns: [{
+                    role: "user",
+                    parts: [{ text: "[SESSION_START] Welcome the user back with one short sentence like 'I'm here — how can I help?' or 'Welcome back. What would you like to do?' Keep it brief and friendly." }],
+                  }],
+                  turnComplete: true,
+                },
+              }),
+            );
+          } else {
+            if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+            ws.send(
+              JSON.stringify({
+                clientContent: {
+                  turns: [{
+                    role: "user",
+                    parts: [{ text: "[SESSION_START] Greet the user warmly, introduce yourself as the Medicare Navigator, and describe what you can help with in ONE short sentence. Then ask how you can help." }],
+                  }],
+                  turnComplete: true,
+                },
+              }),
+            );
+          }
         }
 
 
