@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2, Phone, CheckCircle2, UserRound } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+const PROMPT_CHIPS = [
+  "What's a deductible?",
+  "Find a cardiologist in Houston",
+  "Compare Medicare Advantage plans under $50",
+  "Take me to the plans page",
+  "Connect me with an agent",
+];
 
 type SR = {
   start: () => void;
