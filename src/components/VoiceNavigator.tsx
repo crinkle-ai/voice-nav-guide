@@ -106,7 +106,9 @@ export function VoiceNavigator() {
         const args = (p.input ?? {}) as Record<string, unknown>;
         if (name === "navigate_to" && typeof args.page === "string") {
           lastHandledToolIdsRef.current.add(id);
-          navigate({ to: args.page as "/" | "/learn" | "/find-doctors" | "/compare-plans" });
+          const raw = args.page as string;
+          const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
+          navigate({ to: page });
         } else if (name === "highlight_section" && typeof args.section === "string") {
           lastHandledToolIdsRef.current.add(id);
           dispatch({ type: "SET_HIGHLIGHT", section: args.section });

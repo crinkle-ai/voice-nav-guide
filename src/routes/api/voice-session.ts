@@ -26,7 +26,7 @@ You'll receive system updates like "[CURRENT PAGE: /learn]" — trust them as th
 
 SECTION CATALOG (use these exact ids with highlight_section):
 
-/  (home):
+/home  (home):
   - "hero" — top hero, tagline, "Talk to your guide" button
   - "try-asking" — card with example questions on the right
   - "steps" — the 3-step path (Learn, Find Doctors, Compare Plans)
@@ -57,7 +57,7 @@ DATA TOOLS (use these to actually answer questions, not just navigate):
 
 Examples:
 - User on /learn asks "what's Part B?" → call highlight_section("part-b"), then say "Part B covers your doctor visits — see the highlighted box."
-- User on / asks "where do I start?" → call highlight_section("steps"), then say "Right here — three steps, start with Learn."
+- User on /home asks "where do I start?" → call highlight_section("steps"), then say "Right here — three steps, start with Learn."
 - User asks "find a cardiologist in Austin" → call search_doctors({ specialty: "Cardiology", city: "Austin" }), then read out the matches.
 - User asks "plans under 50 dollars with drug coverage" → call filter_plans({ maxPremium: 50, needsDrug: true }), then summarize the top results.
 - User asks "what's a deductible?" → call explain_term({ term: "deductible" }), then explain in one sentence.`;
@@ -71,7 +71,7 @@ const TOOLS = [
         parameters: {
           type: "OBJECT",
           properties: {
-            page: { type: "STRING", enum: ["/", "/learn", "/find-doctors", "/compare-plans"] },
+            page: { type: "STRING", enum: ["/home", "/learn", "/find-doctors", "/compare-plans"] },
           },
           required: ["page"],
         },

@@ -132,7 +132,8 @@ export function BottomVoiceBar() {
       let result: Record<string, unknown> = { ok: true };
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
-          const page = fc.args.page as "/" | "/learn" | "/find-doctors" | "/compare-plans";
+          const raw = fc.args.page as string;
+          const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
           navigate({ to: page });
           result = { navigated: page };
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
