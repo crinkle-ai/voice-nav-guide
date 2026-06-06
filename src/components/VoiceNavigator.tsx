@@ -54,6 +54,19 @@ export function VoiceNavigator() {
   const speakingInProgressRef = useRef<boolean>(false);
   const lastHandledToolIdsRef = useRef<Set<string>>(new Set());
 
+  type CallbackSnapshot = {
+    name: string;
+    phone: string;
+    page: string;
+    visitedPages: string[];
+    transcriptSnippet: string;
+    submittedAt: string;
+  };
+  const [callbackPhase, setCallbackPhase] = useState<"hidden" | "form" | "confirmed">("hidden");
+  const [callbackName, setCallbackName] = useState("");
+  const [callbackPhone, setCallbackPhone] = useState("");
+  const [callbackSnapshot, setCallbackSnapshot] = useState<CallbackSnapshot | null>(null);
+
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
   const { messages, sendMessage, status, error } = useChat({ transport });
 
