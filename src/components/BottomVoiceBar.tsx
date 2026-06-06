@@ -552,18 +552,34 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
-  // Push current route to the model so it knows where the user is.
+  // Push current route + auth state to the model so it knows where the user
+  // is and whether they're signed in.
   useEffect(() => {
     if (status !== "live") return;
     if (lastSentPathRef.current === pathname) return;
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     lastSentPathRef.current = pathname;
+
+    const authTag = isAuthed() ? "[AUTH: signed-in]" : "[AUTH: signed-out]";
+    let postLogin: string | null = null;
+    try {
+      const pending = sessionStorage.getItem(POST_LOGIN_VOICE_KEY);
+      if (pending && pending === pathname && isAuthed()) {
+        postLogin = pending;
+        sessionStorage.removeItem(POST_LOGIN_VOICE_KEY);
+      }
+    } catch { /* noop */ }
+
+    const text = postLogin
+      ? `[CURRENT PAGE: ${pathname}] ${authTag} [SYSTEM] The user just signed in and landed on ${postLogin}. Welcome them back in ONE short sentence and tell them their saved plans are now on screen. Then stop.`
+      : `[CURRENT PAGE: ${pathname}] ${authTag}`;
+
     ws.send(
       JSON.stringify({
         clientContent: {
-          turns: [{ role: "user", parts: [{ text: `[CURRENT PAGE: ${pathname}]` }] }],
-          turnComplete: false,
+          turns: [{ role: "user", parts: [{ text }] }],
+          turnComplete: !!postLogin,
         },
       }),
     );
