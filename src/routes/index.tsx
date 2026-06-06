@@ -242,7 +242,106 @@ function ImpactCol({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function Slide5({ onLaunch }: SlideProps) {
+function Slide5(_: SlideProps) {
+  const assumptions = [
+    "Users prefer voice-guided navigation over traditional menus",
+    "AI guidance increases time-on-site and plan engagement",
+    "Users feel more confident making Medicare decisions with the AI guide",
+  ];
+  const audience = [
+    "Adults turning 65 in the next 6 months",
+    "Recent Medicare enrollees (past 12 months)",
+    "Adult caregivers shopping on behalf of a parent",
+  ];
+  const methods = [
+    { label: "Moderated usability", detail: "12–15 sessions, observe friction & comprehension" },
+    { label: "Unmoderated prototype", detail: "n=150 via UserTesting.com, task-based" },
+    { label: "A/B test", detail: "AI-guided vs. standard nav, live traffic split" },
+  ];
+  const metrics = [
+    "Task completion rate",
+    "Time on site & pages visited",
+    "Plan comparison engagement",
+    "Enrollment intent score",
+    "NPS / satisfaction",
+  ];
+  const thresholds = [
+    "≥ 70% prefer AI-guided navigation",
+    "≥ 25% lift in plan comparison engagement vs. control",
+    "≥ 15-point NPS lift over standard experience",
+    "≥ 80% task completion in unmoderated study",
+  ];
+  return (
+    <SlideShell eyebrow="Validation Plan">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
+        How we'd <span className="text-primary">test this</span> with real users.
+      </h2>
+      <p className="mt-2 md:mt-4 text-xs md:text-lg text-muted-foreground max-w-3xl">
+        A staged go/no-go framework — qualitative signal first, quantitative proof second, then a live A/B before scaling.
+      </p>
+
+      <div className="mt-4 md:mt-8 grid gap-3 md:gap-5 md:grid-cols-3 max-w-6xl">
+        <ValidationCard icon={<FlaskConical className="h-4 w-4 md:h-5 md:w-5" />} title="Core Assumptions" items={assumptions} />
+        <ValidationCard icon={<Users className="h-4 w-4 md:h-5 md:w-5" />} title="Who We'd Test With" items={audience} footer="Recruited via panel + existing customer base" />
+        <ValidationCard
+          icon={<LineChart className="h-4 w-4 md:h-5 md:w-5" />}
+          title="Methods"
+          items={methods.map((m) => `${m.label} — ${m.detail}`)}
+        />
+      </div>
+
+      <div className="mt-3 md:mt-5 grid gap-3 md:gap-5 md:grid-cols-2 max-w-6xl">
+        <ValidationCard icon={<LineChart className="h-4 w-4 md:h-5 md:w-5" />} title="Key Metrics" items={metrics} />
+        <ValidationCard
+          icon={<Target className="h-4 w-4 md:h-5 md:w-5" />}
+          title="Go / No-Go Thresholds"
+          items={thresholds}
+          accent
+        />
+      </div>
+    </SlideShell>
+  );
+}
+
+function ValidationCard({
+  icon,
+  title,
+  items,
+  footer,
+  accent,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  items: string[];
+  footer?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-3 md:p-5 shadow-sm ${
+        accent ? "bg-primary/5 border-primary/40" : "bg-card"
+      }`}
+    >
+      <div className="flex items-center gap-2 text-primary">
+        <span className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg bg-primary/10">{icon}</span>
+        <div className="text-[10px] md:text-sm font-semibold uppercase tracking-wider">{title}</div>
+      </div>
+      <ul className="mt-2 md:mt-3 space-y-1.5 md:space-y-2">
+        {items.map((i) => (
+          <li key={i} className="flex items-start gap-2 text-xs md:text-base leading-snug">
+            <span className="mt-1.5 h-1 w-1 md:h-1.5 md:w-1.5 shrink-0 rounded-full bg-primary" />
+            <span>{i}</span>
+          </li>
+        ))}
+      </ul>
+      {footer && (
+        <p className="mt-2 md:mt-3 text-[10px] md:text-xs italic text-muted-foreground">{footer}</p>
+      )}
+    </div>
+  );
+}
+
+function Slide6({ onLaunch }: SlideProps) {
   return (
     <SlideShell eyebrow="Live Demo">
       <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold tracking-tight leading-tight max-w-5xl">
