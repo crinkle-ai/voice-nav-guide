@@ -41,6 +41,8 @@ export function VoiceNavigator() {
   const recogRef = useRef<SR | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+  const spokenIdsRef = useRef<Set<string>>(new Set());
+  const speakingInProgressRef = useRef<boolean>(false);
   const lastHandledToolIdsRef = useRef<Set<string>>(new Set());
 
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
@@ -97,16 +99,35 @@ export function VoiceNavigator() {
     const last = [...messages].reverse().find((m) => m.role === "assistant");
     if (!last || status === "streaming" || status === "submitted") return;
     if (lastSpokenIdRef.current === last.id) return;
+    if (spokenIdsRef.current.has(last.id)) return;
+    if (speakingInProgressRef.current) return;
     const text = extractText(last).trim();
     if (!text) return;
     lastSpokenIdRef.current = last.id;
+    spokenIdsRef.current.add(last.id);
+    speakingInProgressRef.current = true;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.98;
     u.onstart = () => dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
-    u.onend = () => dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
+    u.onend = () => {
+      speakingInProgressRef.current = false;
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
+    };
+    u.onerror = () => {
+      speakingInProgressRef.current = false;
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
+    };
     window.speechSynthesis.speak(u);
+
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      speakingInProgressRef.current = false;
+    };
   }, [messages, status, voiceOn, dispatch]);
+
 
   const startListening = () => {
     const Ctor = getSpeechRecognition();
