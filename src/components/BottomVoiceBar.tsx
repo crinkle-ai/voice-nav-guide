@@ -20,6 +20,19 @@ function matchesAgentIntent(text: string): boolean {
   return AGENT_TRIGGERS.some((re) => re.test(text));
 }
 
+const MY_PLANS_TRIGGERS = [
+  /\bmy\s+(saved\s+)?plans?\b/i,
+  /\b(view|show|see|open|pull\s+up)\s+(me\s+)?(my\s+)?(saved\s+)?plans?\b/i,
+  /\bmy\s+account\b/i,
+  /\bmy\s+(saved\s+)?coverage\b/i,
+  /\bpersonalized\s+plans?\b/i,
+  /\bsaved\s+for\s+me\b/i,
+];
+
+function matchesMyPlansIntent(text: string): boolean {
+  return MY_PLANS_TRIGGERS.some((re) => re.test(text));
+}
+
 
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
