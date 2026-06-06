@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +20,11 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FindDoctorsRoute = FindDoctorsRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
+  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
+  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
+  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/compare-plans'
     | '/find-doctors'
+    | '/home'
     | '/learn'
     | '/api/chat'
     | '/api/voice-session'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/compare-plans'
     | '/find-doctors'
+    | '/home'
     | '/learn'
     | '/api/chat'
     | '/api/voice-session'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/compare-plans'
     | '/find-doctors'
+    | '/home'
     | '/learn'
     | '/api/chat'
     | '/api/voice-session'
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ComparePlansRoute: typeof ComparePlansRoute
   FindDoctorsRoute: typeof FindDoctorsRoute
+  HomeRoute: typeof HomeRoute
   LearnRoute: typeof LearnRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/find-doctors': {
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComparePlansRoute: ComparePlansRoute,
   FindDoctorsRoute: FindDoctorsRoute,
+  HomeRoute: HomeRoute,
   LearnRoute: LearnRoute,
   ApiChatRoute: ApiChatRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
