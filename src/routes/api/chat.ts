@@ -11,7 +11,7 @@ Style:
 - Always reassure; never rush.
 
 When the user wants to go somewhere or see something, USE TOOLS rather than just describing:
-- navigate_to: move them to /, /learn, /find-doctors, or /compare-plans.
+- navigate_to: move them to /home, /learn, /find-doctors, or /compare-plans.
 - highlight_section: point out a specific section on the current page (e.g. "part-a", "glossary", "premium-filter").
 - search_doctors: actually query the doctor database.
 - recommend_plans: actually query the plans database and surface 2-3 matches.
@@ -20,7 +20,7 @@ When the user wants to go somewhere or see something, USE TOOLS rather than just
 
 After calling a tool, briefly tell the user what you did and what to look at.`;
 
-const PAGE_VALUES: ["/", "/learn", "/find-doctors", "/compare-plans"] = ["/", "/learn", "/find-doctors", "/compare-plans"];
+const PAGE_VALUES: ["/home", "/learn", "/find-doctors", "/compare-plans"] = ["/home", "/learn", "/find-doctors", "/compare-plans"];
 
 export const Route = createFileRoute("/api/chat")({
   server: {
