@@ -1,9 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Loader2, PhoneOff } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Mic, MicOff, Loader2, PhoneOff, Phone, CheckCircle2, X } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
 import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+
+const AGENT_TRIGGERS = [
+  /\btalk(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\bspeak(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\b(connect|put)\s+me\s+(with|to)\s+(a|an|some)?\s*(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\bcall\s+me(\s+back)?\b/i,
+  /\bhave\s+(someone|an?\s+agent|a\s+person)\s+call\s+me\b/i,
+  /\bi\s+(want|need|would like)\s+(to\s+)?(talk|speak)\s+(to|with)\s+(a|an|some)?\s*(person|human|agent|representative|rep|someone)\b/i,
+  /\bget\s+me\s+(a|an)\s+(person|human|agent|representative|rep)\b/i,
+];
+
+function matchesAgentIntent(text: string): boolean {
+  return AGENT_TRIGGERS.some((re) => re.test(text));
+}
+
 
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
