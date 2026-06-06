@@ -292,18 +292,18 @@ export function VoiceNavigator() {
             {callbackPhase === "form" && (
               <div className="animate-in slide-in-from-bottom-2 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 shadow-sm">
                 <div className="flex items-center gap-2 text-primary">
-                  <UserRound className="h-5 w-5" />
+                  <Phone className="h-5 w-5" />
                   <h3 className="text-base font-semibold">Request a callback</h3>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  A licensed Medicare agent will call you back — and they'll already have the full context of our conversation.
+                  Just your phone number — name is optional. A licensed agent will call you back with full context of our chat.
                 </p>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     const name = callbackName.trim();
                     const phone = callbackPhone.trim();
-                    if (!name || !phone) return;
+                    if (!phone) return;
                     const recent = messages
                       .slice(-6)
                       .map((m) => `${m.role === "user" ? "You" : "Navigator"}: ${extractText(m)}`)
@@ -318,13 +318,30 @@ export function VoiceNavigator() {
                       submittedAt: new Date().toLocaleString(),
                     });
                     void sendMessage({
-                      text: `Callback request submitted — Name: ${name}, Phone: ${phone}. Please send my info to a licensed agent.`,
+                      text: `Callback request submitted — Phone: ${phone}${name ? `, Name: ${name}` : ""}. Please send my info to a licensed agent.`,
                     });
                   }}
                   className="mt-4 space-y-3"
                 >
                   <div className="space-y-1.5">
-                    <Label htmlFor="cb-name" className="text-xs font-semibold">Your name</Label>
+                    <Label htmlFor="cb-phone" className="text-xs font-semibold">
+                      Phone number <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="cb-phone"
+                      type="tel"
+                      value={callbackPhone}
+                      onChange={(e) => setCallbackPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      autoComplete="tel"
+                      className="h-11 text-base"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cb-name" className="text-xs font-semibold text-muted-foreground">
+                      Name <span className="font-normal">(optional)</span>
+                    </Label>
                     <Input
                       id="cb-name"
                       value={callbackName}
@@ -334,22 +351,10 @@ export function VoiceNavigator() {
                       className="h-11 text-base"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="cb-phone" className="text-xs font-semibold">Phone number</Label>
-                    <Input
-                      id="cb-phone"
-                      type="tel"
-                      value={callbackPhone}
-                      onChange={(e) => setCallbackPhone(e.target.value)}
-                      placeholder="(555) 123-4567"
-                      autoComplete="tel"
-                      className="h-11 text-base"
-                    />
-                  </div>
                   <Button
                     type="submit"
                     className="h-12 w-full text-base font-semibold"
-                    disabled={!callbackName.trim() || !callbackPhone.trim()}
+                    disabled={!callbackPhone.trim()}
                   >
                     <Phone className="h-4 w-4" /> Request Callback
                   </Button>
@@ -357,50 +362,81 @@ export function VoiceNavigator() {
               </div>
             )}
 
-            {callbackPhase === "confirmed" && callbackSnapshot && (
-              <div className="animate-in slide-in-from-bottom-2 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 shadow-sm">
-                <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle2 className="h-6 w-6" />
-                  <h3 className="text-base font-semibold">Callback Requested</h3>
-                </div>
-                <p className="mt-1 text-sm text-foreground">
-                  An agent will call <span className="font-semibold">{callbackSnapshot.name}</span> at{" "}
-                  <span className="font-semibold">{callbackSnapshot.phone}</span> shortly.
-                </p>
+            {callbackPhase === "confirmed" && callbackSnapshot && (() => {
+              const visited = callbackSnapshot.visitedPages;
+              const topics: string[] = [];
+              const partsCovered = visited.includes("/learn");
+              if (partsCovered) topics.push("Reviewed Medicare parts & glossary");
+              if (state.savedDoctorIds.length > 0) {
+                topics.push(`Saved ${state.savedDoctorIds.length} doctor${state.savedDoctorIds.length === 1 ? "" : "s"}`);
+              } else if (visited.includes("/find-doctors")) {
+                topics.push("Searched for doctors");
+              }
+              if (state.comparePlanIds.length > 0) {
+                topics.push(`Compared ${state.comparePlanIds.length} plan${state.comparePlanIds.length === 1 ? "" : "s"}`);
+              } else if (visited.includes("/compare-plans")) {
+                topics.push("Browsed Medicare plans");
+              }
+              if (topics.length === 0) topics.push("Started exploring Medicare options");
 
-                <div className="mt-3 rounded-lg border bg-card p-3 text-xs">
-                  <div className="font-semibold text-foreground">Shared with your agent</div>
-                  <dl className="mt-2 space-y-1.5 text-muted-foreground">
-                    <div className="flex justify-between gap-3">
-                      <dt>Current page</dt>
-                      <dd className="font-medium text-foreground">{callbackSnapshot.page}</dd>
+              return (
+                <div className="animate-in slide-in-from-bottom-2 overflow-hidden rounded-2xl border bg-card shadow-md">
+                  {/* Header */}
+                  <div className="border-b bg-primary/5 px-4 py-3">
+                    <div className="flex items-center gap-2 text-primary">
+                      <CheckCircle2 className="h-5 w-5" />
+                      <h3 className="text-base font-semibold">Callback Confirmed</h3>
                     </div>
-                    <div className="flex justify-between gap-3">
-                      <dt>Pages visited</dt>
-                      <dd className="font-medium text-foreground">
-                        {callbackSnapshot.visitedPages.length || 1}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <dt>Requested at</dt>
-                      <dd className="font-medium text-foreground">{callbackSnapshot.submittedAt}</dd>
-                    </div>
-                  </dl>
-                  {callbackSnapshot.transcriptSnippet && (
-                    <div className="mt-3 border-t pt-2">
-                      <div className="font-semibold text-foreground">Conversation snippet</div>
-                      <pre className="mt-1 max-h-24 overflow-y-auto whitespace-pre-wrap font-sans text-[11px] leading-snug text-muted-foreground">
-                        {callbackSnapshot.transcriptSnippet}
-                      </pre>
-                    </div>
-                  )}
-                </div>
+                    <p className="mt-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {callbackSnapshot.submittedAt}
+                    </p>
+                  </div>
 
-                <p className="mt-3 text-xs italic text-muted-foreground">
-                  Your agent will already know: what you've reviewed, what questions you asked, and where you left off.
-                </p>
-              </div>
-            )}
+                  {/* Your Info */}
+                  <div className="border-b px-4 py-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Your info
+                    </div>
+                    <dl className="mt-2 space-y-1.5 text-sm">
+                      {callbackSnapshot.name && (
+                        <div className="flex items-center justify-between gap-3">
+                          <dt className="text-muted-foreground">Name</dt>
+                          <dd className="font-medium text-foreground">{callbackSnapshot.name}</dd>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Phone</dt>
+                        <dd className="font-semibold text-foreground">{callbackSnapshot.phone}</dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {/* Shared with agent */}
+                  <div className="border-b px-4 py-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      What we're sharing with the agent
+                    </div>
+                    <ul className="mt-2 space-y-1.5 text-sm">
+                      {topics.map((t) => (
+                        <li key={t} className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                          <span className="text-foreground">{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[11px] italic text-muted-foreground">
+                      Your agent will already know your context — no need to start over.
+                    </p>
+                  </div>
+
+                  {/* Status */}
+                  <div className="flex items-center gap-2 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Request sent — expect a call within 1 business day
+                  </div>
+                </div>
+              );
+            })()}
 
             {error && (
               <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
