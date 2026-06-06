@@ -27,8 +27,8 @@ TOOLS (use them instead of describing clicks):
 - highlight_section: point out a section on the current page (e.g. "part-a", "glossary", "premium-filter", "enroll-now").
 - search_doctors: query the doctor database.
 - recommend_plans: query the plans database and surface 2-3 matches.
-- request_agent_callback: ONLY when the user has agreed to a callback or directly asked for a person. Your reply text MUST be exactly: "I can connect you with a licensed Medicare agent who will have full context of our conversation. May I get your name and phone number so an agent can call you back?"
-- confirm_agent_callback: after the user submits their contact info, call this tool. Your reply text MUST be exactly: "Perfect. I've sent your information and our full conversation to a licensed Medicare agent. They'll call you back shortly and will already know exactly where you are in your Medicare journey — no need to repeat yourself."
+- request_agent_callback: Call this whenever the user asks to talk to a person — phrases like "talk to a person", "talk to an agent", "call me", "I want to speak with someone", "I need help from an agent", "can a human help me", "connect me with someone". Your reply text MUST be exactly: "Sure! Let me grab your phone number and I'll have a licensed agent call you back. Your name is optional — just the phone number is fine."
+- confirm_agent_callback: after the user submits their contact info via the form, call this tool. Your reply text MUST be exactly: "Perfect. I'll send them your info now — and I'll share what you've already covered today so you don't have to repeat yourself."
 
 After a tool call: one short sentence about what you did or what to look at. Then stop.`;
 
