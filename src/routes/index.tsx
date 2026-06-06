@@ -27,8 +27,28 @@ function SlideDeck() {
   const launch = useCallback(() => navigate({ to: "/home" }), [navigate]);
 
   useEffect(() => {
-    const shell = document.querySelector(`[data-slide-index="${index}"] [data-slide-shell]`);
-    if (shell) shell.scrollTop = 0;
+    const resetScroll = () => {
+      try {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+      const slide = document.querySelector(`[data-slide-index="${index}"]`);
+      if (slide) {
+        slide.querySelectorAll<HTMLElement>("[data-slide-shell], [data-scrollable]").forEach((el) => {
+          el.scrollTop = 0;
+        });
+      }
+    };
+    resetScroll();
+    const r1 = requestAnimationFrame(resetScroll);
+    const r2 = requestAnimationFrame(() => requestAnimationFrame(resetScroll));
+    const t = setTimeout(resetScroll, 120);
+    return () => {
+      cancelAnimationFrame(r1);
+      cancelAnimationFrame(r2);
+      clearTimeout(t);
+    };
   }, [index]);
 
   useEffect(() => {
