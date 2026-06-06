@@ -73,6 +73,10 @@ export function BottomVoiceBar() {
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastSentPathRef = useRef<string | null>(null);
+  // Deferred highlight: when the AI calls navigate_to (alone or alongside
+  // highlight_section), we stash the target section here and fire it ONLY
+  // after the pathname has actually changed to the destination route.
+  const pendingHighlightRef = useRef<{ path: string; section: string | null } | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
@@ -138,12 +142,29 @@ export function BottomVoiceBar() {
           // otherwise we send "[CURRENT PAGE: /x]" back to the model right after
           // it told us to go there, which can cause it to respond again (duplicate speech).
           lastSentPathRef.current = page;
+          // Arm a pending highlight slot for this destination. If a highlight_section
+          // call arrives in the same batch, it will populate `.section` here and be
+          // applied after the new route renders.
+          if (pathname !== page) {
+            pendingHighlightRef.current = { path: page, section: pendingHighlightRef.current?.section ?? null };
+          } else {
+            pendingHighlightRef.current = null;
+          }
           navigate({ to: page });
           result = { navigated: page };
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
-          highlightSection(fc.args.section);
-          dispatch({ type: "SET_HIGHLIGHT", section: fc.args.section });
-          result = { highlighted: fc.args.section };
+          const section = fc.args.section;
+          const pending = pendingHighlightRef.current;
+          if (pending && pending.path !== pathname) {
+            // A navigation to a different page is still in flight — defer this
+            // highlight until the destination route mounts.
+            pendingHighlightRef.current = { path: pending.path, section };
+          } else {
+            pendingHighlightRef.current = null;
+            highlightSection(section);
+            dispatch({ type: "SET_HIGHLIGHT", section });
+          }
+          result = { highlighted: section };
         } else if (fc.name === "search_doctors") {
           const raw = (fc.args ?? {}) as { specialty?: unknown; city?: unknown; name?: unknown };
           const args = {
@@ -151,12 +172,13 @@ export function BottomVoiceBar() {
             city: typeof raw.city === "string" ? raw.city : undefined,
             name: typeof raw.name === "string" && raw.name.trim() ? raw.name : undefined,
           };
+          lastSentPathRef.current = "/find-doctors";
+          pendingHighlightRef.current = { path: "/find-doctors", section: "doctor-results" };
           navigate({ to: "/find-doctors" });
           dispatch({
             type: "SET_DOCTOR_VOICE_FILTERS",
             filters: { specialty: args.specialty, city: args.city, name: args.name },
           });
-          highlightSection("doctor-results");
           const res = await fetchDoctors({ data: args });
           const top = res.doctors.slice(0, 5).map((d) => ({
             name: d.name,
@@ -181,9 +203,10 @@ export function BottomVoiceBar() {
             needsDental: typeof raw.needsDental === "boolean" ? raw.needsDental : undefined,
             needsVision: typeof raw.needsVision === "boolean" ? raw.needsVision : undefined,
           };
+          lastSentPathRef.current = "/compare-plans";
+          pendingHighlightRef.current = { path: "/compare-plans", section: "plan-results" };
           navigate({ to: "/compare-plans" });
           dispatch({ type: "SET_PLAN_VOICE_FILTERS", filters: args });
-          highlightSection("plan-results");
           const res = await fetchPlans({ data: args });
           const top = res.plans.slice(0, 5).map((p) => ({
             name: p.name,
@@ -196,9 +219,11 @@ export function BottomVoiceBar() {
           result = { count: res.plans.length, plans: top };
         } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
           const term = fc.args.term as string;
+          const section = `glossary-${term}`;
+          lastSentPathRef.current = "/learn";
+          pendingHighlightRef.current = { path: "/learn", section };
           navigate({ to: "/learn" });
-          highlightSection(`glossary-${term}`);
-          dispatch({ type: "SET_HIGHLIGHT", section: `glossary-${term}` });
+          dispatch({ type: "SET_HIGHLIGHT", section });
           result = { term, definition: GLOSSARY[term] ?? "See the highlighted glossary card." };
         } else {
           result = { ok: false, reason: "unknown tool or args" };
@@ -217,8 +242,24 @@ export function BottomVoiceBar() {
         );
       }
     },
-    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans, pathname],
   );
+
+  // When the route changes, flush any deferred highlight that was waiting for
+  // the destination page to mount. Short delay lets the new route render its DOM.
+  useEffect(() => {
+    const pending = pendingHighlightRef.current;
+    if (!pending) return;
+    if (pending.path !== pathname) return;
+    const section = pending.section;
+    pendingHighlightRef.current = null;
+    if (!section) return;
+    const t = setTimeout(() => {
+      highlightSection(section);
+      dispatch({ type: "SET_HIGHLIGHT", section });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [pathname, highlightSection, dispatch]);
 
   const playPcm = useCallback((b64: string) => {
     const ctx = playCtxRef.current;
