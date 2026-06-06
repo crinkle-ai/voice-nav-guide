@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2, Phone, CheckCircle2, UserRound } from "lucide-react";
+import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2, Phone, CheckCircle2 } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useNavigate } from "@tanstack/react-router";
