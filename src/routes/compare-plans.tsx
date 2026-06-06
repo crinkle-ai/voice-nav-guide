@@ -11,7 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
