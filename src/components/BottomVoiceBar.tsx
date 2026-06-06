@@ -1,9 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Loader2, PhoneOff } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Mic, MicOff, Loader2, PhoneOff, Phone, CheckCircle2, X } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
 import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+
+const AGENT_TRIGGERS = [
+  /\btalk(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\bspeak(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\b(connect|put)\s+me\s+(with|to)\s+(a|an|some)?\s*(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
+  /\bcall\s+me(\s+back)?\b/i,
+  /\bhave\s+(someone|an?\s+agent|a\s+person)\s+call\s+me\b/i,
+  /\bi\s+(want|need|would like)\s+(to\s+)?(talk|speak)\s+(to|with)\s+(a|an|some)?\s*(person|human|agent|representative|rep|someone)\b/i,
+  /\bget\s+me\s+(a|an)\s+(person|human|agent|representative|rep)\b/i,
+];
+
+function matchesAgentIntent(text: string): boolean {
+  return AGENT_TRIGGERS.some((re) => re.test(text));
+}
+
 
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
@@ -62,7 +77,7 @@ function base64ToInt16(b64: string): Int16Array {
 
 export function BottomVoiceBar() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const fetchDoctors = useServerFn(searchDoctors);
   const fetchPlans = useServerFn(listPlans);
 
@@ -73,6 +88,71 @@ export function BottomVoiceBar() {
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastSentPathRef = useRef<string | null>(null);
+
+  // Agent callback flow (deterministic, bypasses LLM for collection)
+  type CallbackSnapshot = {
+    name: string;
+    phone: string;
+    visitedPages: string[];
+    topics: string[];
+    submittedAt: string;
+  };
+  const [callbackPhase, setCallbackPhase] = useState<"hidden" | "form" | "confirmed">("hidden");
+  const [cbName, setCbName] = useState("");
+  const [cbPhone, setCbPhone] = useState("");
+  const [cbSnapshot, setCbSnapshot] = useState<CallbackSnapshot | null>(null);
+  const turnTranscriptRef = useRef<string>("");
+
+  const openAgentCallback = useCallback(() => {
+    setCallbackPhase((prev) => (prev === "hidden" ? "form" : prev));
+  }, []);
+
+  const journeyTopics = useMemo(() => {
+    const visited = state.journey.visitedPages;
+    const topics: string[] = [];
+    if (visited.includes("/learn")) topics.push("Reviewed Medicare parts & glossary");
+    if (state.savedDoctorIds.length > 0) {
+      topics.push(`Saved ${state.savedDoctorIds.length} doctor${state.savedDoctorIds.length === 1 ? "" : "s"}`);
+    } else if (visited.includes("/find-doctors")) {
+      topics.push("Searched for doctors");
+    }
+    if (state.comparePlanIds.length > 0) {
+      topics.push(`Compared ${state.comparePlanIds.length} plan${state.comparePlanIds.length === 1 ? "" : "s"}`);
+    } else if (visited.includes("/compare-plans")) {
+      topics.push("Browsed Medicare plans");
+    }
+    if (topics.length === 0) topics.push("Started exploring Medicare options");
+    return topics;
+  }, [state.journey.visitedPages, state.savedDoctorIds, state.comparePlanIds]);
+
+  const submitCallback = useCallback(() => {
+    const phone = cbPhone.trim();
+    if (!phone) return;
+    setCbSnapshot({
+      name: cbName.trim(),
+      phone,
+      visitedPages: state.journey.visitedPages,
+      topics: journeyTopics,
+      submittedAt: new Date().toLocaleString(),
+    });
+    setCallbackPhase("confirmed");
+    // Nudge the model so it doesn't keep asking — short ack only.
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(
+        JSON.stringify({
+          clientContent: {
+            turns: [{
+              role: "user",
+              parts: [{ text: "[SYSTEM] The user just submitted the on-screen callback form with their phone number. Respond with ONE short, warm confirmation sentence like 'Got it — a licensed agent will give you a call shortly.' Then stop." }],
+            }],
+            turnComplete: true,
+          },
+        }),
+      );
+    }
+  }, [cbPhone, cbName, state.journey.visitedPages, journeyTopics]);
+
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
@@ -229,6 +309,9 @@ export function BottomVoiceBar() {
           navigate({ to: "/learn" });
           dispatch({ type: "SET_HIGHLIGHT", section });
           setTimeout(() => highlightSection(section), 400);
+        } else if (fc.name === "request_agent_callback") {
+          respond({ ok: true, opened: true });
+          openAgentCallback();
         } else {
           respond({ ok: false, reason: "unknown tool or args" });
         }
@@ -236,7 +319,7 @@ export function BottomVoiceBar() {
         respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
       }
     },
-    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans, openAgentCallback],
   );
 
 
@@ -394,12 +477,17 @@ export function BottomVoiceBar() {
         }
         if (msg.serverContent?.inputTranscription?.text) {
           clearIdleTimers();
+          turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
+          if (matchesAgentIntent(turnTranscriptRef.current)) {
+            openAgentCallback();
+          }
         }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
         }
         if (msg.serverContent?.turnComplete) {
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+          turnTranscriptRef.current = "";
           clearIdleTimers();
           idleWarningRef.current = setTimeout(() => {
             setCaption("Session ending in 5 seconds — say something to keep going");
@@ -437,7 +525,7 @@ export function BottomVoiceBar() {
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio]);
+  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio, openAgentCallback]);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -469,7 +557,133 @@ export function BottomVoiceBar() {
   const isConnecting = status === "connecting";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+    <>
+      {callbackPhase !== "hidden" && (
+        <div className="fixed inset-x-0 bottom-[76px] z-50 flex justify-center px-4 sm:bottom-[84px]">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary/30 bg-card shadow-2xl animate-in slide-in-from-bottom-4">
+            {callbackPhase === "form" && (
+              <>
+                <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Phone className="h-5 w-5" />
+                    <h3 className="text-base font-semibold">Request a callback</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCallbackPhase("hidden")}
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <form
+                  onSubmit={(e) => { e.preventDefault(); submitCallback(); }}
+                  className="space-y-3 px-4 py-4"
+                >
+                  <p className="text-xs text-muted-foreground">
+                    Drop in your phone number — a licensed Medicare agent will call you back with everything you've covered today.
+                  </p>
+                  <div className="space-y-1.5">
+                    <label htmlFor="cb-phone" className="text-xs font-semibold">
+                      Phone number <span className="text-destructive">*</span>
+                    </label>
+                    <input
+                      id="cb-phone"
+                      type="tel"
+                      autoFocus
+                      autoComplete="tel"
+                      value={cbPhone}
+                      onChange={(e) => setCbPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="cb-name" className="text-xs font-semibold text-muted-foreground">
+                      Name <span className="font-normal">(optional)</span>
+                    </label>
+                    <input
+                      id="cb-name"
+                      autoComplete="name"
+                      value={cbName}
+                      onChange={(e) => setCbName(e.target.value)}
+                      placeholder="Jane Smith"
+                      className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!cbPhone.trim()}
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    <Phone className="h-4 w-4" /> Request Callback
+                  </button>
+                </form>
+              </>
+            )}
+            {callbackPhase === "confirmed" && cbSnapshot && (
+              <>
+                <div className="flex items-center justify-between border-b bg-emerald-50 px-4 py-3 dark:bg-emerald-950/30">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <h3 className="text-base font-semibold">Callback Confirmed</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCallbackPhase("hidden")}
+                    aria-label="Close"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="space-y-3 px-4 py-4 text-sm">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your info</div>
+                    <dl className="mt-1.5 space-y-1">
+                      {cbSnapshot.name && (
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-muted-foreground">Name</dt>
+                          <dd className="font-medium">{cbSnapshot.name}</dd>
+                        </div>
+                      )}
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Phone</dt>
+                        <dd className="font-medium">{cbSnapshot.phone}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Shared context</div>
+                    <ul className="mt-1.5 space-y-1">
+                      {cbSnapshot.topics.map((t) => (
+                        <li key={t} className="flex items-start gap-2">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {cbSnapshot.visitedPages.length > 0 && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Pages visited: {cbSnapshot.visitedPages.join(", ")}
+                      </div>
+                    )}
+                  </div>
+                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                    <div className="font-semibold text-foreground">✓ Sent to Salesforce</div>
+                    <div className="mt-0.5 text-muted-foreground">
+                      Lead created in CRM · expect a call within 1 business day · {cbSnapshot.submittedAt}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
           M
@@ -544,5 +758,6 @@ export function BottomVoiceBar() {
         )}
       </div>
     </div>
+    </>
   );
 }
