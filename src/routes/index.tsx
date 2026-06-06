@@ -362,3 +362,78 @@ function Slide6({ onLaunch }: SlideProps) {
     </SlideShell>
   );
 }
+
+function Slide7({ onLaunch }: SlideProps) {
+  const demos = [
+    {
+      icon: <GraduationCap className="h-5 w-5 md:h-6 md:w-6" />,
+      title: "Learn about Medicare",
+      desc: "Ask about Part A, Part B, Part C, Part D, or Medicare Advantage and watch the AI navigate and highlight the right section.",
+      phrase: "What is Medicare Advantage?",
+    },
+    {
+      icon: <ClipboardList className="h-5 w-5 md:h-6 md:w-6" />,
+      title: "Compare Plans",
+      desc: "Ask to compare plans and the AI will walk you through the options side by side.",
+      phrase: "Show me plans under $50 with drug coverage",
+    },
+    {
+      icon: <Stethoscope className="h-5 w-5 md:h-6 md:w-6" />,
+      title: "Find a Doctor",
+      desc: "Ask if your doctor is covered and the AI will take you to the provider lookup.",
+      phrase: "Find a cardiologist in Austin",
+    },
+    {
+      icon: <Heart className="h-5 w-5 md:h-6 md:w-6" />,
+      title: "View My Saved Plans",
+      desc: "Ask to see your saved plans and the AI will recognize it's a protected page, take you through a mock login, then land you on your personalized plans.",
+      phrase: "Show me my saved plans",
+    },
+    {
+      icon: <Phone className="h-5 w-5 md:h-6 md:w-6" />,
+      title: "Request a Callback",
+      desc: "Ask to talk to an agent and the AI will collect your phone number and send a mock summary to Salesforce so you don't have to repeat yourself.",
+      phrase: "Can someone call me back?",
+    },
+  ];
+
+  return (
+    <SlideShell eyebrow="Try These">
+      <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
+        What you can <span className="text-primary">demo.</span>
+      </h2>
+      <p className="mt-3 md:mt-6 max-w-3xl text-sm md:text-xl text-muted-foreground">
+        Share this link with anyone — here's what to try once you're inside.
+      </p>
+      <div className="mt-4 md:mt-10 grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3 max-w-6xl">
+        {demos.map((d) => (
+          <div
+            key={d.title}
+            className="flex flex-col rounded-2xl border bg-card p-4 md:p-6 shadow-sm transition hover:border-primary/40 hover:shadow-md"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                {d.icon}
+              </div>
+              <h3 className="text-sm md:text-lg font-semibold text-foreground">{d.title}</h3>
+            </div>
+            <p className="mt-2 md:mt-3 text-xs md:text-sm text-muted-foreground leading-relaxed">{d.desc}</p>
+            <div className="mt-3 md:mt-4 rounded-lg bg-muted/60 px-3 py-2">
+              <p className="text-[10px] md:text-xs font-medium uppercase tracking-wide text-muted-foreground">Try saying</p>
+              <p className="mt-0.5 text-xs md:text-sm italic text-foreground">&quot;{d.phrase}&quot;</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 md:mt-8">
+        <Button
+          onClick={onLaunch}
+          size="lg"
+          className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg gap-2 shadow-lg shadow-primary/25"
+        >
+          Launch the Demo <ArrowRight className="h-5 w-5 md:h-5 md:w-5" />
+        </Button>
+      </div>
+    </SlideShell>
+  );
+}
