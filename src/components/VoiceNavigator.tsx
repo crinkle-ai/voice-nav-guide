@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Mic, MicOff, X, Send, Volume2, VolumeX, Loader2, Phone, CheckCircle2, UserRound } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+const PROMPT_CHIPS = [
+  "What's a deductible?",
+  "Find a cardiologist in Houston",
+  "Compare Medicare Advantage plans under $50",
+  "Take me to the plans page",
+  "Connect me with an agent",
+];
 
 type SR = {
   start: () => void;
@@ -45,6 +54,19 @@ export function VoiceNavigator() {
   const speakingInProgressRef = useRef<boolean>(false);
   const lastHandledToolIdsRef = useRef<Set<string>>(new Set());
 
+  type CallbackSnapshot = {
+    name: string;
+    phone: string;
+    page: string;
+    visitedPages: string[];
+    transcriptSnippet: string;
+    submittedAt: string;
+  };
+  const [callbackPhase, setCallbackPhase] = useState<"hidden" | "form" | "confirmed">("hidden");
+  const [callbackName, setCallbackName] = useState("");
+  const [callbackPhone, setCallbackPhone] = useState("");
+  const [callbackSnapshot, setCallbackSnapshot] = useState<CallbackSnapshot | null>(null);
+
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
   const { messages, sendMessage, status, error } = useChat({ transport });
 
@@ -72,7 +94,7 @@ export function VoiceNavigator() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Handle tool calls: navigate, highlight
+  // Handle tool calls: navigate, highlight, callback flow
   useEffect(() => {
     for (const m of messages) {
       if (m.role !== "assistant") continue;
@@ -88,6 +110,12 @@ export function VoiceNavigator() {
         } else if (name === "highlight_section" && typeof args.section === "string") {
           lastHandledToolIdsRef.current.add(id);
           dispatch({ type: "SET_HIGHLIGHT", section: args.section });
+        } else if (name === "request_agent_callback") {
+          lastHandledToolIdsRef.current.add(id);
+          setCallbackPhase("form");
+        } else if (name === "confirm_agent_callback") {
+          lastHandledToolIdsRef.current.add(id);
+          setCallbackPhase("confirmed");
         }
       }
     }
@@ -218,7 +246,21 @@ export function VoiceNavigator() {
             {messages.length === 0 && (
               <div className="text-center text-sm text-muted-foreground">
                 <p>Ask me anything about Medicare. I can also take you to the right page.</p>
-                <p className="mt-2 text-xs">Try: "What's a deductible?" or "Find a cardiologist in Houston."</p>
+                <p className="mt-2 text-xs">Try one of these:</p>
+              </div>
+            )}
+            {messages.length === 0 && (
+              <div className="flex flex-wrap justify-center gap-2 pt-1">
+                {PROMPT_CHIPS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => void sendMessage({ text: c })}
+                    className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/10"
+                  >
+                    {c}
+                  </button>
+                ))}
               </div>
             )}
             {messages.map((m) => {
@@ -244,6 +286,120 @@ export function VoiceNavigator() {
             {interim && (
               <div className="flex justify-end"><div className="max-w-[85%] rounded-2xl bg-primary/40 px-3 py-2 text-sm italic text-primary-foreground">{interim}</div></div>
             )}
+
+            {callbackPhase === "form" && (
+              <div className="animate-in slide-in-from-bottom-2 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-primary">
+                  <UserRound className="h-5 w-5" />
+                  <h3 className="text-base font-semibold">Request a callback</h3>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A licensed Medicare agent will call you back — and they'll already have the full context of our conversation.
+                </p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const name = callbackName.trim();
+                    const phone = callbackPhone.trim();
+                    if (!name || !phone) return;
+                    const recent = messages
+                      .slice(-6)
+                      .map((m) => `${m.role === "user" ? "You" : "Navigator"}: ${extractText(m)}`)
+                      .filter((s) => s.length > 5)
+                      .join("\n");
+                    setCallbackSnapshot({
+                      name,
+                      phone,
+                      page: typeof window !== "undefined" ? window.location.pathname : "/",
+                      visitedPages: state.journey.visitedPages,
+                      transcriptSnippet: recent,
+                      submittedAt: new Date().toLocaleString(),
+                    });
+                    void sendMessage({
+                      text: `Callback request submitted — Name: ${name}, Phone: ${phone}. Please send my info to a licensed agent.`,
+                    });
+                  }}
+                  className="mt-4 space-y-3"
+                >
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cb-name" className="text-xs font-semibold">Your name</Label>
+                    <Input
+                      id="cb-name"
+                      value={callbackName}
+                      onChange={(e) => setCallbackName(e.target.value)}
+                      placeholder="Jane Smith"
+                      autoComplete="name"
+                      className="h-11 text-base"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cb-phone" className="text-xs font-semibold">Phone number</Label>
+                    <Input
+                      id="cb-phone"
+                      type="tel"
+                      value={callbackPhone}
+                      onChange={(e) => setCallbackPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      autoComplete="tel"
+                      className="h-11 text-base"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="h-12 w-full text-base font-semibold"
+                    disabled={!callbackName.trim() || !callbackPhone.trim()}
+                  >
+                    <Phone className="h-4 w-4" /> Request Callback
+                  </Button>
+                </form>
+              </div>
+            )}
+
+            {callbackPhase === "confirmed" && callbackSnapshot && (
+              <div className="animate-in slide-in-from-bottom-2 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-primary">
+                  <CheckCircle2 className="h-6 w-6" />
+                  <h3 className="text-base font-semibold">Callback Requested</h3>
+                </div>
+                <p className="mt-1 text-sm text-foreground">
+                  An agent will call <span className="font-semibold">{callbackSnapshot.name}</span> at{" "}
+                  <span className="font-semibold">{callbackSnapshot.phone}</span> shortly.
+                </p>
+
+                <div className="mt-3 rounded-lg border bg-card p-3 text-xs">
+                  <div className="font-semibold text-foreground">Shared with your agent</div>
+                  <dl className="mt-2 space-y-1.5 text-muted-foreground">
+                    <div className="flex justify-between gap-3">
+                      <dt>Current page</dt>
+                      <dd className="font-medium text-foreground">{callbackSnapshot.page}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt>Pages visited</dt>
+                      <dd className="font-medium text-foreground">
+                        {callbackSnapshot.visitedPages.length || 1}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt>Requested at</dt>
+                      <dd className="font-medium text-foreground">{callbackSnapshot.submittedAt}</dd>
+                    </div>
+                  </dl>
+                  {callbackSnapshot.transcriptSnippet && (
+                    <div className="mt-3 border-t pt-2">
+                      <div className="font-semibold text-foreground">Conversation snippet</div>
+                      <pre className="mt-1 max-h-24 overflow-y-auto whitespace-pre-wrap font-sans text-[11px] leading-snug text-muted-foreground">
+                        {callbackSnapshot.transcriptSnippet}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <p className="mt-3 text-xs italic text-muted-foreground">
+                  Your agent will already know: what you've reviewed, what questions you asked, and where you left off.
+                </p>
+              </div>
+            )}
+
             {error && (
               <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
                 Something went wrong. Please try again.

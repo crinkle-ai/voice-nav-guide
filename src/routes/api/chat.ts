@@ -15,6 +15,8 @@ When the user wants to go somewhere or see something, USE TOOLS rather than just
 - highlight_section: point out a specific section on the current page (e.g. "part-a", "glossary", "premium-filter").
 - search_doctors: actually query the doctor database.
 - recommend_plans: actually query the plans database and surface 2-3 matches.
+- request_agent_callback: when the user wants to talk to a real person / licensed agent / human / be called back, call this tool. Your reply text MUST be exactly: "I can connect you with a licensed Medicare agent who will have full context of our conversation. May I get your name and phone number so an agent can call you back?" The UI will render a callback form.
+- confirm_agent_callback: after the user submits their contact info (a user message like "Callback request submitted — Name: ..., Phone: ..."), call this tool. Your reply text MUST be exactly: "Perfect. I've sent your information and our full conversation to a licensed Medicare agent. They'll call you back shortly and will already know exactly where you are in your Medicare journey — no need to repeat yourself."
 
 After calling a tool, briefly tell the user what you did and what to look at.`;
 
@@ -89,6 +91,16 @@ export const Route = createFileRoute("/api/chat")({
                 if (error) return { error: error.message };
                 return { count: data?.length ?? 0, plans: data ?? [] };
               },
+            }),
+            request_agent_callback: tool({
+              description: "Show the UI form to request a callback from a licensed Medicare agent. Use when the user wants to talk to a real person.",
+              inputSchema: z.object({}),
+              execute: async () => ({ ok: true }),
+            }),
+            confirm_agent_callback: tool({
+              description: "Confirm the callback request was sent to an agent. Call this after the user submits their contact info.",
+              inputSchema: z.object({}),
+              execute: async () => ({ ok: true }),
             }),
           },
         });
