@@ -242,8 +242,24 @@ export function BottomVoiceBar() {
         );
       }
     },
-    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans],
+    [navigate, highlightSection, dispatch, fetchDoctors, fetchPlans, pathname],
   );
+
+  // When the route changes, flush any deferred highlight that was waiting for
+  // the destination page to mount. Short delay lets the new route render its DOM.
+  useEffect(() => {
+    const pending = pendingHighlightRef.current;
+    if (!pending) return;
+    if (pending.path !== pathname) return;
+    const section = pending.section;
+    pendingHighlightRef.current = null;
+    if (!section) return;
+    const t = setTimeout(() => {
+      highlightSection(section);
+      dispatch({ type: "SET_HIGHLIGHT", section });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [pathname, highlightSection, dispatch]);
 
   const playPcm = useCallback((b64: string) => {
     const ctx = playCtxRef.current;
