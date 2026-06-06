@@ -77,7 +77,7 @@ function base64ToInt16(b64: string): Int16Array {
 
 export function BottomVoiceBar() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const fetchDoctors = useServerFn(searchDoctors);
   const fetchPlans = useServerFn(listPlans);
 
@@ -88,6 +88,71 @@ export function BottomVoiceBar() {
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastSentPathRef = useRef<string | null>(null);
+
+  // Agent callback flow (deterministic, bypasses LLM for collection)
+  type CallbackSnapshot = {
+    name: string;
+    phone: string;
+    visitedPages: string[];
+    topics: string[];
+    submittedAt: string;
+  };
+  const [callbackPhase, setCallbackPhase] = useState<"hidden" | "form" | "confirmed">("hidden");
+  const [cbName, setCbName] = useState("");
+  const [cbPhone, setCbPhone] = useState("");
+  const [cbSnapshot, setCbSnapshot] = useState<CallbackSnapshot | null>(null);
+  const turnTranscriptRef = useRef<string>("");
+
+  const openAgentCallback = useCallback(() => {
+    setCallbackPhase((prev) => (prev === "hidden" ? "form" : prev));
+  }, []);
+
+  const journeyTopics = useMemo(() => {
+    const visited = state.journey.visitedPages;
+    const topics: string[] = [];
+    if (visited.includes("/learn")) topics.push("Reviewed Medicare parts & glossary");
+    if (state.savedDoctorIds.length > 0) {
+      topics.push(`Saved ${state.savedDoctorIds.length} doctor${state.savedDoctorIds.length === 1 ? "" : "s"}`);
+    } else if (visited.includes("/find-doctors")) {
+      topics.push("Searched for doctors");
+    }
+    if (state.comparePlanIds.length > 0) {
+      topics.push(`Compared ${state.comparePlanIds.length} plan${state.comparePlanIds.length === 1 ? "" : "s"}`);
+    } else if (visited.includes("/compare-plans")) {
+      topics.push("Browsed Medicare plans");
+    }
+    if (topics.length === 0) topics.push("Started exploring Medicare options");
+    return topics;
+  }, [state.journey.visitedPages, state.savedDoctorIds, state.comparePlanIds]);
+
+  const submitCallback = useCallback(() => {
+    const phone = cbPhone.trim();
+    if (!phone) return;
+    setCbSnapshot({
+      name: cbName.trim(),
+      phone,
+      visitedPages: state.journey.visitedPages,
+      topics: journeyTopics,
+      submittedAt: new Date().toLocaleString(),
+    });
+    setCallbackPhase("confirmed");
+    // Nudge the model so it doesn't keep asking — short ack only.
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(
+        JSON.stringify({
+          clientContent: {
+            turns: [{
+              role: "user",
+              parts: [{ text: "[SYSTEM] The user just submitted the on-screen callback form with their phone number. Respond with ONE short, warm confirmation sentence like 'Got it — a licensed agent will give you a call shortly.' Then stop." }],
+            }],
+            turnComplete: true,
+          },
+        }),
+      );
+    }
+  }, [cbPhone, cbName, state.journey.visitedPages, journeyTopics]);
+
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
