@@ -1,6 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { Check } from "lucide-react";
+import { Check, Lock, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { isAuthed, signOut } from "@/lib/mock-auth";
 
 const NAV_ITEMS = [
   { to: "/home", label: "Home" },
@@ -17,7 +19,20 @@ const JOURNEY_STEPS = [
 
 export function TopNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const { state } = useApp();
+  const [authed, setAuthed] = useState(false);
+
+  // Re-check auth on every navigation so the lock/logout state stays in sync.
+  useEffect(() => {
+    setAuthed(isAuthed());
+  }, [pathname]);
+
+  const handleLogout = () => {
+    signOut();
+    setAuthed(false);
+    navigate({ to: "/home" });
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
@@ -48,12 +63,37 @@ export function TopNav() {
               </Link>
             );
           })}
+
           <Link
-            to="/"
-            className="ml-1 rounded-md border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+            to="/my-plans"
+            className={`flex items-center gap-1.5 rounded-md px-4 py-2 text-base font-medium transition-colors ${
+              pathname === "/my-plans"
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground hover:bg-accent hover:text-accent-foreground"
+            }`}
+            title={authed ? "My Plans" : "My Plans (sign-in required)"}
           >
-            Intro
+            {!authed && <Lock className="h-3.5 w-3.5 opacity-70" />}
+            My Plans
           </Link>
+
+          {authed ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="ml-1 inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              title="Sign out (resets demo)"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Sign out
+            </button>
+          ) : (
+            <Link
+              to="/"
+              className="ml-1 rounded-md border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+            >
+              Intro
+            </Link>
+          )}
         </nav>
       </div>
 

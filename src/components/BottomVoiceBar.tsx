@@ -4,6 +4,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
 import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+import { isAuthed, POST_LOGIN_VOICE_KEY } from "@/lib/mock-auth";
 
 const AGENT_TRIGGERS = [
   /\btalk(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
@@ -17,6 +18,19 @@ const AGENT_TRIGGERS = [
 
 function matchesAgentIntent(text: string): boolean {
   return AGENT_TRIGGERS.some((re) => re.test(text));
+}
+
+const MY_PLANS_TRIGGERS = [
+  /\bmy\s+(saved\s+)?plans?\b/i,
+  /\b(view|show|see|open|pull\s+up)\s+(me\s+)?(my\s+)?(saved\s+)?plans?\b/i,
+  /\bmy\s+account\b/i,
+  /\bmy\s+(saved\s+)?coverage\b/i,
+  /\bpersonalized\s+plans?\b/i,
+  /\bsaved\s+for\s+me\b/i,
+];
+
+function matchesMyPlansIntent(text: string): boolean {
+  return MY_PLANS_TRIGGERS.some((re) => re.test(text));
 }
 
 
@@ -87,6 +101,7 @@ export function BottomVoiceBar() {
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathnameRef = useRef(pathname);
   const lastSentPathRef = useRef<string | null>(null);
 
   // Agent callback flow (deterministic, bypasses LLM for collection)
@@ -230,10 +245,21 @@ export function BottomVoiceBar() {
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
           const raw = fc.args.page as string;
-          const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
+          let page = (raw === "/" ? "/home" : raw) as
+            | "/home" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
+          // Enforce auth gate client-side too: if AI tries to send the user
+          // to a protected page while signed-out, route them through login.
+          if (page === "/my-plans" && !isAuthed()) {
+            page = "/login";
+            try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+          }
           lastSentPathRef.current = page;
           respond({ ok: true, navigated: page });
-          navigate({ to: page });
+          if (page === "/login") {
+            navigate({ to: "/login", search: { redirect: "/my-plans" } });
+          } else {
+            navigate({ to: page });
+          }
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
           const section = fc.args.section;
           respond({ ok: true, highlighted: section });
@@ -481,6 +507,21 @@ export function BottomVoiceBar() {
           if (matchesAgentIntent(turnTranscriptRef.current)) {
             openAgentCallback();
           }
+          // Scripted fallback: if the user clearly asks for their plans and
+          // we're not on /my-plans, route them (through /login if needed).
+          const curPath = pathnameRef.current;
+          if (
+            matchesMyPlansIntent(turnTranscriptRef.current) &&
+            curPath !== "/my-plans" &&
+            curPath !== "/login"
+          ) {
+            if (isAuthed()) {
+              navigate({ to: "/my-plans" });
+            } else {
+              try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+              navigate({ to: "/login", search: { redirect: "/my-plans" } });
+            }
+          }
         }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
@@ -531,18 +572,37 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
-  // Push current route to the model so it knows where the user is.
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
+
+
+  // Push current route + auth state to the model so it knows where the user
+  // is and whether they're signed in.
   useEffect(() => {
     if (status !== "live") return;
     if (lastSentPathRef.current === pathname) return;
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     lastSentPathRef.current = pathname;
+
+    const authTag = isAuthed() ? "[AUTH: signed-in]" : "[AUTH: signed-out]";
+    let postLogin: string | null = null;
+    try {
+      const pending = sessionStorage.getItem(POST_LOGIN_VOICE_KEY);
+      if (pending && pending === pathname && isAuthed()) {
+        postLogin = pending;
+        sessionStorage.removeItem(POST_LOGIN_VOICE_KEY);
+      }
+    } catch { /* noop */ }
+
+    const text = postLogin
+      ? `[CURRENT PAGE: ${pathname}] ${authTag} [SYSTEM] The user just signed in and landed on ${postLogin}. Welcome them back in ONE short sentence and tell them their saved plans are now on screen. Then stop.`
+      : `[CURRENT PAGE: ${pathname}] ${authTag}`;
+
     ws.send(
       JSON.stringify({
         clientContent: {
-          turns: [{ role: "user", parts: [{ text: `[CURRENT PAGE: ${pathname}]` }] }],
-          turnComplete: false,
+          turns: [{ role: "user", parts: [{ text }] }],
+          turnComplete: !!postLogin,
         },
       }),
     );
