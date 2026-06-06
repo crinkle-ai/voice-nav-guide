@@ -134,6 +134,10 @@ export function BottomVoiceBar() {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
           const raw = fc.args.page as string;
           const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
+          // Suppress the pathname-tracker echo for AI-initiated navigations —
+          // otherwise we send "[CURRENT PAGE: /x]" back to the model right after
+          // it told us to go there, which can cause it to respond again (duplicate speech).
+          lastSentPathRef.current = page;
           navigate({ to: page });
           result = { navigated: page };
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
