@@ -502,6 +502,20 @@ export function BottomVoiceBar() {
           if (matchesAgentIntent(turnTranscriptRef.current)) {
             openAgentCallback();
           }
+          // Scripted fallback: if the user clearly asks for their plans and
+          // we're not on /my-plans, route them (through /login if needed).
+          if (
+            matchesMyPlansIntent(turnTranscriptRef.current) &&
+            pathname !== "/my-plans" &&
+            pathname !== "/login"
+          ) {
+            if (isAuthed()) {
+              navigate({ to: "/my-plans" });
+            } else {
+              try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+              navigate({ to: "/login", search: { redirect: "/my-plans" } });
+            }
+          }
         }
         if (msg.serverContent?.outputTranscription?.text) {
           setLiveCaption(msg.serverContent.outputTranscription.text);
