@@ -505,10 +505,11 @@ export function BottomVoiceBar() {
           }
           // Scripted fallback: if the user clearly asks for their plans and
           // we're not on /my-plans, route them (through /login if needed).
+          const curPath = pathnameRef.current;
           if (
             matchesMyPlansIntent(turnTranscriptRef.current) &&
-            pathname !== "/my-plans" &&
-            pathname !== "/login"
+            curPath !== "/my-plans" &&
+            curPath !== "/login"
           ) {
             if (isAuthed()) {
               navigate({ to: "/my-plans" });
