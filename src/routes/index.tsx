@@ -27,6 +27,11 @@ function SlideDeck() {
   const launch = useCallback(() => navigate({ to: "/home" }), [navigate]);
 
   useEffect(() => {
+    const shell = document.querySelector(`[data-slide-index="${index}"] [data-slide-shell]`);
+    if (shell) shell.scrollTop = 0;
+  }, [index]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") next();
       else if (e.key === "ArrowLeft") prev();
@@ -63,6 +68,7 @@ function SlideDeck() {
         {SLIDES.map((Slide, i) => (
           <div
             key={i}
+            data-slide-index={i}
             className={`absolute inset-0 transition-all duration-500 ease-out ${
               i === index ? "opacity-100 translate-x-0" : i < index ? "opacity-0 -translate-x-8 pointer-events-none" : "opacity-0 translate-x-8 pointer-events-none"
             }`}
@@ -118,7 +124,7 @@ const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Sl
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
-    <div className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
+    <div data-slide-shell className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
       {eyebrow && (
         <div className="mb-3 md:mb-6 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</div>
       )}
