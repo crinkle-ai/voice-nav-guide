@@ -525,7 +525,7 @@ export function BottomVoiceBar() {
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio]);
+  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio, openAgentCallback]);
 
   useEffect(() => {
     mutedRef.current = muted;
