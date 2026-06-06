@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
 function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const total = 7;
+  const total = 6;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
