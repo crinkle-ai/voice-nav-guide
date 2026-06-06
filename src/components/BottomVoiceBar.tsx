@@ -73,10 +73,6 @@ export function BottomVoiceBar() {
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastSentPathRef = useRef<string | null>(null);
-  // Deferred highlight: when the AI calls navigate_to (alone or alongside
-  // highlight_section), we stash the target section here and fire it ONLY
-  // after the pathname has actually changed to the destination route.
-  const pendingHighlightRef = useRef<{ path: string; section: string | null } | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
