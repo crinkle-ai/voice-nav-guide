@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones, FlaskConical, Users, LineChart, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
