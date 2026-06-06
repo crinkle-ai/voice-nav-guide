@@ -26,7 +26,7 @@ You'll receive system updates like "[CURRENT PAGE: /learn]" — trust them as th
 
 SECTION CATALOG (use these exact ids with highlight_section):
 
-/  (home):
+/home  (home):
   - "hero" — top hero, tagline, "Talk to your guide" button
   - "try-asking" — card with example questions on the right
   - "steps" — the 3-step path (Learn, Find Doctors, Compare Plans)
