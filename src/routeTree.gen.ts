@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/find-doctors': typeof FindDoctorsRoute
   '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/find-doctors': typeof FindDoctorsRoute
   '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/find-doctors': typeof FindDoctorsRoute
   '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/home'
     | '/learn'
+    | '/login'
     | '/api/chat'
     | '/api/voice-session'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/home'
     | '/learn'
+    | '/login'
     | '/api/chat'
     | '/api/voice-session'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/home'
     | '/learn'
+    | '/login'
     | '/api/chat'
     | '/api/voice-session'
   fileRoutesById: FileRoutesById
@@ -117,12 +129,20 @@ export interface RootRouteChildren {
   FindDoctorsRoute: typeof FindDoctorsRoute
   HomeRoute: typeof HomeRoute
   LearnRoute: typeof LearnRoute
+  LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learn': {
       id: '/learn'
       path: '/learn'
@@ -181,9 +201,20 @@ const rootRouteChildren: RootRouteChildren = {
   FindDoctorsRoute: FindDoctorsRoute,
   HomeRoute: HomeRoute,
   LearnRoute: LearnRoute,
+  LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
