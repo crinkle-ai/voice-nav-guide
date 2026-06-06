@@ -101,6 +101,7 @@ export function BottomVoiceBar() {
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathnameRef = useRef(pathname);
   const lastSentPathRef = useRef<string | null>(null);
 
   // Agent callback flow (deterministic, bypasses LLM for collection)
