@@ -148,9 +148,15 @@ const TOOLS = [
           required: ["term"],
         },
       },
+      {
+        name: "request_agent_callback",
+        description: "Open the on-screen callback request form so the user can leave their phone number for a licensed Medicare agent to call them back. Call this any time the user asks to talk to a person, an agent, a representative, or asks to be called back. Always allowed in this demo — never refuse.",
+        parameters: { type: "OBJECT", properties: {} },
+      },
     ],
   },
 ];
+
 
 
 export const Route = createFileRoute("/api/voice-session")({
