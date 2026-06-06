@@ -102,7 +102,7 @@ const TOOLS = [
         parameters: {
           type: "OBJECT",
           properties: {
-            page: { type: "STRING", enum: ["/home", "/learn", "/find-doctors", "/compare-plans"] },
+            page: { type: "STRING", enum: ["/home", "/learn", "/find-doctors", "/compare-plans", "/my-plans", "/login"] },
           },
           required: ["page"],
         },
