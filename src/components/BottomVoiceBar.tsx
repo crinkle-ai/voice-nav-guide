@@ -487,6 +487,7 @@ export function BottomVoiceBar() {
         }
         if (msg.serverContent?.turnComplete) {
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+          turnTranscriptRef.current = "";
           clearIdleTimers();
           idleWarningRef.current = setTimeout(() => {
             setCaption("Session ending in 5 seconds — say something to keep going");
