@@ -16,7 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
       { title: "Medicare Coverage & Plans | Crinkle Health" },
