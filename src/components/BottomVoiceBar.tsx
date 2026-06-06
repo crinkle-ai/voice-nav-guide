@@ -4,6 +4,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useApp } from "@/context/AppContext";
 import { searchDoctors, listPlans } from "@/lib/catalog.functions";
+import { isAuthed, POST_LOGIN_VOICE_KEY } from "@/lib/mock-auth";
 
 const AGENT_TRIGGERS = [
   /\btalk(ing)?\s+(to|with)\s+(a|an|some)?\s*(real\s+)?(person|human|agent|representative|rep|someone|advisor|broker)\b/i,
