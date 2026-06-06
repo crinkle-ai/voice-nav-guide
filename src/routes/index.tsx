@@ -19,6 +19,7 @@ function SlideDeck() {
   const total = 6;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const next = useCallback(() => {
     setIndex((i) => (i >= total - 1 ? i : i + 1));
@@ -27,28 +28,7 @@ function SlideDeck() {
   const launch = useCallback(() => navigate({ to: "/home" }), [navigate]);
 
   useEffect(() => {
-    const resetScroll = () => {
-      try {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      } catch {}
-      const slide = document.querySelector(`[data-slide-index="${index}"]`);
-      if (slide) {
-        slide.querySelectorAll<HTMLElement>("[data-slide-shell], [data-scrollable]").forEach((el) => {
-          el.scrollTop = 0;
-        });
-      }
-    };
-    resetScroll();
-    const r1 = requestAnimationFrame(resetScroll);
-    const r2 = requestAnimationFrame(() => requestAnimationFrame(resetScroll));
-    const t = setTimeout(resetScroll, 120);
-    return () => {
-      cancelAnimationFrame(r1);
-      cancelAnimationFrame(r2);
-      clearTimeout(t);
-    };
+    slideRefs.current[index]?.scrollTo({ top: 0 });
   }, [index]);
 
   useEffect(() => {
@@ -88,8 +68,11 @@ function SlideDeck() {
         {SLIDES.map((Slide, i) => (
           <div
             key={i}
+            ref={(el) => {
+              slideRefs.current[i] = el;
+            }}
             data-slide-index={i}
-            className={`absolute inset-0 transition-all duration-500 ease-out ${
+            className={`absolute inset-0 overflow-y-auto transition-all duration-500 ease-out ${
               i === index ? "opacity-100 translate-x-0" : i < index ? "opacity-0 -translate-x-8 pointer-events-none" : "opacity-0 translate-x-8 pointer-events-none"
             }`}
           >
@@ -144,7 +127,7 @@ const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Sl
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
-    <div data-slide-shell className="h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto overflow-y-auto">
+    <div className="min-h-full w-full flex flex-col justify-center px-6 md:px-24 max-w-7xl mx-auto">
       {eyebrow && (
         <div className="mb-3 md:mb-6 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</div>
       )}
