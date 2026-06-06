@@ -3,7 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { Check } from "lucide-react";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Home" },
+  { to: "/home", label: "Home" },
   { to: "/learn", label: "Learn" },
   { to: "/find-doctors", label: "Find Doctors" },
   { to: "/compare-plans", label: "Compare Plans" },
@@ -22,7 +22,7 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/home" className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
             M
           </div>
