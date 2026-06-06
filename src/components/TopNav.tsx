@@ -48,6 +48,12 @@ export function TopNav() {
               </Link>
             );
           })}
+          <Link
+            to="/"
+            className="ml-1 rounded-md border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+          >
+            Intro
+          </Link>
         </nav>
       </div>
 
