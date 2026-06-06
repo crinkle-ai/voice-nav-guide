@@ -567,6 +567,9 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
+
+
   // Push current route + auth state to the model so it knows where the user
   // is and whether they're signed in.
   useEffect(() => {
