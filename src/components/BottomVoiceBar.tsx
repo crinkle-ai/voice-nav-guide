@@ -758,5 +758,6 @@ export function BottomVoiceBar() {
         )}
       </div>
     </div>
+    </>
   );
 }
