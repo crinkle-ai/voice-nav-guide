@@ -92,6 +92,16 @@ export const Route = createFileRoute("/api/chat")({
                 return { count: data?.length ?? 0, plans: data ?? [] };
               },
             }),
+            request_agent_callback: tool({
+              description: "Show the UI form to request a callback from a licensed Medicare agent. Use when the user wants to talk to a real person.",
+              inputSchema: z.object({}),
+              execute: async () => ({ ok: true }),
+            }),
+            confirm_agent_callback: tool({
+              description: "Confirm the callback request was sent to an agent. Call this after the user submits their contact info.",
+              inputSchema: z.object({}),
+              execute: async () => ({ ok: true }),
+            }),
           },
         });
 
