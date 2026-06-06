@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -95,7 +95,7 @@ function SlideDeck() {
 
 type SlideProps = { onLaunch: () => void };
 
-const SLIDES: Array<(p: SlideProps) => JSX.Element> = [Slide1, Slide2, Slide3, Slide4, Slide5];
+const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, Slide5];
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
