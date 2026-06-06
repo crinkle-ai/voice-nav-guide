@@ -94,7 +94,7 @@ export function VoiceNavigator() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Handle tool calls: navigate, highlight
+  // Handle tool calls: navigate, highlight, callback flow
   useEffect(() => {
     for (const m of messages) {
       if (m.role !== "assistant") continue;
@@ -110,6 +110,12 @@ export function VoiceNavigator() {
         } else if (name === "highlight_section" && typeof args.section === "string") {
           lastHandledToolIdsRef.current.add(id);
           dispatch({ type: "SET_HIGHLIGHT", section: args.section });
+        } else if (name === "request_agent_callback") {
+          lastHandledToolIdsRef.current.add(id);
+          setCallbackPhase("form");
+        } else if (name === "confirm_agent_callback") {
+          lastHandledToolIdsRef.current.add(id);
+          setCallbackPhase("confirmed");
         }
       }
     }
