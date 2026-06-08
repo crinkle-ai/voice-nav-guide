@@ -530,7 +530,10 @@ export function BottomVoiceBar() {
     pendingActivateRef.current = false;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null;
+      t.stop();
+    });
     streamRef.current = null;
     micCtxRef.current?.close().catch(() => {});
     playCtxRef.current?.close().catch(() => {});
@@ -854,7 +857,10 @@ export function BottomVoiceBar() {
     micTeardownInProgressRef.current = true;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null;
+      t.stop();
+    });
     streamRef.current = null;
     await micCtxRef.current?.close().catch(() => {});
     micTeardownInProgressRef.current = false;
