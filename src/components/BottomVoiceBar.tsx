@@ -700,7 +700,7 @@ export function BottomVoiceBar() {
         const wasActive = !!streamRef.current;
         if (wasActive && !userStoppedRef.current) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          scheduleLiveReconnect(0);
+          scheduleLiveReconnect();
           return;
         }
         if (!userStoppedRef.current) {
@@ -801,6 +801,11 @@ export function BottomVoiceBar() {
     reconnectingRef.current = true;
     reconnectAttemptsRef.current += 1;
     const attempt = reconnectAttemptsRef.current;
+    if (attempt > MAX_LIVE_RECONNECT_ATTEMPTS) {
+      reconnectingRef.current = false;
+      failLiveConnection();
+      return;
+    }
     setStatus("connecting");
     setCaption("Reconnecting…");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
@@ -821,28 +826,21 @@ export function BottomVoiceBar() {
         prewarmReadyRef.current = false;
         reconnectingRef.current = false;
         if (userStoppedRef.current) return;
-        if (streamRef.current && reconnectAttemptsRef.current < 5) {
-          setTimeout(() => { void reconnectLive(); }, 1500);
+        if (streamRef.current && reconnectAttemptsRef.current < MAX_LIVE_RECONNECT_ATTEMPTS) {
+          scheduleLiveReconnect();
         } else if (streamRef.current) {
-          // Give up — drop to idle.
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          stop();
-          setErrorMsg("Connection lost. Tap Start to try again.");
-          setStatus("error");
+          failLiveConnection();
         }
       };
     } catch {
       reconnectingRef.current = false;
-      if (!userStoppedRef.current && streamRef.current && attempt < 5) {
-        setTimeout(() => { void reconnectLive(); }, 1500);
+      if (!userStoppedRef.current && streamRef.current && attempt < MAX_LIVE_RECONNECT_ATTEMPTS) {
+        scheduleLiveReconnect();
       } else if (streamRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        stop();
-        setErrorMsg("Connection lost. Tap Start to try again.");
-        setStatus("error");
+        failLiveConnection();
       }
     }
-  }, [attachWsHandlers, dispatch, stop]);
+  }, [attachWsHandlers, dispatch, failLiveConnection, scheduleLiveReconnect]);
 
   // Tear down and rebuild just the mic/audio-input pipeline without touching
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
