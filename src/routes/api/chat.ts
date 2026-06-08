@@ -32,7 +32,7 @@ TOOLS (use them instead of describing clicks):
 
 After a tool call: one short sentence about what you did or what to look at. Then stop.`;
 
-const PAGE_VALUES: ["/home", "/learn", "/find-doctors", "/compare-plans"] = ["/home", "/learn", "/find-doctors", "/compare-plans"];
+const PAGE_VALUES: ["/", "/learn", "/find-doctors", "/compare-plans"] = ["/", "/learn", "/find-doctors", "/compare-plans"];
 
 export const Route = createFileRoute("/api/chat")({
   server: {
