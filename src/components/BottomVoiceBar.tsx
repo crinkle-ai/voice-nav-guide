@@ -553,23 +553,54 @@ export function BottomVoiceBar() {
         if (msg.serverContent?.inputTranscription?.text) {
           clearIdleTimers();
           turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
-          if (matchesAgentIntent(turnTranscriptRef.current)) {
-            openAgentCallback();
+          const transcript = turnTranscriptRef.current;
+          const fired = turnFallbackFiredRef.current;
+          const fireOnce = (key: string, fn: () => void) => {
+            if (fired.has(key)) return;
+            fired.add(key);
+            fn();
+          };
+
+          if (matchesAgentIntent(transcript)) {
+            fireOnce("agent", () => openAgentCallback());
           }
           // Scripted fallback: if the user clearly asks for their plans and
           // we're not on /my-plans, route them (through /login if needed).
           const curPath = pathnameRef.current;
           if (
-            matchesMyPlansIntent(turnTranscriptRef.current) &&
+            matchesMyPlansIntent(transcript) &&
             curPath !== "/my-plans" &&
             curPath !== "/login"
           ) {
-            if (isAuthed()) {
-              navigate({ to: "/my-plans" });
-            } else {
-              try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
-              navigate({ to: "/login", search: { redirect: "/my-plans" } });
-            }
+            fireOnce("my-plans", () => {
+              if (isAuthed()) {
+                navigate({ to: "/my-plans" });
+              } else {
+                try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+                navigate({ to: "/login", search: { redirect: "/my-plans" } });
+              }
+            });
+          }
+          // Scripted fallback: Learn topics (Part A/B/C/D, Medigap).
+          const learnTopic = matchesLearnTopic(transcript);
+          if (learnTopic) {
+            fireOnce(`learn:${learnTopic}`, () => {
+              lastSentPathRef.current = "/learn";
+              if (curPath !== "/learn") navigate({ to: "/learn" });
+              dispatch({ type: "SET_HIGHLIGHT", section: learnTopic });
+              setTimeout(() => highlightSection(learnTopic), 400);
+            });
+          }
+          // Scripted fallback: Glossary terms.
+          const term = matchesGlossaryTerm(transcript);
+          if (term) {
+            const section = `glossary-${term}`;
+            fireOnce(`glossary:${term}`, () => {
+              lastSentPathRef.current = "/learn";
+              if (curPath !== "/learn") navigate({ to: "/learn" });
+              dispatch({ type: "SET_HIGHLIGHT", section });
+              setTimeout(() => highlightSection(section), 400);
+            });
           }
         }
         if (msg.serverContent?.outputTranscription?.text) {
@@ -578,6 +609,7 @@ export function BottomVoiceBar() {
         if (msg.serverContent?.turnComplete) {
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
           turnTranscriptRef.current = "";
+          turnFallbackFiredRef.current = new Set();
           clearIdleTimers();
           idleWarningRef.current = setTimeout(() => {
             setCaption("Session ending in 5 seconds — say something to keep going");
@@ -587,6 +619,7 @@ export function BottomVoiceBar() {
             setCaption("Session ended to save tokens. Tap Start anytime.");
           }, 20000);
         }
+
         if (msg.serverContent?.interrupted) {
           // Barge-in: stop any already-scheduled audio so the user only hears
           // the new turn, not the tail of the previous one.
