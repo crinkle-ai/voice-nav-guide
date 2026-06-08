@@ -253,6 +253,7 @@ export function BottomVoiceBar() {
   const liveReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startingRef = useRef(false);
   const greetedRef = useRef(false);
+  const userSpeechSeenRef = useRef(false);
   // Pre-warmed WebSocket: opened on mount, setup sent, setupComplete received,
   // but mic + audio contexts not yet created (mic requires user gesture).
   const prewarmReadyRef = useRef(false);
@@ -391,6 +392,10 @@ export function BottomVoiceBar() {
           const raw = fc.args.page as string;
           let page = (raw === "/" ? "/home" : raw) as
             | "/home" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
+          if (page === "/login" && !userSpeechSeenRef.current) {
+            respond({ ok: true, ignored: true, reason: "No user request yet" });
+            return;
+          }
           // Enforce auth gate client-side too: if AI tries to send the user
           // to a protected page while signed-out, route them through login.
           if (page === "/my-plans" && !isAuthed()) {
@@ -610,6 +615,8 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.inputTranscription?.text) {
+        if (isInternalControlText(msg.serverContent.inputTranscription.text)) return;
+        userSpeechSeenRef.current = true;
         clearIdleTimers();
         turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
         const transcript = turnTranscriptRef.current;
@@ -659,6 +666,7 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.outputTranscription?.text) {
+        if (isInternalControlText(msg.serverContent.outputTranscription.text)) return;
         setLiveCaption(msg.serverContent.outputTranscription.text);
       }
       if (msg.serverContent?.turnComplete) {
