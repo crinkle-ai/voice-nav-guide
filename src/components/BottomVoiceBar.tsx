@@ -575,6 +575,7 @@ export function BottomVoiceBar() {
           reconnectingRef.current = false;
           reconnectAttemptsRef.current = 0;
           sendNoopTurn();
+          statusRef.current = "live";
           setStatus("live");
           setCaption("");
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
@@ -651,14 +652,6 @@ export function BottomVoiceBar() {
         turnTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
-        idleWarningRef.current = setTimeout(() => {
-          setCaption("Session ending in 5 seconds — say something to keep going");
-        }, 15000);
-        idleTimerRef.current = setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          stop();
-          setCaption("Session ended to save tokens. Tap Start anytime.");
-        }, 20000);
       }
 
       if (msg.serverContent?.interrupted) {
