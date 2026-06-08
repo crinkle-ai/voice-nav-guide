@@ -846,11 +846,13 @@ export function BottomVoiceBar() {
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
   const rebuildMicPipeline = useCallback(async () => {
     if (!streamRef.current && !micCtxRef.current) return;
+    micTeardownInProgressRef.current = true;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     await micCtxRef.current?.close().catch(() => {});
+    micTeardownInProgressRef.current = false;
     micCtxRef.current = null;
     processorRef.current = null;
     sourceNodeRef.current = null;
@@ -890,6 +892,7 @@ export function BottomVoiceBar() {
       lastAudioProcessAtRef.current = Date.now();
       lastAudioChunkRef.current = lastAudioProcessAtRef.current;
     } catch {
+      micTeardownInProgressRef.current = false;
       /* mic rebuild failed — leave session; user can press Stop */
     }
   }, [attachMicEndedHandlers]);
