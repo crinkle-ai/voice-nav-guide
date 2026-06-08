@@ -225,11 +225,14 @@ export const Route = createFileRoute("/api/voice-session")({
           }
 
           const websocketUrl = `${LIVE_WS_URL}?access_token=${encodeURIComponent(token.name)}`;
-          return Response.json({
-            websocketUrl,
-            model: GEMINI_MODEL,
-            expireTime: token.expireTime ?? null,
-          });
+          return Response.json(
+            {
+              websocketUrl,
+              model: GEMINI_MODEL,
+              expireTime: token.expireTime ?? null,
+            },
+            { headers: { "Cache-Control": "no-store" } },
+          );
         } catch (err) {
           const message = err instanceof Error ? err.message : "Unknown error";
           console.error("[voice-session] error", message);

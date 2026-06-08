@@ -99,6 +99,19 @@ const GLOSSARY: Record<string, string> = {
 
 type Status = "idle" | "connecting" | "live" | "error";
 
+const LIVE_KEEPALIVE_MS = 20_000;
+const PREWARM_KEEPALIVE_MS = 30_000;
+const MAX_LIVE_RECONNECT_ATTEMPTS = 5;
+const KEEPALIVE_SILENCE_SAMPLES = 1600;
+
+function liveReconnectDelayMs(attempt: number) {
+  return Math.min(1000 * 2 ** Math.max(0, attempt - 1), 4000);
+}
+
+function isInternalControlText(text: string) {
+  return /^<ctrl\d+>$/i.test(text.trim());
+}
+
 type LiveServerMessage = {
   setupComplete?: unknown;
   serverContent?: {
@@ -235,8 +248,12 @@ export function BottomVoiceBar() {
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const liveKeepaliveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prewarmKeepaliveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startingRef = useRef(false);
   const greetedRef = useRef(false);
+  const userSpeechSeenRef = useRef(false);
   // Pre-warmed WebSocket: opened on mount, setup sent, setupComplete received,
   // but mic + audio contexts not yet created (mic requires user gesture).
   const prewarmReadyRef = useRef(false);
@@ -244,9 +261,15 @@ export function BottomVoiceBar() {
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userStoppedRef = useRef(false);
   const lastAudioProcessAtRef = useRef<number>(0);
+  const lastAudioChunkRef = useRef<number>(0);
   const watchdogTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectingRef = useRef(false);
   const reconnectAttemptsRef = useRef(0);
+  const reconnectLiveRef = useRef<(() => void) | null>(null);
+  const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
+  const micTeardownInProgressRef = useRef(false);
+  const statusRef = useRef<Status>("idle");
+  const keepaliveSilenceRef = useRef<string | null>(null);
 
 
 
@@ -254,6 +277,61 @@ export function BottomVoiceBar() {
     setCaption(text);
     if (captionTimerRef.current) clearTimeout(captionTimerRef.current);
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
+  }, []);
+
+  const sendNoopTurn = useCallback(() => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    try {
+      if (!keepaliveSilenceRef.current) {
+        keepaliveSilenceRef.current = arrayBufferToBase64(new Int16Array(KEEPALIVE_SILENCE_SAMPLES).buffer);
+      }
+      ws.send(
+        JSON.stringify({
+          realtimeInput: {
+            audio: { mimeType: "audio/pcm;rate=16000", data: keepaliveSilenceRef.current },
+          },
+        }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const stopKeepalives = useCallback(() => {
+    if (liveKeepaliveTimerRef.current) {
+      clearInterval(liveKeepaliveTimerRef.current);
+      liveKeepaliveTimerRef.current = null;
+    }
+    if (prewarmKeepaliveTimerRef.current) {
+      clearInterval(prewarmKeepaliveTimerRef.current);
+      prewarmKeepaliveTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleLiveReconnect = useCallback((delayMs?: number) => {
+    if (liveReconnectTimerRef.current) clearTimeout(liveReconnectTimerRef.current);
+    if (streamRef.current && !userStoppedRef.current) {
+      statusRef.current = "connecting";
+      setStatus("connecting");
+      setCaption("Reconnecting…");
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+    }
+    const attempt = reconnectAttemptsRef.current + 1;
+    liveReconnectTimerRef.current = setTimeout(() => {
+      liveReconnectTimerRef.current = null;
+      reconnectLiveRef.current?.();
+    }, delayMs ?? liveReconnectDelayMs(attempt));
+  }, [dispatch]);
+
+  const attachMicEndedHandlers = useCallback((stream: MediaStream) => {
+    stream.getAudioTracks().forEach((track) => {
+      track.onended = () => {
+        if (micTeardownInProgressRef.current || statusRef.current !== "live" || userStoppedRef.current) return;
+        rebuildMicPipelineRef.current?.();
+      };
+    });
   }, []);
 
   const clearIdleTimers = useCallback(() => {
@@ -314,6 +392,10 @@ export function BottomVoiceBar() {
           const raw = fc.args.page as string;
           let page = (raw === "/" ? "/home" : raw) as
             | "/home" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
+          if (page === "/login" && !userSpeechSeenRef.current) {
+            respond({ ok: true, ignored: true, reason: "No user request yet" });
+            return;
+          }
           // Enforce auth gate client-side too: if AI tries to send the user
           // to a protected page while signed-out, route them through login.
           if (page === "/my-plans" && !isAuthed()) {
@@ -441,10 +523,15 @@ export function BottomVoiceBar() {
   const stop = useCallback(() => {
     userStoppedRef.current = true;
     clearIdleTimers();
+    stopKeepalives();
     stopAllAudio();
     if (prewarmReconnectTimerRef.current) {
       clearTimeout(prewarmReconnectTimerRef.current);
       prewarmReconnectTimerRef.current = null;
+    }
+    if (liveReconnectTimerRef.current) {
+      clearTimeout(liveReconnectTimerRef.current);
+      liveReconnectTimerRef.current = null;
     }
     if (watchdogTimerRef.current) {
       clearInterval(watchdogTimerRef.current);
@@ -459,7 +546,10 @@ export function BottomVoiceBar() {
     pendingActivateRef.current = false;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null;
+      t.stop();
+    });
     streamRef.current = null;
     micCtxRef.current?.close().catch(() => {});
     playCtxRef.current?.close().catch(() => {});
@@ -468,10 +558,20 @@ export function BottomVoiceBar() {
     playHeadRef.current = 0;
     startingRef.current = false;
     greetedRef.current = false;
+    userSpeechSeenRef.current = false;
+    statusRef.current = "idle";
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers, stopAllAudio]);
+  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives]);
+
+  const failLiveConnection = useCallback(() => {
+    stop();
+    statusRef.current = "idle";
+    setErrorMsg(null);
+    setStatus("idle");
+    setCaption("Connection lost — tap Start to reconnect");
+  }, [stop]);
 
   // Shared WS message handler — wired during prewarm so setupComplete and any
   // server messages are processed even before the user presses Start.
@@ -485,15 +585,25 @@ export function BottomVoiceBar() {
         prewarmReadyRef.current = true;
         if (pendingActivateRef.current) {
           pendingActivateRef.current = false;
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          if (prewarmKeepaliveTimerRef.current) {
+            clearInterval(prewarmKeepaliveTimerRef.current);
+            prewarmKeepaliveTimerRef.current = null;
+          }
           void activate();
         } else if (streamRef.current && reconnectingRef.current) {
           // Live-session reconnect just completed.
           reconnectingRef.current = false;
           reconnectAttemptsRef.current = 0;
+          sendNoopTurn();
+          statusRef.current = "live";
           setStatus("live");
           setCaption("");
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        } else if (!streamRef.current && !prewarmKeepaliveTimerRef.current) {
+          prewarmKeepaliveTimerRef.current = setInterval(() => {
+            if (statusRef.current === "live" || !prewarmReadyRef.current) return;
+            sendNoopTurn();
+          }, PREWARM_KEEPALIVE_MS);
         }
       }
 
@@ -506,8 +616,12 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.inputTranscription?.text) {
-        clearIdleTimers();
-        turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
+        const inputText = msg.serverContent.inputTranscription.text;
+        if (!isInternalControlText(inputText)) {
+          userSpeechSeenRef.current = true;
+          clearIdleTimers();
+          turnTranscriptRef.current += " " + inputText;
+        }
         const transcript = turnTranscriptRef.current;
         const fired = turnFallbackFiredRef.current;
         const fireOnce = (key: string, fn: () => void) => {
@@ -555,21 +669,14 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.outputTranscription?.text) {
-        setLiveCaption(msg.serverContent.outputTranscription.text);
+        const outputText = msg.serverContent.outputTranscription.text;
+        if (!isInternalControlText(outputText)) setLiveCaption(outputText);
       }
       if (msg.serverContent?.turnComplete) {
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
         turnTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
-        idleWarningRef.current = setTimeout(() => {
-          setCaption("Session ending in 5 seconds — say something to keep going");
-        }, 15000);
-        idleTimerRef.current = setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          stop();
-          setCaption("Session ended to save tokens. Tap Start anytime.");
-        }, 20000);
       }
 
       if (msg.serverContent?.interrupted) {
@@ -582,7 +689,7 @@ export function BottomVoiceBar() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playPcm, dispatch, clearIdleTimers, openAgentCallback, navigate, highlightSection, setLiveCaption, stopAllAudio, handleToolCall]);
+  }, [playPcm, dispatch, clearIdleTimers, openAgentCallback, navigate, highlightSection, setLiveCaption, stopAllAudio, handleToolCall, sendNoopTurn]);
 
   // Pre-warm the WebSocket so it's ready the instant the user presses Start.
   // Does NOT request mic (that needs a user gesture) — only opens the socket
@@ -604,10 +711,13 @@ export function BottomVoiceBar() {
       ws.onclose = () => {
         wsRef.current = null;
         prewarmReadyRef.current = false;
+        if (prewarmKeepaliveTimerRef.current) {
+          clearInterval(prewarmKeepaliveTimerRef.current);
+          prewarmKeepaliveTimerRef.current = null;
+        }
         const wasActive = !!streamRef.current;
         if (wasActive && !userStoppedRef.current) {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          void reconnectLive();
+          scheduleLiveReconnect();
           return;
         }
         if (!userStoppedRef.current) {
@@ -616,8 +726,7 @@ export function BottomVoiceBar() {
         }
       };
     } catch { /* swallow — user will retry via Start */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attachWsHandlers]);
+  }, [attachWsHandlers, scheduleLiveReconnect]);
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
   // Requires the WS to be open and setupComplete received.
@@ -628,10 +737,15 @@ export function BottomVoiceBar() {
       return;
     }
     try {
+      if (prewarmKeepaliveTimerRef.current) {
+        clearInterval(prewarmKeepaliveTimerRef.current);
+        prewarmKeepaliveTimerRef.current = null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
       streamRef.current = stream;
+      attachMicEndedHandlers(stream);
 
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const micCtx = new AudioCtor({ sampleRate: 16000 });
@@ -641,7 +755,9 @@ export function BottomVoiceBar() {
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
       processor.onaudioprocess = (e) => {
-        lastAudioProcessAtRef.current = Date.now();
+        const now = Date.now();
+        lastAudioProcessAtRef.current = now;
+        lastAudioChunkRef.current = now;
         if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
         if (mutedRef.current) return;
         const sock = wsRef.current;
@@ -658,6 +774,8 @@ export function BottomVoiceBar() {
       };
       source.connect(processor);
       processor.connect(micCtx.destination);
+      lastAudioProcessAtRef.current = Date.now();
+      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
 
       const playCtx = new AudioCtor({ sampleRate: 24000 });
       playCtxRef.current = playCtx;
@@ -684,17 +802,20 @@ export function BottomVoiceBar() {
         );
       }
 
+      statusRef.current = "live";
       setStatus("live");
       startingRef.current = false;
+      reconnectAttemptsRef.current = 0;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to start";
       setErrorMsg(message);
+      statusRef.current = "error";
       setStatus("error");
       startingRef.current = false;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
-  }, [dispatch]);
+  }, [dispatch, attachMicEndedHandlers]);
 
   // Reconnect the WebSocket while a live session is active. Keeps the mic
   // pipeline running; the open socket is replaced and setup is resent.
@@ -704,6 +825,12 @@ export function BottomVoiceBar() {
     reconnectingRef.current = true;
     reconnectAttemptsRef.current += 1;
     const attempt = reconnectAttemptsRef.current;
+    if (attempt > MAX_LIVE_RECONNECT_ATTEMPTS) {
+      reconnectingRef.current = false;
+      failLiveConnection();
+      return;
+    }
+    statusRef.current = "connecting";
     setStatus("connecting");
     setCaption("Reconnecting…");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
@@ -724,38 +851,41 @@ export function BottomVoiceBar() {
         prewarmReadyRef.current = false;
         reconnectingRef.current = false;
         if (userStoppedRef.current) return;
-        if (streamRef.current && reconnectAttemptsRef.current < 5) {
-          setTimeout(() => { void reconnectLive(); }, 1500);
+        if (streamRef.current && reconnectAttemptsRef.current < MAX_LIVE_RECONNECT_ATTEMPTS) {
+          scheduleLiveReconnect();
         } else if (streamRef.current) {
-          // Give up — drop to idle.
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          stop();
-          setErrorMsg("Connection lost. Tap Start to try again.");
-          setStatus("error");
+          failLiveConnection();
         }
       };
     } catch {
       reconnectingRef.current = false;
-      if (!userStoppedRef.current && streamRef.current && attempt < 5) {
-        setTimeout(() => { void reconnectLive(); }, 1500);
+      if (!userStoppedRef.current && streamRef.current && attempt < MAX_LIVE_RECONNECT_ATTEMPTS) {
+        scheduleLiveReconnect();
       } else if (streamRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        stop();
-        setErrorMsg("Connection lost. Tap Start to try again.");
-        setStatus("error");
+        failLiveConnection();
       }
     }
-  }, [attachWsHandlers, dispatch, stop]);
+  }, [attachWsHandlers, dispatch, failLiveConnection, scheduleLiveReconnect]);
+
+  useEffect(() => {
+    reconnectLiveRef.current = () => { void reconnectLive(); };
+    return () => { reconnectLiveRef.current = null; };
+  }, [reconnectLive]);
 
   // Tear down and rebuild just the mic/audio-input pipeline without touching
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
   const rebuildMicPipeline = useCallback(async () => {
     if (!streamRef.current && !micCtxRef.current) return;
+    micTeardownInProgressRef.current = true;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null;
+      t.stop();
+    });
     streamRef.current = null;
     await micCtxRef.current?.close().catch(() => {});
+    micTeardownInProgressRef.current = false;
     micCtxRef.current = null;
     processorRef.current = null;
     sourceNodeRef.current = null;
@@ -764,6 +894,7 @@ export function BottomVoiceBar() {
         audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
       streamRef.current = stream;
+      attachMicEndedHandlers(stream);
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const micCtx = new AudioCtor({ sampleRate: 16000 });
       micCtxRef.current = micCtx;
@@ -772,7 +903,9 @@ export function BottomVoiceBar() {
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
       processor.onaudioprocess = (e) => {
-        lastAudioProcessAtRef.current = Date.now();
+        const now = Date.now();
+        lastAudioProcessAtRef.current = now;
+        lastAudioChunkRef.current = now;
         if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
         if (mutedRef.current) return;
         const sock = wsRef.current;
@@ -790,20 +923,30 @@ export function BottomVoiceBar() {
       source.connect(processor);
       processor.connect(micCtx.destination);
       lastAudioProcessAtRef.current = Date.now();
+      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
     } catch {
+      micTeardownInProgressRef.current = false;
       /* mic rebuild failed — leave session; user can press Stop */
     }
-  }, []);
+  }, [attachMicEndedHandlers]);
+
+  useEffect(() => {
+    rebuildMicPipelineRef.current = () => { void rebuildMicPipeline(); };
+    return () => { rebuildMicPipelineRef.current = null; };
+  }, [rebuildMicPipeline]);
 
   const start = useCallback(async () => {
     if (startingRef.current || status === "connecting" || status === "live") return;
     startingRef.current = true;
     userStoppedRef.current = false;
     greetedRef.current = false;
+    userSpeechSeenRef.current = false;
     clearIdleTimers();
     setErrorMsg(null);
+    setCaption("");
 
     if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+      statusRef.current = "connecting";
       setStatus("connecting");
       dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
       await activate();
@@ -812,6 +955,7 @@ export function BottomVoiceBar() {
 
     // Pre-warm hasn't completed (or socket dropped). Show connecting and
     // activate as soon as setupComplete arrives.
+    statusRef.current = "connecting";
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
     pendingActivateRef.current = true;
@@ -824,6 +968,10 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
   useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
 
   // Resume audio contexts whenever the tab regains focus — browsers suspend
@@ -833,10 +981,33 @@ export function BottomVoiceBar() {
       if (document.visibilityState !== "visible") return;
       micCtxRef.current?.resume().catch(() => {});
       playCtxRef.current?.resume().catch(() => {});
+      if (statusRef.current === "live" && Date.now() - lastAudioChunkRef.current > 3000) {
+        void rebuildMicPipeline();
+      }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
+  }, [rebuildMicPipeline]);
+
+  useEffect(() => {
+    if (status !== "live") {
+      if (liveKeepaliveTimerRef.current) {
+        clearInterval(liveKeepaliveTimerRef.current);
+        liveKeepaliveTimerRef.current = null;
+      }
+      return;
+    }
+    if (liveKeepaliveTimerRef.current) return;
+    liveKeepaliveTimerRef.current = setInterval(() => {
+      sendNoopTurn();
+    }, LIVE_KEEPALIVE_MS);
+    return () => {
+      if (liveKeepaliveTimerRef.current) {
+        clearInterval(liveKeepaliveTimerRef.current);
+        liveKeepaliveTimerRef.current = null;
+      }
+    };
+  }, [status, sendNoopTurn]);
 
   // Watchdog: if the ScriptProcessor stops firing for >5s during a live
   // session, rebuild the mic pipeline (WebSocket stays open).
