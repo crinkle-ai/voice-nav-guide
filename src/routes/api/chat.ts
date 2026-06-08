@@ -23,7 +23,7 @@ ENDING A RESPONSE:
 - ONLY offer an agent callback if the user explicitly says they're confused, stuck, overwhelmed, or asks for a person.
 
 TOOLS (use them instead of describing clicks):
-- navigate_to: move them to /home, /learn, /find-doctors, or /compare-plans.
+- navigate_to: move them to /, /learn, /find-doctors, or /compare-plans.
 - highlight_section: point out a section on the current page (e.g. "part-a", "glossary", "premium-filter", "enroll-now").
 - search_doctors: query the doctor database.
 - recommend_plans: query the plans database and surface 2-3 matches.
@@ -32,7 +32,7 @@ TOOLS (use them instead of describing clicks):
 
 After a tool call: one short sentence about what you did or what to look at. Then stop.`;
 
-const PAGE_VALUES: ["/home", "/learn", "/find-doctors", "/compare-plans"] = ["/home", "/learn", "/find-doctors", "/compare-plans"];
+const PAGE_VALUES: ["/", "/learn", "/find-doctors", "/compare-plans"] = ["/", "/learn", "/find-doctors", "/compare-plans"];
 
 export const Route = createFileRoute("/api/chat")({
   server: {

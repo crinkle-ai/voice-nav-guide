@@ -1,11 +1,11 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { Check, Lock, LogOut } from "lucide-react";
+import { Check, Lock, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
 
 const NAV_ITEMS = [
-  { to: "/home", label: "Home" },
+  { to: "/", label: "Home" },
   { to: "/learn", label: "Learn" },
   { to: "/find-doctors", label: "Find Doctors" },
   { to: "/compare-plans", label: "Compare Plans" },
@@ -31,13 +31,13 @@ export function TopNav() {
   const handleLogout = () => {
     signOut();
     setAuthed(false);
-    navigate({ to: "/home" });
+    navigate({ to: "/" });
   };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
-        <Link to="/home" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
             M
           </div>
@@ -77,6 +77,15 @@ export function TopNav() {
             My Plans
           </Link>
 
+          <Link
+            to="/deck"
+            className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            title="About this demo (executive deck)"
+            aria-label="About this demo"
+          >
+            <Info className="h-5 w-5" />
+          </Link>
+
           {authed ? (
             <button
               type="button"
@@ -86,14 +95,7 @@ export function TopNav() {
             >
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </button>
-          ) : (
-            <Link
-              to="/"
-              className="ml-1 rounded-md border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-            >
-              Intro
-            </Link>
-          )}
+          ) : null}
         </nav>
       </div>
 

@@ -12,8 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
-import { Route as HomeRouteImport } from './routes/home'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
+import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
@@ -34,14 +34,14 @@ const LearnRoute = LearnRouteImport.update({
   path: '/learn',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FindDoctorsRoute = FindDoctorsRouteImport.update({
   id: '/find-doctors',
   path: '/find-doctors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeckRoute = DeckRouteImport.update({
+  id: '/deck',
+  path: '/deck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComparePlansRoute = ComparePlansRouteImport.update({
@@ -68,8 +68,8 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
+  '/deck': typeof DeckRoute
   '/find-doctors': typeof FindDoctorsRoute
-  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
@@ -79,8 +79,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
+  '/deck': typeof DeckRoute
   '/find-doctors': typeof FindDoctorsRoute
-  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
@@ -91,8 +91,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
+  '/deck': typeof DeckRoute
   '/find-doctors': typeof FindDoctorsRoute
-  '/home': typeof HomeRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
@@ -104,8 +104,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/compare-plans'
+    | '/deck'
     | '/find-doctors'
-    | '/home'
     | '/learn'
     | '/login'
     | '/my-plans'
@@ -115,8 +115,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/compare-plans'
+    | '/deck'
     | '/find-doctors'
-    | '/home'
     | '/learn'
     | '/login'
     | '/my-plans'
@@ -126,8 +126,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/compare-plans'
+    | '/deck'
     | '/find-doctors'
-    | '/home'
     | '/learn'
     | '/login'
     | '/my-plans'
@@ -138,8 +138,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ComparePlansRoute: typeof ComparePlansRoute
+  DeckRoute: typeof DeckRoute
   FindDoctorsRoute: typeof FindDoctorsRoute
-  HomeRoute: typeof HomeRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   MyPlansRoute: typeof MyPlansRoute
@@ -170,18 +170,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/find-doctors': {
       id: '/find-doctors'
       path: '/find-doctors'
       fullPath: '/find-doctors'
       preLoaderRoute: typeof FindDoctorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deck': {
+      id: '/deck'
+      path: '/deck'
+      fullPath: '/deck'
+      preLoaderRoute: typeof DeckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare-plans': {
@@ -218,8 +218,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComparePlansRoute: ComparePlansRoute,
+  DeckRoute: DeckRoute,
   FindDoctorsRoute: FindDoctorsRoute,
-  HomeRoute: HomeRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   MyPlansRoute: MyPlansRoute,
