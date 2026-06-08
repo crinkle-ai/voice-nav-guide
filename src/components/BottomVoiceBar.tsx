@@ -899,6 +899,11 @@ export function BottomVoiceBar() {
     }
   }, [attachMicEndedHandlers]);
 
+  useEffect(() => {
+    rebuildMicPipelineRef.current = () => { void rebuildMicPipeline(); };
+    return () => { rebuildMicPipelineRef.current = null; };
+  }, [rebuildMicPipeline]);
+
   const start = useCallback(async () => {
     if (startingRef.current || status === "connecting" || status === "live") return;
     startingRef.current = true;
