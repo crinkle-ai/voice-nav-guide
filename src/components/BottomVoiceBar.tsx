@@ -815,6 +815,12 @@ export function BottomVoiceBar() {
       statusRef.current = "live";
       setStatus("live");
       startingRef.current = false;
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
+      void micCtxRef.current?.resume().catch(() => {});
+      void playCtxRef.current?.resume().catch(() => {});
       reconnectAttemptsRef.current = 0;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
@@ -823,6 +829,10 @@ export function BottomVoiceBar() {
       statusRef.current = "error";
       setStatus("error");
       startingRef.current = false;
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
   }, [dispatch, attachMicEndedHandlers]);
