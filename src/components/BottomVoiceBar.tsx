@@ -425,6 +425,13 @@ export function BottomVoiceBar() {
   const stop = useCallback(() => {
     clearIdleTimers();
     stopAllAudio();
+    try {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    } catch { /* noop */ }
+    localGreetingRef.current = null;
+
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
