@@ -102,9 +102,14 @@ type Status = "idle" | "connecting" | "live" | "error";
 const LIVE_KEEPALIVE_MS = 20_000;
 const PREWARM_KEEPALIVE_MS = 30_000;
 const MAX_LIVE_RECONNECT_ATTEMPTS = 5;
+const KEEPALIVE_SILENCE_SAMPLES = 1600;
 
 function liveReconnectDelayMs(attempt: number) {
   return Math.min(1000 * 2 ** Math.max(0, attempt - 1), 4000);
+}
+
+function isInternalControlText(text: string) {
+  return /^<ctrl\d+>$/i.test(text.trim());
 }
 
 type LiveServerMessage = {
@@ -263,6 +268,7 @@ export function BottomVoiceBar() {
   const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
+  const keepaliveSilenceRef = useRef<string | null>(null);
 
 
 
@@ -276,9 +282,14 @@ export function BottomVoiceBar() {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
     try {
+      if (!keepaliveSilenceRef.current) {
+        keepaliveSilenceRef.current = arrayBufferToBase64(new Int16Array(KEEPALIVE_SILENCE_SAMPLES).buffer);
+      }
       ws.send(
         JSON.stringify({
-          clientContent: { turns: [], turnComplete: false },
+          realtimeInput: {
+            audio: { mimeType: "audio/pcm;rate=16000", data: keepaliveSilenceRef.current },
+          },
         }),
       );
       return true;
