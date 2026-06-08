@@ -935,6 +935,10 @@ export function BottomVoiceBar() {
     mutedRef.current = muted;
   }, [muted]);
 
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
   useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
 
   // Resume audio contexts whenever the tab regains focus — browsers suspend
@@ -944,10 +948,33 @@ export function BottomVoiceBar() {
       if (document.visibilityState !== "visible") return;
       micCtxRef.current?.resume().catch(() => {});
       playCtxRef.current?.resume().catch(() => {});
+      if (statusRef.current === "live" && Date.now() - lastAudioChunkRef.current > 3000) {
+        void rebuildMicPipeline();
+      }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
+  }, [rebuildMicPipeline]);
+
+  useEffect(() => {
+    if (status !== "live") {
+      if (liveKeepaliveTimerRef.current) {
+        clearInterval(liveKeepaliveTimerRef.current);
+        liveKeepaliveTimerRef.current = null;
+      }
+      return;
+    }
+    if (liveKeepaliveTimerRef.current) return;
+    liveKeepaliveTimerRef.current = setInterval(() => {
+      sendNoopTurn();
+    }, LIVE_KEEPALIVE_MS);
+    return () => {
+      if (liveKeepaliveTimerRef.current) {
+        clearInterval(liveKeepaliveTimerRef.current);
+        liveKeepaliveTimerRef.current = null;
+      }
+    };
+  }, [status, sendNoopTurn]);
 
   // Watchdog: if the ScriptProcessor stops firing for >5s during a live
   // session, rebuild the mic pipeline (WebSocket stays open).
