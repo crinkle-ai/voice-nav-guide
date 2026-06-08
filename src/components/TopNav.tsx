@@ -42,7 +42,7 @@ export function TopNav() {
             M
           </div>
           <span className="text-xl font-semibold text-foreground">
-            Medicare Navigator
+            Crinkle Health
           </span>
         </Link>
 
