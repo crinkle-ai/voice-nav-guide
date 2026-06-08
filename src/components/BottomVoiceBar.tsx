@@ -259,6 +259,7 @@ export function BottomVoiceBar() {
   const watchdogTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectingRef = useRef(false);
   const reconnectAttemptsRef = useRef(0);
+  const reconnectLiveRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const silencePcmBase64Ref = useRef<string | null>(null);
@@ -307,8 +308,7 @@ export function BottomVoiceBar() {
     const attempt = reconnectAttemptsRef.current + 1;
     liveReconnectTimerRef.current = setTimeout(() => {
       liveReconnectTimerRef.current = null;
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      void reconnectLive();
+      reconnectLiveRef.current?.();
     }, delayMs ?? liveReconnectDelayMs(attempt));
   }, []);
 
