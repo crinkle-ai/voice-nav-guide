@@ -487,6 +487,13 @@ export function BottomVoiceBar() {
           pendingActivateRef.current = false;
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           void activate();
+        } else if (streamRef.current && reconnectingRef.current) {
+          // Live-session reconnect just completed.
+          reconnectingRef.current = false;
+          reconnectAttemptsRef.current = 0;
+          setStatus("live");
+          setCaption("");
+          dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
         }
       }
 
