@@ -260,6 +260,7 @@ export function BottomVoiceBar() {
   const reconnectingRef = useRef(false);
   const reconnectAttemptsRef = useRef(0);
   const reconnectLiveRef = useRef<(() => void) | null>(null);
+  const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const silencePcmBase64Ref = useRef<string | null>(null);
@@ -316,8 +317,7 @@ export function BottomVoiceBar() {
     stream.getAudioTracks().forEach((track) => {
       track.onended = () => {
         if (micTeardownInProgressRef.current || statusRef.current !== "live" || userStoppedRef.current) return;
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        void rebuildMicPipeline();
+        rebuildMicPipelineRef.current?.();
       };
     });
   }, []);
