@@ -391,8 +391,8 @@ export function BottomVoiceBar() {
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
           const raw = fc.args.page as string;
-          let page = (raw === "/" ? "/home" : raw) as
-            | "/home" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
+          let page = (raw === "/home" ? "/" : raw) as
+            | "/" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
           if (page === "/login" && !userSpeechSeenRef.current) {
             respond({ ok: true, ignored: true, reason: "No user request yet" });
             return;
