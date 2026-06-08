@@ -562,7 +562,6 @@ export function BottomVoiceBar() {
             clearInterval(prewarmKeepaliveTimerRef.current);
             prewarmKeepaliveTimerRef.current = null;
           }
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           void activate();
         } else if (streamRef.current && reconnectingRef.current) {
           // Live-session reconnect just completed.
@@ -686,7 +685,6 @@ export function BottomVoiceBar() {
         }
         const wasActive = !!streamRef.current;
         if (wasActive && !userStoppedRef.current) {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           scheduleLiveReconnect();
           return;
         }
@@ -696,7 +694,6 @@ export function BottomVoiceBar() {
         }
       };
     } catch { /* swallow — user will retry via Start */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachWsHandlers, scheduleLiveReconnect]);
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
