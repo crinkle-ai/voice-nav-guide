@@ -742,8 +742,18 @@ export function BottomVoiceBar() {
     );
   }, [pathname, status]);
 
+  // Pre-warm the WebSocket on mount so it's ready when the user presses Start.
   useEffect(() => {
-    return () => { stop(); };
+    userStoppedRef.current = false;
+    void prewarm();
+    return () => {
+      userStoppedRef.current = true;
+      if (prewarmReconnectTimerRef.current) {
+        clearTimeout(prewarmReconnectTimerRef.current);
+        prewarmReconnectTimerRef.current = null;
+      }
+      stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
