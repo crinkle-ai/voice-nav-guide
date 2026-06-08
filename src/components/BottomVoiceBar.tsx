@@ -558,6 +558,7 @@ export function BottomVoiceBar() {
     playHeadRef.current = 0;
     startingRef.current = false;
     greetedRef.current = false;
+    userSpeechSeenRef.current = false;
     statusRef.current = "idle";
     setStatus("idle");
     setCaption("");
@@ -939,6 +940,7 @@ export function BottomVoiceBar() {
     startingRef.current = true;
     userStoppedRef.current = false;
     greetedRef.current = false;
+    userSpeechSeenRef.current = false;
     clearIdleTimers();
     setErrorMsg(null);
     setCaption("");
