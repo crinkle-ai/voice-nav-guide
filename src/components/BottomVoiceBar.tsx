@@ -859,6 +859,7 @@ export function BottomVoiceBar() {
         audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
       streamRef.current = stream;
+      attachMicEndedHandlers(stream);
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const micCtx = new AudioCtor({ sampleRate: 16000 });
       micCtxRef.current = micCtx;
@@ -867,7 +868,9 @@ export function BottomVoiceBar() {
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
       processor.onaudioprocess = (e) => {
-        lastAudioProcessAtRef.current = Date.now();
+        const now = Date.now();
+        lastAudioProcessAtRef.current = now;
+        lastAudioChunkRef.current = now;
         if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
         if (mutedRef.current) return;
         const sock = wsRef.current;
@@ -885,10 +888,11 @@ export function BottomVoiceBar() {
       source.connect(processor);
       processor.connect(micCtx.destination);
       lastAudioProcessAtRef.current = Date.now();
+      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
     } catch {
       /* mic rebuild failed — leave session; user can press Stop */
     }
-  }, []);
+  }, [attachMicEndedHandlers]);
 
   const start = useCallback(async () => {
     if (startingRef.current || status === "connecting" || status === "live") return;
