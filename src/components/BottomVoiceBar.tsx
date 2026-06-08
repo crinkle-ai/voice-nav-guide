@@ -600,7 +600,7 @@ export function BottomVoiceBar() {
       };
     } catch { /* swallow — user will retry via Start */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attachWsHandlers, status]);
+  }, [attachWsHandlers]);
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
   // Requires the WS to be open and setupComplete received.
