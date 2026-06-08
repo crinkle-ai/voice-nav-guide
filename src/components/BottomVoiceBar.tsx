@@ -937,7 +937,7 @@ export function BottomVoiceBar() {
   }, [rebuildMicPipeline]);
 
   const start = useCallback(async () => {
-    if (startingRef.current || status === "connecting" || status === "live") return;
+    if (startingRef.current || statusRef.current === "connecting" || statusRef.current === "live") return;
     startingRef.current = true;
     userStoppedRef.current = false;
     greetedRef.current = false;
@@ -945,6 +945,36 @@ export function BottomVoiceBar() {
     clearIdleTimers();
     setErrorMsg(null);
     setCaption("");
+
+    // iOS Safari requires AudioContext to be created synchronously inside the
+    // user gesture handler — create both contexts NOW, before any await.
+    try {
+      const AudioCtor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!micCtxRef.current || micCtxRef.current.state === "closed") {
+        micCtxRef.current = new AudioCtor({ sampleRate: 16000 });
+      }
+      if (!playCtxRef.current || playCtxRef.current.state === "closed") {
+        playCtxRef.current = new AudioCtor({ sampleRate: 24000 });
+      }
+      void micCtxRef.current?.resume().catch(() => {});
+      void playCtxRef.current?.resume().catch(() => {});
+    } catch { /* noop — activate() will surface any failure */ }
+
+    // Safety timeout: if we never reach "live", reset so the button is tappable.
+    if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current);
+    startTimeoutRef.current = setTimeout(() => {
+      startTimeoutRef.current = null;
+      if (statusRef.current !== "live") {
+        startingRef.current = false;
+        pendingActivateRef.current = false;
+        statusRef.current = "idle";
+        setStatus("idle");
+        setCaption("Connection timed out — tap Start to try again.");
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
+      }
+    }, 15000);
 
     if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
       statusRef.current = "connecting";
@@ -961,7 +991,7 @@ export function BottomVoiceBar() {
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
     pendingActivateRef.current = true;
     if (!wsRef.current) void prewarm();
-  }, [status, dispatch, clearIdleTimers, activate, prewarm]);
+  }, [dispatch, clearIdleTimers, activate, prewarm]);
 
 
 
