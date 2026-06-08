@@ -164,6 +164,8 @@ export function BottomVoiceBar() {
   const [cbPhone, setCbPhone] = useState("");
   const [cbSnapshot, setCbSnapshot] = useState<CallbackSnapshot | null>(null);
   const turnTranscriptRef = useRef<string>("");
+  const turnFallbackFiredRef = useRef<Set<string>>(new Set());
+
 
   const openAgentCallback = useCallback(() => {
     setCallbackPhase((prev) => (prev === "hidden" ? "form" : prev));
