@@ -906,6 +906,7 @@ export function BottomVoiceBar() {
     greetedRef.current = false;
     clearIdleTimers();
     setErrorMsg(null);
+    setCaption("");
 
     if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
       setStatus("connecting");
