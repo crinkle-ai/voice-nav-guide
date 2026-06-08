@@ -535,6 +535,14 @@ export function BottomVoiceBar() {
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
   }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives]);
 
+  const failLiveConnection = useCallback(() => {
+    stop();
+    userStoppedRef.current = false;
+    setErrorMsg(null);
+    setStatus("idle");
+    setCaption("Connection lost — tap Start to reconnect");
+  }, [stop]);
+
   // Shared WS message handler — wired during prewarm so setupComplete and any
   // server messages are processed even before the user presses Start.
   const attachWsHandlers = useCallback((ws: WebSocket) => {
@@ -553,6 +561,7 @@ export function BottomVoiceBar() {
           // Live-session reconnect just completed.
           reconnectingRef.current = false;
           reconnectAttemptsRef.current = 0;
+          sendNoopTurn();
           setStatus("live");
           setCaption("");
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
@@ -644,7 +653,7 @@ export function BottomVoiceBar() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playPcm, dispatch, clearIdleTimers, openAgentCallback, navigate, highlightSection, setLiveCaption, stopAllAudio, handleToolCall]);
+  }, [playPcm, dispatch, clearIdleTimers, openAgentCallback, navigate, highlightSection, setLiveCaption, stopAllAudio, handleToolCall, sendNoopTurn]);
 
   // Pre-warm the WebSocket so it's ready the instant the user presses Start.
   // Does NOT request mic (that needs a user gesture) — only opens the socket
