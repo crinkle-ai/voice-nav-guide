@@ -16,7 +16,7 @@ export const Route = createFileRoute("/deck")({
 function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const total = 6;
+  const total = 7;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -123,7 +123,7 @@ function SlideDeck() {
 
 type SlideProps = { onLaunch: () => void };
 
-const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, MvpSlide, Slide5];
+const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, MvpSlide, Slide5, Slide6];
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (

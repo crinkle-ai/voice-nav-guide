@@ -149,7 +149,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <div className="min-h-screen bg-background pb-24 text-foreground">
+        <div className="min-h-screen bg-background pb-40 sm:pb-36 text-foreground [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]">
           <TopNav />
           <Outlet />
           <BottomVoiceBar />
