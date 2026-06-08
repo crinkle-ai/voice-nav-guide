@@ -107,7 +107,7 @@ export function VoiceNavigator() {
         if (name === "navigate_to" && typeof args.page === "string") {
           lastHandledToolIdsRef.current.add(id);
           const raw = args.page as string;
-          const page = (raw === "/" ? "/home" : raw) as "/home" | "/learn" | "/find-doctors" | "/compare-plans";
+          const page = (raw === "/home" ? "/" : raw) as "/" | "/learn" | "/find-doctors" | "/compare-plans";
           navigate({ to: page });
         } else if (name === "highlight_section" && typeof args.section === "string") {
           lastHandledToolIdsRef.current.add(id);
