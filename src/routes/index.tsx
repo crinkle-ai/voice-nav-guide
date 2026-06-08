@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,14 +109,16 @@ function Home() {
         <p className="mt-2 text-muted-foreground">
           A quick walkthrough of finding and comparing Medicare plans with Crinkle.
         </p>
-        <div className="mt-6 overflow-hidden rounded-2xl border shadow-sm" style={{ position: "relative", paddingBottom: "44.583333333333336%", height: 0 }}>
-          <iframe
-            src="https://www.loom.com/embed/a4923ada037f441092750afd5438ec6e"
-            frameBorder={0}
-            allowFullScreen
-            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-            title="Crinkle Health demo"
-          />
+        <div className="mt-6 overflow-hidden rounded-2xl border shadow-sm bg-black">
+          <video
+            src={demoVideo.url}
+            controls
+            preload="metadata"
+            playsInline
+            className="w-full h-auto block"
+          >
+            Your browser does not support the video tag.
+          </video>
         </div>
       </section>
 
