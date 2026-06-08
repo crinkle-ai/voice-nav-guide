@@ -498,10 +498,15 @@ export function BottomVoiceBar() {
   const stop = useCallback(() => {
     userStoppedRef.current = true;
     clearIdleTimers();
+    stopKeepalives();
     stopAllAudio();
     if (prewarmReconnectTimerRef.current) {
       clearTimeout(prewarmReconnectTimerRef.current);
       prewarmReconnectTimerRef.current = null;
+    }
+    if (liveReconnectTimerRef.current) {
+      clearTimeout(liveReconnectTimerRef.current);
+      liveReconnectTimerRef.current = null;
     }
     if (watchdogTimerRef.current) {
       clearInterval(watchdogTimerRef.current);
@@ -528,7 +533,7 @@ export function BottomVoiceBar() {
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers, stopAllAudio]);
+  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives]);
 
   // Shared WS message handler — wired during prewarm so setupComplete and any
   // server messages are processed even before the user presses Start.
