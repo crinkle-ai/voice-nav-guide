@@ -275,7 +275,16 @@ export function BottomVoiceBar() {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
     try {
-      ws.send(JSON.stringify({ clientContent: { turns: [], turnComplete: false } }));
+      if (!silencePcmBase64Ref.current) {
+        silencePcmBase64Ref.current = arrayBufferToBase64(new Int16Array(1600).buffer);
+      }
+      ws.send(
+        JSON.stringify({
+          realtimeInput: {
+            audio: { mimeType: "audio/pcm;rate=16000", data: silencePcmBase64Ref.current },
+          },
+        }),
+      );
       return true;
     } catch {
       return false;
