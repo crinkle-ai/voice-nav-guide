@@ -564,6 +564,10 @@ export function BottomVoiceBar() {
         prewarmReadyRef.current = true;
         if (pendingActivateRef.current) {
           pendingActivateRef.current = false;
+          if (prewarmKeepaliveTimerRef.current) {
+            clearInterval(prewarmKeepaliveTimerRef.current);
+            prewarmKeepaliveTimerRef.current = null;
+          }
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           void activate();
         } else if (streamRef.current && reconnectingRef.current) {
@@ -574,6 +578,11 @@ export function BottomVoiceBar() {
           setStatus("live");
           setCaption("");
           dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        } else if (!streamRef.current && !prewarmKeepaliveTimerRef.current) {
+          prewarmKeepaliveTimerRef.current = setInterval(() => {
+            if (statusRef.current === "live" || !prewarmReadyRef.current) return;
+            sendNoopTurn();
+          }, PREWARM_KEEPALIVE_MS);
         }
       }
 
@@ -684,10 +693,14 @@ export function BottomVoiceBar() {
       ws.onclose = () => {
         wsRef.current = null;
         prewarmReadyRef.current = false;
+        if (prewarmKeepaliveTimerRef.current) {
+          clearInterval(prewarmKeepaliveTimerRef.current);
+          prewarmKeepaliveTimerRef.current = null;
+        }
         const wasActive = !!streamRef.current;
         if (wasActive && !userStoppedRef.current) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          void reconnectLive();
+          scheduleLiveReconnect(0);
           return;
         }
         if (!userStoppedRef.current) {
