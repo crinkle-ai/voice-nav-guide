@@ -1,11 +1,11 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { Check, Lock, LogOut } from "lucide-react";
+import { Check, Lock, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
 
 const NAV_ITEMS = [
-  { to: "/home", label: "Home" },
+  { to: "/", label: "Home" },
   { to: "/learn", label: "Learn" },
   { to: "/find-doctors", label: "Find Doctors" },
   { to: "/compare-plans", label: "Compare Plans" },
