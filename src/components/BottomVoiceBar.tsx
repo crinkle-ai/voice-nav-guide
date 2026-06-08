@@ -585,15 +585,14 @@ export function BottomVoiceBar() {
       };
       ws.onerror = () => { /* handled by onclose */ };
       ws.onclose = () => {
-        const wasLive = status === "live";
+        const wasActive = !!streamRef.current;
         wsRef.current = null;
         prewarmReadyRef.current = false;
-        if (wasLive) {
+        if (wasActive) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           stop();
           return;
         }
-        // Silently reconnect the pre-warmed socket if the user hasn't stopped.
         if (!userStoppedRef.current) {
           if (prewarmReconnectTimerRef.current) clearTimeout(prewarmReconnectTimerRef.current);
           prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, 2000);
