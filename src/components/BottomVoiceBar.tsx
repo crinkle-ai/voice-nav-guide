@@ -450,6 +450,30 @@ export function BottomVoiceBar() {
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
 
+    // Immediately play a local browser TTS greeting so the user hears a response
+    // the moment they press Start, instead of waiting for the WS handshake.
+    try {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        const hasIntroduced =
+          typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
+        const text = hasIntroduced
+          ? "I'm here — how can I help?"
+          : "Hi, I'm your Medicare Navigator. I can help you learn the basics, find doctors, and compare plans. How can I help?";
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        localGreetingRef.current = utter;
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
+        utter.onend = () => {
+          if (localGreetingRef.current === utter) localGreetingRef.current = null;
+        };
+        window.speechSynthesis.speak(utter);
+      }
+    } catch { /* noop */ }
+
+
     try {
       const res = await fetch("/api/voice-session", { method: "POST" });
       if (!res.ok) {
