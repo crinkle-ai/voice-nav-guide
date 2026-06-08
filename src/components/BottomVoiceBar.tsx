@@ -602,12 +602,12 @@ export function BottomVoiceBar() {
       };
       ws.onerror = () => { /* handled by onclose */ };
       ws.onclose = () => {
-        const wasActive = !!streamRef.current;
         wsRef.current = null;
         prewarmReadyRef.current = false;
-        if (wasActive) {
+        const wasActive = !!streamRef.current;
+        if (wasActive && !userStoppedRef.current) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          stop();
+          void reconnectLive();
           return;
         }
         if (!userStoppedRef.current) {
