@@ -99,6 +99,14 @@ const GLOSSARY: Record<string, string> = {
 
 type Status = "idle" | "connecting" | "live" | "error";
 
+const LIVE_KEEPALIVE_MS = 20_000;
+const PREWARM_KEEPALIVE_MS = 30_000;
+const MAX_LIVE_RECONNECT_ATTEMPTS = 5;
+
+function liveReconnectDelayMs(attempt: number) {
+  return Math.min(1000 * 2 ** Math.max(0, attempt - 1), 4000);
+}
+
 type LiveServerMessage = {
   setupComplete?: unknown;
   serverContent?: {
@@ -235,6 +243,9 @@ export function BottomVoiceBar() {
   const captionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const liveKeepaliveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prewarmKeepaliveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startingRef = useRef(false);
   const greetedRef = useRef(false);
   // Pre-warmed WebSocket: opened on mount, setup sent, setupComplete received,
@@ -244,9 +255,13 @@ export function BottomVoiceBar() {
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userStoppedRef = useRef(false);
   const lastAudioProcessAtRef = useRef<number>(0);
+  const lastAudioChunkRef = useRef<number>(0);
   const watchdogTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectingRef = useRef(false);
   const reconnectAttemptsRef = useRef(0);
+  const micTeardownInProgressRef = useRef(false);
+  const statusRef = useRef<Status>("idle");
+  const silencePcmBase64Ref = useRef<string | null>(null);
 
 
 
