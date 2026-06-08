@@ -785,6 +785,7 @@ export function BottomVoiceBar() {
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to start";
       setErrorMsg(message);
+      statusRef.current = "error";
       setStatus("error");
       startingRef.current = false;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
@@ -916,6 +917,7 @@ export function BottomVoiceBar() {
     setCaption("");
 
     if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+      statusRef.current = "connecting";
       setStatus("connecting");
       dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
       await activate();
@@ -924,6 +926,7 @@ export function BottomVoiceBar() {
 
     // Pre-warm hasn't completed (or socket dropped). Show connecting and
     // activate as soon as setupComplete arrives.
+    statusRef.current = "connecting";
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
     pendingActivateRef.current = true;
