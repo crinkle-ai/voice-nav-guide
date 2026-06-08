@@ -270,6 +270,7 @@ export function BottomVoiceBar() {
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
+  const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
 
