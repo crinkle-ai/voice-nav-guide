@@ -446,6 +446,12 @@ export function BottomVoiceBar() {
       clearTimeout(prewarmReconnectTimerRef.current);
       prewarmReconnectTimerRef.current = null;
     }
+    if (watchdogTimerRef.current) {
+      clearInterval(watchdogTimerRef.current);
+      watchdogTimerRef.current = null;
+    }
+    reconnectingRef.current = false;
+    reconnectAttemptsRef.current = 0;
 
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
