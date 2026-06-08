@@ -77,6 +77,15 @@ export function TopNav() {
             My Plans
           </Link>
 
+          <Link
+            to="/deck"
+            className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            title="About this demo (executive deck)"
+            aria-label="About this demo"
+          >
+            <Info className="h-5 w-5" />
+          </Link>
+
           {authed ? (
             <button
               type="button"
@@ -86,14 +95,7 @@ export function TopNav() {
             >
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </button>
-          ) : (
-            <Link
-              to="/"
-              className="ml-1 rounded-md border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-            >
-              Intro
-            </Link>
-          )}
+          ) : null}
         </nav>
       </div>
 
