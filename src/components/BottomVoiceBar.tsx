@@ -546,7 +546,7 @@ export function BottomVoiceBar() {
 
   const failLiveConnection = useCallback(() => {
     stop();
-    userStoppedRef.current = false;
+    statusRef.current = "idle";
     setErrorMsg(null);
     setStatus("idle");
     setCaption("Connection lost — tap Start to reconnect");
