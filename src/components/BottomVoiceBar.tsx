@@ -628,11 +628,14 @@ export function BottomVoiceBar() {
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
       processor.onaudioprocess = (e) => {
+        lastAudioProcessAtRef.current = Date.now();
+        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
         if (mutedRef.current) return;
-        if (ws.readyState !== WebSocket.OPEN) return;
+        const sock = wsRef.current;
+        if (!sock || sock.readyState !== WebSocket.OPEN) return;
         const input = e.inputBuffer.getChannelData(0);
         const pcm = floatTo16BitPCM(input);
-        ws.send(
+        sock.send(
           JSON.stringify({
             realtimeInput: {
               audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
