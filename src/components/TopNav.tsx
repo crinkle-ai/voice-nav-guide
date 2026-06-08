@@ -31,7 +31,7 @@ export function TopNav() {
   const handleLogout = () => {
     signOut();
     setAuthed(false);
-    navigate({ to: "/home" });
+    navigate({ to: "/" });
   };
 
   return (
