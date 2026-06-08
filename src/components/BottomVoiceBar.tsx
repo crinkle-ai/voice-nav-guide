@@ -538,6 +538,10 @@ export function BottomVoiceBar() {
       clearInterval(watchdogTimerRef.current);
       watchdogTimerRef.current = null;
     }
+    if (startTimeoutRef.current) {
+      clearTimeout(startTimeoutRef.current);
+      startTimeoutRef.current = null;
+    }
     reconnectingRef.current = false;
     reconnectAttemptsRef.current = 0;
 
