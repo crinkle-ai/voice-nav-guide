@@ -350,6 +350,39 @@ function ValidationCard({
   );
 }
 
+function MvpSlide(_: SlideProps) {
+  const steps = [
+    { num: "01", icon: <Database className="h-5 w-5 md:h-7 md:w-7" />, title: "Mine the Data", desc: "Analyze site search queries, top exit pages, and call center/chat transcripts to surface the highest-confusion user journeys." },
+    { num: "02", icon: <Users className="h-5 w-5 md:h-7 md:w-7" />, title: "Pick Your Pilot Segment", desc: "Choose one user type with a clear, bounded journey (e.g. turning-65 first-timers)." },
+    { num: "03", icon: <Map className="h-5 w-5 md:h-7 md:w-7" />, title: "Map 5 Intent Scenarios", desc: "Define the specific things that segment says, and the navigation path the AI takes for each one." },
+    { num: "04", icon: <TrendingUp className="h-5 w-5 md:h-7 md:w-7" />, title: "Measure & Expand", desc: "Track containment rate, enrollment intent lift, and agent deflection; use results to justify expanding to the next segment." },
+  ];
+  return (
+    <SlideShell eyebrow="Defining the MVP">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
+        How we scope the <span className="text-primary">minimum viable navigator.</span>
+      </h2>
+      <p className="mt-3 md:mt-8 text-sm md:text-2xl text-muted-foreground">
+        A focused, data-driven approach to launching with confidence.
+      </p>
+      <div className="mt-4 md:mt-12 grid gap-2 md:gap-5 md:grid-cols-2 max-w-5xl">
+        {steps.map((s) => (
+          <div key={s.num} className="flex items-start gap-3 md:gap-4 rounded-xl border bg-card p-3 md:p-5 shadow-sm">
+            <div className="flex h-10 w-10 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              {s.icon}
+            </div>
+            <div>
+              <div className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-primary mb-1">{s.num}</div>
+              <div className="text-sm md:text-xl font-semibold">{s.title}</div>
+              <p className="mt-1 text-xs md:text-base text-muted-foreground leading-snug">{s.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SlideShell>
+  );
+}
+
 function Slide6({ onLaunch }: SlideProps) {
   return (
     <SlideShell eyebrow="Live Demo">
