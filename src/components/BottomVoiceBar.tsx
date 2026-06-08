@@ -615,10 +615,12 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.inputTranscription?.text) {
-        if (isInternalControlText(msg.serverContent.inputTranscription.text)) return;
-        userSpeechSeenRef.current = true;
-        clearIdleTimers();
-        turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
+        const inputText = msg.serverContent.inputTranscription.text;
+        if (!isInternalControlText(inputText)) {
+          userSpeechSeenRef.current = true;
+          clearIdleTimers();
+          turnTranscriptRef.current += " " + inputText;
+        }
         const transcript = turnTranscriptRef.current;
         const fired = turnFallbackFiredRef.current;
         const fireOnce = (key: string, fn: () => void) => {
@@ -666,8 +668,8 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.outputTranscription?.text) {
-        if (isInternalControlText(msg.serverContent.outputTranscription.text)) return;
-        setLiveCaption(msg.serverContent.outputTranscription.text);
+        const outputText = msg.serverContent.outputTranscription.text;
+        if (!isInternalControlText(outputText)) setLiveCaption(outputText);
       }
       if (msg.serverContent?.turnComplete) {
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
