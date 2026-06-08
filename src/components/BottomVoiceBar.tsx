@@ -231,6 +231,8 @@ export function BottomVoiceBar() {
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startingRef = useRef(false);
   const greetedRef = useRef(false);
+  const localGreetingRef = useRef<SpeechSynthesisUtterance | null>(null);
+
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
@@ -423,6 +425,13 @@ export function BottomVoiceBar() {
   const stop = useCallback(() => {
     clearIdleTimers();
     stopAllAudio();
+    try {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    } catch { /* noop */ }
+    localGreetingRef.current = null;
+
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
@@ -449,6 +458,30 @@ export function BottomVoiceBar() {
     setErrorMsg(null);
     setStatus("connecting");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+
+    // Immediately play a local browser TTS greeting so the user hears a response
+    // the moment they press Start, instead of waiting for the WS handshake.
+    try {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        const hasIntroduced =
+          typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
+        const text = hasIntroduced
+          ? "I'm here — how can I help?"
+          : "Hi, I'm your Medicare Navigator. I can help you learn the basics, find doctors, and compare plans. How can I help?";
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        localGreetingRef.current = utter;
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
+        utter.onend = () => {
+          if (localGreetingRef.current === utter) localGreetingRef.current = null;
+        };
+        window.speechSynthesis.speak(utter);
+      }
+    } catch { /* noop */ }
+
 
     try {
       const res = await fetch("/api/voice-session", { method: "POST" });
@@ -511,34 +544,10 @@ export function BottomVoiceBar() {
         try { msg = JSON.parse(raw); } catch { return; }
 
         if (msg.setupComplete && !greetedRef.current) {
+          // We already greeted locally via speechSynthesis the moment Start was
+          // pressed. Skip sending any [SESSION_START] turn to Gemini so it
+          // stays silent and ready for the user's first question.
           greetedRef.current = true;
-          const hasIntroduced = typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
-          if (hasIntroduced) {
-            ws.send(
-              JSON.stringify({
-                clientContent: {
-                  turns: [{
-                    role: "user",
-                    parts: [{ text: "[SESSION_START] Welcome the user back with one short sentence like 'I'm here — how can I help?' or 'Welcome back. What would you like to do?' Keep it brief and friendly." }],
-                  }],
-                  turnComplete: true,
-                },
-              }),
-            );
-          } else {
-            if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
-            ws.send(
-              JSON.stringify({
-                clientContent: {
-                  turns: [{
-                    role: "user",
-                    parts: [{ text: "[SESSION_START] Greet the user warmly, introduce yourself as the Medicare Navigator, and describe what you can help with in ONE short sentence. Then ask how you can help." }],
-                  }],
-                  turnComplete: true,
-                },
-              }),
-            );
-          }
         }
 
 
@@ -642,6 +651,12 @@ export function BottomVoiceBar() {
       };
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to start";
+      try {
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+        }
+      } catch { /* noop */ }
+      localGreetingRef.current = null;
       setErrorMsg(message);
       setStatus("error");
       startingRef.current = false;
