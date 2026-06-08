@@ -826,6 +826,39 @@ export function BottomVoiceBar() {
 
   useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
 
+  // Resume audio contexts whenever the tab regains focus — browsers suspend
+  // them on backgrounded tabs and the mic pipeline goes silent otherwise.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      micCtxRef.current?.resume().catch(() => {});
+      playCtxRef.current?.resume().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  // Watchdog: if the ScriptProcessor stops firing for >5s during a live
+  // session, rebuild the mic pipeline (WebSocket stays open).
+  useEffect(() => {
+    if (status !== "live") return;
+    lastAudioProcessAtRef.current = Date.now();
+    const interval = setInterval(() => {
+      if (!streamRef.current) return;
+      const since = Date.now() - lastAudioProcessAtRef.current;
+      if (since > 5000) {
+        lastAudioProcessAtRef.current = Date.now();
+        void rebuildMicPipeline();
+      }
+    }, 2000);
+    watchdogTimerRef.current = interval;
+    return () => {
+      clearInterval(interval);
+      if (watchdogTimerRef.current === interval) watchdogTimerRef.current = null;
+    };
+  }, [status, rebuildMicPipeline]);
+
+
 
   // Push current route + auth state to the model so it knows where the user
   // is and whether they're signed in.
