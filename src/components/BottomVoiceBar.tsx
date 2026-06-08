@@ -271,6 +271,48 @@ export function BottomVoiceBar() {
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
   }, []);
 
+  const sendNoopTurn = useCallback(() => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    try {
+      ws.send(JSON.stringify({ clientContent: { turns: [], turnComplete: false } }));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const stopKeepalives = useCallback(() => {
+    if (liveKeepaliveTimerRef.current) {
+      clearInterval(liveKeepaliveTimerRef.current);
+      liveKeepaliveTimerRef.current = null;
+    }
+    if (prewarmKeepaliveTimerRef.current) {
+      clearInterval(prewarmKeepaliveTimerRef.current);
+      prewarmKeepaliveTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleLiveReconnect = useCallback((delayMs?: number) => {
+    if (liveReconnectTimerRef.current) clearTimeout(liveReconnectTimerRef.current);
+    const attempt = reconnectAttemptsRef.current + 1;
+    liveReconnectTimerRef.current = setTimeout(() => {
+      liveReconnectTimerRef.current = null;
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      void reconnectLive();
+    }, delayMs ?? liveReconnectDelayMs(attempt));
+  }, []);
+
+  const attachMicEndedHandlers = useCallback((stream: MediaStream) => {
+    stream.getAudioTracks().forEach((track) => {
+      track.onended = () => {
+        if (micTeardownInProgressRef.current || statusRef.current !== "live" || userStoppedRef.current) return;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        void rebuildMicPipeline();
+      };
+    });
+  }, []);
+
   const clearIdleTimers = useCallback(() => {
     if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
     if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
