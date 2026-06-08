@@ -710,7 +710,7 @@ export function BottomVoiceBar() {
       };
     } catch { /* swallow — user will retry via Start */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attachWsHandlers]);
+  }, [attachWsHandlers, scheduleLiveReconnect]);
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
   // Requires the WS to be open and setupComplete received.
@@ -721,6 +721,10 @@ export function BottomVoiceBar() {
       return;
     }
     try {
+      if (prewarmKeepaliveTimerRef.current) {
+        clearInterval(prewarmKeepaliveTimerRef.current);
+        prewarmKeepaliveTimerRef.current = null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
@@ -841,6 +845,11 @@ export function BottomVoiceBar() {
       }
     }
   }, [attachWsHandlers, dispatch, failLiveConnection, scheduleLiveReconnect]);
+
+  useEffect(() => {
+    reconnectLiveRef.current = () => { void reconnectLive(); };
+    return () => { reconnectLiveRef.current = null; };
+  }, [reconnectLive]);
 
   // Tear down and rebuild just the mic/audio-input pipeline without touching
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
