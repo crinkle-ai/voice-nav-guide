@@ -463,221 +463,244 @@ export function BottomVoiceBar() {
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
   }, [dispatch, clearIdleTimers, stopAllAudio]);
 
+  // Shared WS message handler — wired during prewarm so setupComplete and any
+  // server messages are processed even before the user presses Start.
+  const attachWsHandlers = useCallback((ws: WebSocket) => {
+    ws.onmessage = async (ev) => {
+      const raw = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+      let msg: LiveServerMessage;
+      try { msg = JSON.parse(raw); } catch { return; }
 
-  const start = useCallback(async () => {
-    if (startingRef.current || status === "connecting" || status === "live") return;
-    startingRef.current = true;
-    greetedRef.current = false;
-    clearIdleTimers();
-    setErrorMsg(null);
-    setStatus("connecting");
-    dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
-
-    // Immediately play a local browser TTS greeting so the user hears a response
-    // the moment they press Start, instead of waiting for the WS handshake.
-    try {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        const hasIntroduced =
-          typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
-        const text = hasIntroduced
-          ? "I'm here — how can I help?"
-          : "Hi, I'm your Medicare Navigator. I can help you learn the basics, find doctors, and compare plans. How can I help?";
-        if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = 1.0;
-        utter.pitch = 1.0;
-        localGreetingRef.current = utter;
-        dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
-        utter.onend = () => {
-          if (localGreetingRef.current === utter) localGreetingRef.current = null;
-        };
-        window.speechSynthesis.speak(utter);
+      if (msg.setupComplete) {
+        prewarmReadyRef.current = true;
+        if (pendingActivateRef.current) {
+          pendingActivateRef.current = false;
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          void activate();
+        }
       }
-    } catch { /* noop */ }
 
+      if (msg.serverContent?.modelTurn?.parts) {
+        for (const part of msg.serverContent.modelTurn.parts) {
+          if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
+            playPcm(part.inlineData.data);
+            dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
+          }
+        }
+      }
+      if (msg.serverContent?.inputTranscription?.text) {
+        clearIdleTimers();
+        turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
+        const transcript = turnTranscriptRef.current;
+        const fired = turnFallbackFiredRef.current;
+        const fireOnce = (key: string, fn: () => void) => {
+          if (fired.has(key)) return;
+          fired.add(key);
+          fn();
+        };
 
+        if (matchesAgentIntent(transcript)) {
+          fireOnce("agent", () => openAgentCallback());
+        }
+        const curPath = pathnameRef.current;
+        if (
+          matchesMyPlansIntent(transcript) &&
+          curPath !== "/my-plans" &&
+          curPath !== "/login"
+        ) {
+          fireOnce("my-plans", () => {
+            if (isAuthed()) {
+              navigate({ to: "/my-plans" });
+            } else {
+              try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+              navigate({ to: "/login", search: { redirect: "/my-plans" } });
+            }
+          });
+        }
+        const learnTopic = matchesLearnTopic(transcript);
+        if (learnTopic) {
+          fireOnce(`learn:${learnTopic}`, () => {
+            lastSentPathRef.current = "/learn";
+            if (curPath !== "/learn") navigate({ to: "/learn" });
+            dispatch({ type: "SET_HIGHLIGHT", section: learnTopic });
+            setTimeout(() => highlightSection(learnTopic), 400);
+          });
+        }
+        const term = matchesGlossaryTerm(transcript);
+        if (term) {
+          const section = `glossary-${term}`;
+          fireOnce(`glossary:${term}`, () => {
+            lastSentPathRef.current = "/learn";
+            if (curPath !== "/learn") navigate({ to: "/learn" });
+            dispatch({ type: "SET_HIGHLIGHT", section });
+            setTimeout(() => highlightSection(section), 400);
+          });
+        }
+      }
+      if (msg.serverContent?.outputTranscription?.text) {
+        setLiveCaption(msg.serverContent.outputTranscription.text);
+      }
+      if (msg.serverContent?.turnComplete) {
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        turnTranscriptRef.current = "";
+        turnFallbackFiredRef.current = new Set();
+        clearIdleTimers();
+        idleWarningRef.current = setTimeout(() => {
+          setCaption("Session ending in 5 seconds — say something to keep going");
+        }, 15000);
+        idleTimerRef.current = setTimeout(() => {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          stop();
+          setCaption("Session ended to save tokens. Tap Start anytime.");
+        }, 20000);
+      }
+
+      if (msg.serverContent?.interrupted) {
+        stopAllAudio();
+        clearIdleTimers();
+      }
+      if (msg.toolCall?.functionCalls) {
+        clearIdleTimers();
+        for (const fc of msg.toolCall.functionCalls) handleToolCall(fc);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playPcm, dispatch, clearIdleTimers, openAgentCallback, navigate, highlightSection, setLiveCaption, stopAllAudio, handleToolCall]);
+
+  // Pre-warm the WebSocket so it's ready the instant the user presses Start.
+  // Does NOT request mic (that needs a user gesture) — only opens the socket
+  // and waits for setupComplete from Gemini.
+  const prewarm = useCallback(async () => {
+    if (wsRef.current || userStoppedRef.current) return;
     try {
       const res = await fetch("/api/voice-session", { method: "POST" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error || `Session request failed (${res.status})`);
-      }
+      if (!res.ok) return;
       const { websocketUrl } = (await res.json()) as { websocketUrl: string };
+      if (userStoppedRef.current) return;
+      const ws = new WebSocket(websocketUrl);
+      wsRef.current = ws;
+      attachWsHandlers(ws);
+      ws.onopen = () => {
+        try { ws.send(JSON.stringify({ setup: {} })); } catch { /* noop */ }
+      };
+      ws.onerror = () => { /* handled by onclose */ };
+      ws.onclose = () => {
+        const wasLive = status === "live";
+        wsRef.current = null;
+        prewarmReadyRef.current = false;
+        if (wasLive) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          stop();
+          return;
+        }
+        // Silently reconnect the pre-warmed socket if the user hasn't stopped.
+        if (!userStoppedRef.current) {
+          if (prewarmReconnectTimerRef.current) clearTimeout(prewarmReconnectTimerRef.current);
+          prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, 2000);
+        }
+      };
+    } catch { /* swallow — user will retry via Start */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attachWsHandlers, status]);
 
+  // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
+  // Requires the WS to be open and setupComplete received.
+  const activate = useCallback(async () => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !prewarmReadyRef.current) {
+      pendingActivateRef.current = true;
+      return;
+    }
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
       streamRef.current = stream;
 
-      const ws = new WebSocket(websocketUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        // Token already embeds the connect constraints; send empty setup.
-        ws.send(JSON.stringify({ setup: {} }));
-
-        const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const micCtx = new AudioCtor({ sampleRate: 16000 });
-        micCtxRef.current = micCtx;
-        const source = micCtx.createMediaStreamSource(stream);
-        sourceNodeRef.current = source;
-        const processor = micCtx.createScriptProcessor(4096, 1, 1);
-        processorRef.current = processor;
-        processor.onaudioprocess = (e) => {
-          if (mutedRef.current) return;
-          if (ws.readyState !== WebSocket.OPEN) return;
-          const input = e.inputBuffer.getChannelData(0);
-          const pcm = floatTo16BitPCM(input);
-          ws.send(
-            JSON.stringify({
-              realtimeInput: {
-                audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
-              },
-            }),
-          );
-        };
-        source.connect(processor);
-        processor.connect(micCtx.destination);
-
-        const playCtx = new AudioCtor({ sampleRate: 24000 });
-        playCtxRef.current = playCtx;
-        playHeadRef.current = 0;
-
-        // Reset so the route-tracker effect sends the current path immediately.
-        lastSentPathRef.current = null;
-
-        setStatus("live");
-        startingRef.current = false;
-        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+      const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const micCtx = new AudioCtor({ sampleRate: 16000 });
+      micCtxRef.current = micCtx;
+      const source = micCtx.createMediaStreamSource(stream);
+      sourceNodeRef.current = source;
+      const processor = micCtx.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+      processor.onaudioprocess = (e) => {
+        if (mutedRef.current) return;
+        if (ws.readyState !== WebSocket.OPEN) return;
+        const input = e.inputBuffer.getChannelData(0);
+        const pcm = floatTo16BitPCM(input);
+        ws.send(
+          JSON.stringify({
+            realtimeInput: {
+              audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
+            },
+          }),
+        );
       };
+      source.connect(processor);
+      processor.connect(micCtx.destination);
 
-      ws.onmessage = async (ev) => {
-        const raw = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
-        let msg: LiveServerMessage;
-        try { msg = JSON.parse(raw); } catch { return; }
+      const playCtx = new AudioCtor({ sampleRate: 24000 });
+      playCtxRef.current = playCtx;
+      playHeadRef.current = 0;
+      lastSentPathRef.current = null;
 
-        if (msg.setupComplete && !greetedRef.current) {
-          // We already greeted locally via speechSynthesis the moment Start was
-          // pressed. Skip sending any [SESSION_START] turn to Gemini so it
-          // stays silent and ready for the user's first question.
-          greetedRef.current = true;
-        }
+      // Send the greeting now — Gemini will respond with audio over the
+      // already-open socket, so the user hears a real voice with no delay.
+      if (!greetedRef.current) {
+        greetedRef.current = true;
+        const hasIntroduced =
+          typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+        const greetingPrompt = hasIntroduced
+          ? "[SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. 'I'm here — how can I help?'). Then stop."
+          : "[SESSION_START] Greet the user in ONE short sentence as their Medicare Navigator and invite their question. Then stop.";
+        ws.send(
+          JSON.stringify({
+            clientContent: {
+              turns: [{ role: "user", parts: [{ text: greetingPrompt }] }],
+              turnComplete: true,
+            },
+          }),
+        );
+      }
 
-
-        if (msg.serverContent?.modelTurn?.parts) {
-          for (const part of msg.serverContent.modelTurn.parts) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
-              playPcm(part.inlineData.data);
-              dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
-            }
-          }
-        }
-        if (msg.serverContent?.inputTranscription?.text) {
-          clearIdleTimers();
-          turnTranscriptRef.current += " " + msg.serverContent.inputTranscription.text;
-          const transcript = turnTranscriptRef.current;
-          const fired = turnFallbackFiredRef.current;
-          const fireOnce = (key: string, fn: () => void) => {
-            if (fired.has(key)) return;
-            fired.add(key);
-            fn();
-          };
-
-          if (matchesAgentIntent(transcript)) {
-            fireOnce("agent", () => openAgentCallback());
-          }
-          // Scripted fallback: if the user clearly asks for their plans and
-          // we're not on /my-plans, route them (through /login if needed).
-          const curPath = pathnameRef.current;
-          if (
-            matchesMyPlansIntent(transcript) &&
-            curPath !== "/my-plans" &&
-            curPath !== "/login"
-          ) {
-            fireOnce("my-plans", () => {
-              if (isAuthed()) {
-                navigate({ to: "/my-plans" });
-              } else {
-                try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
-                navigate({ to: "/login", search: { redirect: "/my-plans" } });
-              }
-            });
-          }
-          // Scripted fallback: Learn topics (Part A/B/C/D, Medigap).
-          const learnTopic = matchesLearnTopic(transcript);
-          if (learnTopic) {
-            fireOnce(`learn:${learnTopic}`, () => {
-              lastSentPathRef.current = "/learn";
-              if (curPath !== "/learn") navigate({ to: "/learn" });
-              dispatch({ type: "SET_HIGHLIGHT", section: learnTopic });
-              setTimeout(() => highlightSection(learnTopic), 400);
-            });
-          }
-          // Scripted fallback: Glossary terms.
-          const term = matchesGlossaryTerm(transcript);
-          if (term) {
-            const section = `glossary-${term}`;
-            fireOnce(`glossary:${term}`, () => {
-              lastSentPathRef.current = "/learn";
-              if (curPath !== "/learn") navigate({ to: "/learn" });
-              dispatch({ type: "SET_HIGHLIGHT", section });
-              setTimeout(() => highlightSection(section), 400);
-            });
-          }
-        }
-        if (msg.serverContent?.outputTranscription?.text) {
-          setLiveCaption(msg.serverContent.outputTranscription.text);
-        }
-        if (msg.serverContent?.turnComplete) {
-          dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
-          turnTranscriptRef.current = "";
-          turnFallbackFiredRef.current = new Set();
-          clearIdleTimers();
-          idleWarningRef.current = setTimeout(() => {
-            setCaption("Session ending in 5 seconds — say something to keep going");
-          }, 15000);
-          idleTimerRef.current = setTimeout(() => {
-            stop();
-            setCaption("Session ended to save tokens. Tap Start anytime.");
-          }, 20000);
-        }
-
-        if (msg.serverContent?.interrupted) {
-          // Barge-in: stop any already-scheduled audio so the user only hears
-          // the new turn, not the tail of the previous one.
-          stopAllAudio();
-          clearIdleTimers();
-        }
-        if (msg.toolCall?.functionCalls) {
-          clearIdleTimers();
-          for (const fc of msg.toolCall.functionCalls) handleToolCall(fc);
-        }
-      };
-
-      ws.onerror = () => {
-        setErrorMsg("Connection error");
-        setStatus("error");
-      };
-
-      ws.onclose = () => {
-        if (status !== "idle") stop();
-      };
+      setStatus("live");
+      startingRef.current = false;
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to start";
-      try {
-        if (typeof window !== "undefined" && "speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-        }
-      } catch { /* noop */ }
-      localGreetingRef.current = null;
       setErrorMsg(message);
       setStatus("error");
       startingRef.current = false;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dispatch, playPcm, handleToolCall, setLiveCaption, stopAllAudio, openAgentCallback]);
+  }, [dispatch]);
+
+  const start = useCallback(async () => {
+    if (startingRef.current || status === "connecting" || status === "live") return;
+    startingRef.current = true;
+    userStoppedRef.current = false;
+    greetedRef.current = false;
+    clearIdleTimers();
+    setErrorMsg(null);
+
+    if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+      setStatus("connecting");
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+      await activate();
+      return;
+    }
+
+    // Pre-warm hasn't completed (or socket dropped). Show connecting and
+    // activate as soon as setupComplete arrives.
+    setStatus("connecting");
+    dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+    pendingActivateRef.current = true;
+    if (!wsRef.current) void prewarm();
+  }, [status, dispatch, clearIdleTimers, activate, prewarm]);
+
+
 
   useEffect(() => {
     mutedRef.current = muted;
