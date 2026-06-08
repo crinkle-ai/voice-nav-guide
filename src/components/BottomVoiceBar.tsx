@@ -539,6 +539,7 @@ export function BottomVoiceBar() {
     playHeadRef.current = 0;
     startingRef.current = false;
     greetedRef.current = false;
+    statusRef.current = "idle";
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
@@ -776,6 +777,7 @@ export function BottomVoiceBar() {
         );
       }
 
+      statusRef.current = "live";
       setStatus("live");
       startingRef.current = false;
       reconnectAttemptsRef.current = 0;
@@ -802,6 +804,7 @@ export function BottomVoiceBar() {
       failLiveConnection();
       return;
     }
+    statusRef.current = "connecting";
     setStatus("connecting");
     setCaption("Reconnecting…");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
