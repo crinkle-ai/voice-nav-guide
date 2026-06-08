@@ -651,6 +651,12 @@ export function BottomVoiceBar() {
       };
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to start";
+      try {
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+        }
+      } catch { /* noop */ }
+      localGreetingRef.current = null;
       setErrorMsg(message);
       setStatus("error");
       startingRef.current = false;
