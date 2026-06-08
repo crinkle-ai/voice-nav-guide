@@ -544,34 +544,10 @@ export function BottomVoiceBar() {
         try { msg = JSON.parse(raw); } catch { return; }
 
         if (msg.setupComplete && !greetedRef.current) {
+          // We already greeted locally via speechSynthesis the moment Start was
+          // pressed. Skip sending any [SESSION_START] turn to Gemini so it
+          // stays silent and ready for the user's first question.
           greetedRef.current = true;
-          const hasIntroduced = typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
-          if (hasIntroduced) {
-            ws.send(
-              JSON.stringify({
-                clientContent: {
-                  turns: [{
-                    role: "user",
-                    parts: [{ text: "[SESSION_START] Welcome the user back with one short sentence like 'I'm here — how can I help?' or 'Welcome back. What would you like to do?' Keep it brief and friendly." }],
-                  }],
-                  turnComplete: true,
-                },
-              }),
-            );
-          } else {
-            if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
-            ws.send(
-              JSON.stringify({
-                clientContent: {
-                  turns: [{
-                    role: "user",
-                    parts: [{ text: "[SESSION_START] Greet the user warmly, introduce yourself as the Medicare Navigator, and describe what you can help with in ONE short sentence. Then ask how you can help." }],
-                  }],
-                  turnComplete: true,
-                },
-              }),
-            );
-          }
         }
 
 
