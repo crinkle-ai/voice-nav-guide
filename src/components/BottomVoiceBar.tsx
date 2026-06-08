@@ -270,6 +270,7 @@ export function BottomVoiceBar() {
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
+  const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
 
@@ -537,6 +538,10 @@ export function BottomVoiceBar() {
       clearInterval(watchdogTimerRef.current);
       watchdogTimerRef.current = null;
     }
+    if (startTimeoutRef.current) {
+      clearTimeout(startTimeoutRef.current);
+      startTimeoutRef.current = null;
+    }
     reconnectingRef.current = false;
     reconnectAttemptsRef.current = 0;
 
@@ -748,8 +753,13 @@ export function BottomVoiceBar() {
       attachMicEndedHandlers(stream);
 
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const micCtx = new AudioCtor({ sampleRate: 16000 });
-      micCtxRef.current = micCtx;
+      // Reuse the context created synchronously in start() (iOS gesture requirement).
+      let micCtx = micCtxRef.current;
+      if (!micCtx || micCtx.state === "closed") {
+        micCtx = new AudioCtor({ sampleRate: 16000 });
+        micCtxRef.current = micCtx;
+      }
+      void micCtx.resume().catch(() => {});
       const source = micCtx.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
@@ -758,7 +768,7 @@ export function BottomVoiceBar() {
         const now = Date.now();
         lastAudioProcessAtRef.current = now;
         lastAudioChunkRef.current = now;
-        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
+        if (micCtx!.state === "suspended") { void micCtx!.resume().catch(() => {}); }
         if (mutedRef.current) return;
         const sock = wsRef.current;
         if (!sock || sock.readyState !== WebSocket.OPEN) return;
@@ -777,8 +787,12 @@ export function BottomVoiceBar() {
       lastAudioProcessAtRef.current = Date.now();
       lastAudioChunkRef.current = lastAudioProcessAtRef.current;
 
-      const playCtx = new AudioCtor({ sampleRate: 24000 });
-      playCtxRef.current = playCtx;
+      let playCtx = playCtxRef.current;
+      if (!playCtx || playCtx.state === "closed") {
+        playCtx = new AudioCtor({ sampleRate: 24000 });
+        playCtxRef.current = playCtx;
+      }
+      void playCtx.resume().catch(() => {});
       playHeadRef.current = 0;
       lastSentPathRef.current = null;
 
@@ -805,6 +819,12 @@ export function BottomVoiceBar() {
       statusRef.current = "live";
       setStatus("live");
       startingRef.current = false;
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
+      void micCtxRef.current?.resume().catch(() => {});
+      void playCtxRef.current?.resume().catch(() => {});
       reconnectAttemptsRef.current = 0;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
@@ -813,6 +833,10 @@ export function BottomVoiceBar() {
       statusRef.current = "error";
       setStatus("error");
       startingRef.current = false;
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+        startTimeoutRef.current = null;
+      }
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
   }, [dispatch, attachMicEndedHandlers]);
@@ -936,7 +960,7 @@ export function BottomVoiceBar() {
   }, [rebuildMicPipeline]);
 
   const start = useCallback(async () => {
-    if (startingRef.current || status === "connecting" || status === "live") return;
+    if (startingRef.current || statusRef.current === "connecting" || statusRef.current === "live") return;
     startingRef.current = true;
     userStoppedRef.current = false;
     greetedRef.current = false;
@@ -944,6 +968,36 @@ export function BottomVoiceBar() {
     clearIdleTimers();
     setErrorMsg(null);
     setCaption("");
+
+    // iOS Safari requires AudioContext to be created synchronously inside the
+    // user gesture handler — create both contexts NOW, before any await.
+    try {
+      const AudioCtor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!micCtxRef.current || micCtxRef.current.state === "closed") {
+        micCtxRef.current = new AudioCtor({ sampleRate: 16000 });
+      }
+      if (!playCtxRef.current || playCtxRef.current.state === "closed") {
+        playCtxRef.current = new AudioCtor({ sampleRate: 24000 });
+      }
+      void micCtxRef.current?.resume().catch(() => {});
+      void playCtxRef.current?.resume().catch(() => {});
+    } catch { /* noop — activate() will surface any failure */ }
+
+    // Safety timeout: if we never reach "live", reset so the button is tappable.
+    if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current);
+    startTimeoutRef.current = setTimeout(() => {
+      startTimeoutRef.current = null;
+      if (statusRef.current !== "live") {
+        startingRef.current = false;
+        pendingActivateRef.current = false;
+        statusRef.current = "idle";
+        setStatus("idle");
+        setCaption("Connection timed out — tap Start to try again.");
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
+      }
+    }, 15000);
 
     if (prewarmReadyRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
       statusRef.current = "connecting";
@@ -960,7 +1014,7 @@ export function BottomVoiceBar() {
     dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
     pendingActivateRef.current = true;
     if (!wsRef.current) void prewarm();
-  }, [status, dispatch, clearIdleTimers, activate, prewarm]);
+  }, [dispatch, clearIdleTimers, activate, prewarm]);
 
 
 
