@@ -300,12 +300,18 @@ export function BottomVoiceBar() {
 
   const scheduleLiveReconnect = useCallback((delayMs?: number) => {
     if (liveReconnectTimerRef.current) clearTimeout(liveReconnectTimerRef.current);
+    if (streamRef.current && !userStoppedRef.current) {
+      statusRef.current = "connecting";
+      setStatus("connecting");
+      setCaption("Reconnecting…");
+      dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+    }
     const attempt = reconnectAttemptsRef.current + 1;
     liveReconnectTimerRef.current = setTimeout(() => {
       liveReconnectTimerRef.current = null;
       reconnectLiveRef.current?.();
     }, delayMs ?? liveReconnectDelayMs(attempt));
-  }, []);
+  }, [dispatch]);
 
   const attachMicEndedHandlers = useCallback((stream: MediaStream) => {
     stream.getAudioTracks().forEach((track) => {
@@ -742,6 +748,8 @@ export function BottomVoiceBar() {
       };
       source.connect(processor);
       processor.connect(micCtx.destination);
+      lastAudioProcessAtRef.current = Date.now();
+      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
 
       const playCtx = new AudioCtor({ sampleRate: 24000 });
       playCtxRef.current = playCtx;
