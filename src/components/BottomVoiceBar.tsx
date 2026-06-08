@@ -749,8 +749,13 @@ export function BottomVoiceBar() {
       attachMicEndedHandlers(stream);
 
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const micCtx = new AudioCtor({ sampleRate: 16000 });
-      micCtxRef.current = micCtx;
+      // Reuse the context created synchronously in start() (iOS gesture requirement).
+      let micCtx = micCtxRef.current;
+      if (!micCtx || micCtx.state === "closed") {
+        micCtx = new AudioCtor({ sampleRate: 16000 });
+        micCtxRef.current = micCtx;
+      }
+      void micCtx.resume().catch(() => {});
       const source = micCtx.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
@@ -759,7 +764,7 @@ export function BottomVoiceBar() {
         const now = Date.now();
         lastAudioProcessAtRef.current = now;
         lastAudioChunkRef.current = now;
-        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
+        if (micCtx!.state === "suspended") { void micCtx!.resume().catch(() => {}); }
         if (mutedRef.current) return;
         const sock = wsRef.current;
         if (!sock || sock.readyState !== WebSocket.OPEN) return;
@@ -778,8 +783,12 @@ export function BottomVoiceBar() {
       lastAudioProcessAtRef.current = Date.now();
       lastAudioChunkRef.current = lastAudioProcessAtRef.current;
 
-      const playCtx = new AudioCtor({ sampleRate: 24000 });
-      playCtxRef.current = playCtx;
+      let playCtx = playCtxRef.current;
+      if (!playCtx || playCtx.state === "closed") {
+        playCtx = new AudioCtor({ sampleRate: 24000 });
+        playCtxRef.current = playCtx;
+      }
+      void playCtx.resume().catch(() => {});
       playHeadRef.current = 0;
       lastSentPathRef.current = null;
 
