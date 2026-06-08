@@ -263,7 +263,6 @@ export function BottomVoiceBar() {
   const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
   const statusRef = useRef<Status>("idle");
-  const silencePcmBase64Ref = useRef<string | null>(null);
 
 
 
@@ -277,14 +276,9 @@ export function BottomVoiceBar() {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
     try {
-      if (!silencePcmBase64Ref.current) {
-        silencePcmBase64Ref.current = arrayBufferToBase64(new Int16Array(1600).buffer);
-      }
       ws.send(
         JSON.stringify({
-          realtimeInput: {
-            audio: { mimeType: "audio/pcm;rate=16000", data: silencePcmBase64Ref.current },
-          },
+          clientContent: { turns: [], turnComplete: false },
         }),
       );
       return true;
