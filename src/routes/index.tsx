@@ -102,6 +102,23 @@ function Home() {
         </div>
       </section>
 
+      {/* Demo video */}
+      <section id="demo" className="mt-16">
+        <h2 className="text-2xl font-bold text-foreground">See how it works</h2>
+        <p className="mt-2 text-muted-foreground">
+          A quick walkthrough of finding and comparing Medicare plans with Crinkle.
+        </p>
+        <div className="mt-6 overflow-hidden rounded-2xl border shadow-sm" style={{ position: "relative", paddingBottom: "44.583333333333336%", height: 0 }}>
+          <iframe
+            src="https://www.loom.com/embed/a4923ada037f441092750afd5438ec6e"
+            frameBorder={0}
+            allowFullScreen
+            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+            title="Crinkle Health demo"
+          />
+        </div>
+      </section>
+
       {/* Plan types */}
       <section id="plans" className="mt-20">
         <div className="flex items-end justify-between gap-4">
