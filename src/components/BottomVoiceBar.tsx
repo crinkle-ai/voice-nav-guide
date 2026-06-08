@@ -14,6 +14,12 @@ const AGENT_TRIGGERS = [
   new RegExp(`\\btalk(?:ing)?\\s+(?:to|with)\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
   new RegExp(`\\bspeak(?:ing)?\\s+(?:to|with)\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
   new RegExp(`\\b(?:connect|put|get)\\s+me\\s+(?:with|to)?\\s*(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\bcan\\s+i\\s+connect\\s+with\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\bi\\s+(?:want|need)\\s+to\\s+connect\\s+with\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\bi(?:['’]d|\\s+would)\\s+like\\s+to\\s+connect\\s+with\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\bconnect\\s+with\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\bi\\s+(?:want|need)\\s+to\\s+reach\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
+  new RegExp(`\\b(?:get|transfer)\\s+me\\s+to\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
   /\bcall\s+me(\s+back)?\b/i,
   new RegExp(`\\bhave\\s+(?:someone|an?\\s+\\w+\\s+)?(?:${AGENT_NOUN})?\\s*call\\s+me\\b`, "i"),
   new RegExp(`\\bi\\s+(?:want|need|would\\s+like)\\s+(?:to\\s+)?(?:talk|speak)\\s+(?:to|with)\\s+(?:a|an|some)?\\s*${AGENT_MOD}${AGENT_NOUN}\\b`, "i"),
@@ -716,8 +722,8 @@ export function BottomVoiceBar() {
   return (
     <>
       {callbackPhase !== "hidden" && (
-        <div className="fixed inset-x-0 bottom-[76px] z-50 flex justify-center px-4 sm:bottom-[84px]">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary/30 bg-card shadow-2xl animate-in slide-in-from-bottom-4">
+        <div className="fixed inset-x-0 bottom-[76px] z-[70] flex justify-center px-4 sm:bottom-[84px]">
+          <div className="max-h-[calc(100dvh-104px)] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-primary/30 bg-card shadow-2xl animate-in slide-in-from-bottom-4">
             {callbackPhase === "form" && (
               <>
                 <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3">
