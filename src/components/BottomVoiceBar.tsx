@@ -243,6 +243,10 @@ export function BottomVoiceBar() {
   const pendingActivateRef = useRef(false);
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userStoppedRef = useRef(false);
+  const lastAudioProcessAtRef = useRef<number>(0);
+  const watchdogTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reconnectingRef = useRef(false);
+  const reconnectAttemptsRef = useRef(0);
 
 
 
