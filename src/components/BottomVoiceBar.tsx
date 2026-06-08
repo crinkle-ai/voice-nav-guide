@@ -231,6 +231,8 @@ export function BottomVoiceBar() {
   const idleWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startingRef = useRef(false);
   const greetedRef = useRef(false);
+  const localGreetingRef = useRef<SpeechSynthesisUtterance | null>(null);
+
 
   const setLiveCaption = useCallback((text: string) => {
     setCaption(text);
