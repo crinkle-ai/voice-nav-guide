@@ -1,78 +1,51 @@
-## Phase 2 — Voice-Guided Medicare Journey Navigator
 
-Replace every Phase 1 placeholder with real, working features and wire up an AI voice navigator that can answer Medicare questions and drive the app.
+## Diagnosis
 
-### 1. Enable Lovable Cloud + seed data
+Both bugs share one root cause: the Gemini Live model sometimes **answers in voice without emitting the corresponding tool call**, so the app never navigates or opens the callback form. Looking at the wiring in `src/components/BottomVoiceBar.tsx`:
 
-Turn on Lovable Cloud and create two tables with RLS + grants:
+- The `handleToolCall` switch for `navigate_to`, `highlight_section`, `explain_term`, and `request_agent_callback` is correct — when the model emits the tool, the app does the right thing.
+- There is already a **scripted regex fallback** on the user's transcribed input for two intents: `matchesAgentIntent` (opens the callback form) and `matchesMyPlansIntent` (routes to `/my-plans`).
+- There is **no fallback** for Learn topics (Part A/B/C/D, Medigap) or glossary terms (deductible, premium, etc.). When the model decides to just explain "Part B covers doctor visits…" without calling `highlight_section`, the user stays put.
+- The agent fallback regexes do trigger on "talk to an agent" but **fail on modifiers like "talk to a telesales agent"** — the regex `(real\s+)?(person|human|agent|…)` only allows the literal modifier "real", so "telesales agent" / "licensed agent" / "Medicare agent" slip through and nothing opens.
 
-- `doctors` — id, name, specialty, city, state, zip, address, phone, accepting_new_patients, medicare_assignment, network_tags (text[]), languages (text[])
-- `plans` — id, name, type (Original Medicare / Advantage / Supplement / Part D), carrier, monthly_premium, annual_deductible, oop_max, drug_coverage (bool), dental (bool), vision (bool), hearing (bool), star_rating, summary, highlights (text[])
+The system prompt is already strong about tool-first behavior; tightening it further is high-effort and low-yield (Gemini Live tool calling has known flakiness). The right fix is to make the client guarantee the navigation behavior whenever the user's transcript clearly signals intent.
 
-Both publicly readable (read-only reference data); writes service-role only. Seed ~12 doctors across a few cities/specialties and ~8 plans covering each type.
+## Plan
 
-### 2. Home page — real welcome
+Edit `src/components/BottomVoiceBar.tsx` only — this is a UI/client behavior fix, no backend changes.
 
-- Hero with headline, subhead, "Talk to your guide" CTA (opens voice navigator) and "Start with Step 1" link
-- 3 step cards (Learn → Find Doctors → Compare Plans) with visited/completed checkmarks pulled from `journey` state
-- "What can I ask?" example-prompt chips that, when clicked, open the navigator pre-loaded with that question
-- Trust strip (no jargon, voice-friendly, your data stays on this device)
+### 1. Loosen the agent-callback regex
 
-### 3. Learn page — Medicare education
+Replace the modifier capture group so any adjective(s) between "a/an" and `person|human|agent|representative|rep|someone|advisor|broker` are allowed (e.g. "telesales agent", "licensed agent", "Medicare agent", "real human"). Same change applied to all four agent triggers that currently use `(real\s+)?`.
 
-- Tabbed/accordion explainers for Parts A, B, C, D + Medigap, in plain language
-- Glossary section (Premium, Deductible, Coinsurance, Copay, OOP max, Network, Formulary) with short definitions
-- "Read aloud" button per section using browser SpeechSynthesis (free, no extra cost) — separate from the AI navigator
-- Marks `education` step complete after the user expands ≥1 section
+### 2. Add a Learn-topic intent matcher
 
-### 4. Find Doctors page
+Add `matchesLearnTopic(text)` that returns `{ topic: "part-a" | "part-b" | "part-c" | "part-d" | "medigap" } | null` for phrases like:
+- "what is Part A", "tell me about Part B", "explain Part C", "Medicare Advantage"
+- "what's Part D", "prescription drug coverage"
+- "what is Medigap", "supplement plan"
 
-- Search inputs: name, specialty (select), city/zip
-- Results list (cards) from `doctors` table via TanStack Query + `createServerFn`
-- Each card: name, specialty, address, phone, "Accepts Medicare assignment" badge, "Accepting new patients" badge
-- "Save to my list" toggle (stored in AppContext journey state for this session)
-- Empty state + loading skeletons
+### 3. Add a glossary-term intent matcher
 
-### 5. Compare Plans page
+Add `matchesGlossaryTerm(text)` that returns one of `premium | deductible | copay | coinsurance | out-of-pocket-max | network | formulary` for phrases like "what is a deductible", "what does formulary mean", "what's a copay", "explain coinsurance", "out of pocket maximum", "in-network".
 
-- Filter bar: plan type, max monthly premium (slider), needs drug coverage (switch), needs dental/vision (switches)
-- Side-by-side comparison table (shadcn Table): premium, deductible, OOP max, drug/dental/vision, star rating, highlights
-- "Select to compare" checkboxes — up to 3 plans pinned to a sticky compare bar
-- Marks `plan-comparison` step complete after first filter or selection
+### 4. Wire the new matchers into the existing transcript handler
 
-### 6. Voice Navigator (the headline feature)
+In the `inputTranscription` block (around line 504-525), after the existing `matchesAgentIntent` / `matchesMyPlansIntent` checks, add:
 
-Upgrade the floating mic button into a working assistant:
+- If `matchesLearnTopic` returns a topic and the user is not already on `/learn` highlighting that section: `navigate({ to: "/learn" })`, then `setTimeout(() => { highlightSection(topic); dispatch({ type: "SET_HIGHLIGHT", section: topic }); }, 400)`.
+- If `matchesGlossaryTerm` returns a term: same as above with `section = `glossary-${term}``.
+- Use a `lastFallbackRef` (per-turn) so we don't re-fire the same navigation while the user keeps talking in the same turn — reset it on `turnComplete`.
 
-- **Speech-to-text**: browser Web Speech API (`SpeechRecognition`) — free, fast, runs locally
-- **LLM brain**: Lovable AI Gateway via `createServerFn` at `src/lib/navigator.functions.ts` using `streamText` with `google/gemini-3-flash-preview`. System prompt grounds the model as a Medicare guide and exposes navigation tools.
-- **Tools the model can call** (via AI SDK `tool()` with Zod schemas):
-  - `navigate_to({ page })` — returns a route to push (`/`, `/learn`, `/find-doctors`, `/compare-plans`)
-  - `highlight_section({ section })` — sets `highlightedSection` in AppContext so the target page can pulse/scroll
-  - `search_doctors({ specialty?, city? })` — queries `doctors` table, returns summary
-  - `recommend_plans({ needs_drug, max_premium?, type? })` — queries `plans`, returns top 3
-- **Text-to-speech**: browser SpeechSynthesis to read the assistant reply aloud (no TTS credits burned). Voice toggle in panel.
-- **Panel UI**: transcript bubbles (user/assistant), live "listening…" / "thinking…" / "speaking…" status using `voiceState`, suggested prompts, mute button, text input fallback for users who can't/won't speak
-- Client uses `useChat` from `@ai-sdk/react` pointed at a `/api/chat` server route (streaming) for the conversation, with tool results dispatched into AppContext to actually navigate and highlight.
+These run alongside any tool call the model does emit; the `handleToolCall` path is idempotent for navigation (same destination just re-navigates), and the scripted highlight uses the same `highlightSection` helper, so double-firing is harmless.
 
-### 7. Cross-cutting
+### 5. (Optional, small) Tighten one prompt line
 
-- TopNav: animate step checkmarks as `completedSteps` grows
-- Add `highlightedSection` consumer hook so pages can scroll-into-view + ring-pulse the targeted section when the navigator highlights it
-- Update SEO `head()` on each route with real titles/descriptions
-- Keep senior-friendly type scale (already 18px base), large tap targets, AA contrast
+In `src/routes/api/voice-session.ts` SYSTEM_PROMPT, add one sentence under "TOOL RULES" reinforcing that any answer about a Medicare Part, glossary term, or callback request **must** be preceded by the matching tool call — never explain first. Keep this small; the scripted fallback is the real fix.
 
-### Technical notes
+## Files touched
 
-- Stack: TanStack Start + Supabase (Lovable Cloud) + AI SDK + `@ai-sdk/openai-compatible` against `https://ai.gateway.lovable.dev/v1` using server-side `LOVABLE_API_KEY`.
-- Server route `src/routes/api/chat.ts` handles the streaming chat with tools; client tools (navigate, highlight) execute on receipt of tool-call parts.
-- Doctor/plan queries live in `src/lib/catalog.functions.ts` (public reads via `supabaseAdmin` inside the handler) and are reused by both the UI pages and the AI tools.
-- Web Speech API is browser-only — feature-detect and fall back to text input on unsupported browsers (Safari desktop, Firefox).
-- No new secrets needed from the user; `LOVABLE_API_KEY` is auto-provisioned with Cloud.
+- `src/components/BottomVoiceBar.tsx` — regex loosening, two new matchers, hook them into the transcript handler.
+- `src/routes/api/voice-session.ts` — one-sentence prompt nudge (optional).
 
-### Out of scope (save for later)
-
-- User accounts / saving lists across sessions
-- Real Medicare.gov / CMS API integration
-- Premium TTS voices
-- Multi-language support
+No schema, server-function, or routing changes.
