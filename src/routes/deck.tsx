@@ -16,7 +16,7 @@ export const Route = createFileRoute("/deck")({
 function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const total = 7;
+  const total = 6;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -123,7 +123,7 @@ function SlideDeck() {
 
 type SlideProps = { onLaunch: () => void };
 
-const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, MvpSlide, Slide4, Slide5, Slide6];
+const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, MvpSlide, Slide5];
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
@@ -182,26 +182,40 @@ function Slide2(_: SlideProps) {
 
 function Slide3(_: SlideProps) {
   const caps = [
-    { icon: <Mic className="h-5 w-5 md:h-7 md:w-7" />, label: "Natural Voice Conversations" },
-    { icon: <Compass className="h-5 w-5 md:h-7 md:w-7" />, label: "Intelligent Website Navigation" },
-    { icon: <BookOpen className="h-5 w-5 md:h-7 md:w-7" />, label: "Medicare Education" },
-    { icon: <Headphones className="h-5 w-5 md:h-7 md:w-7" />, label: "Human Support Handoff" },
+    {
+      icon: <Mic className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Natural Voice Conversations",
+      desc: "Users speak the way they'd talk to a knowledgeable friend — no forms, no menus, no jargon. The AI understands intent, asks clarifying questions when needed, and responds in plain language.",
+    },
+    {
+      icon: <Compass className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Intelligent Website Navigation",
+      desc: "The AI drives the browser on the user's behalf — opening the right page, scrolling to the relevant section, and highlighting key content. The site becomes the answer, not a maze to search through.",
+    },
+    {
+      icon: <Headphones className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Human Support Handoff",
+      desc: "When the AI reaches the edge of what it can confidently handle, it hands off to a licensed agent with full conversation context attached — so the user never has to repeat themselves or start over.",
+    },
   ];
   return (
     <SlideShell eyebrow="The Solution">
       <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
         Introducing the <span className="text-primary">Voice-Guided Medicare Journey Navigator.</span>
       </h2>
-      <p className="mt-3 md:mt-8 text-sm md:text-2xl text-muted-foreground">
+      <p className="mt-3 md:mt-6 text-sm md:text-2xl text-muted-foreground">
         Users speak. The website responds.
       </p>
-      <div className="mt-4 md:mt-12 grid gap-2 md:gap-5 md:grid-cols-2 max-w-4xl">
+      <div className="mt-4 md:mt-10 grid gap-2 md:gap-4 max-w-5xl">
         {caps.map((c) => (
-          <div key={c.label} className="flex items-center gap-3 md:gap-4 rounded-xl border bg-card p-3 md:p-5 shadow-sm">
+          <div key={c.label} className="flex items-start gap-3 md:gap-5 rounded-xl border bg-card p-3 md:p-5 shadow-sm">
             <div className="flex h-10 w-10 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               {c.icon}
             </div>
-            <div className="text-sm md:text-xl font-semibold">{c.label}</div>
+            <div>
+              <div className="text-sm md:text-xl font-semibold">{c.label}</div>
+              <p className="mt-1 text-xs md:text-base text-muted-foreground leading-snug">{c.desc}</p>
+            </div>
           </div>
         ))}
       </div>
