@@ -435,17 +435,18 @@ export function BottomVoiceBar() {
   }, []);
 
   const stop = useCallback(() => {
+    userStoppedRef.current = true;
     clearIdleTimers();
     stopAllAudio();
-    try {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    } catch { /* noop */ }
-    localGreetingRef.current = null;
+    if (prewarmReconnectTimerRef.current) {
+      clearTimeout(prewarmReconnectTimerRef.current);
+      prewarmReconnectTimerRef.current = null;
+    }
 
     try { wsRef.current?.close(); } catch { /* noop */ }
     wsRef.current = null;
+    prewarmReadyRef.current = false;
+    pendingActivateRef.current = false;
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -461,6 +462,7 @@ export function BottomVoiceBar() {
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
   }, [dispatch, clearIdleTimers, stopAllAudio]);
+
 
   const start = useCallback(async () => {
     if (startingRef.current || status === "connecting" || status === "live") return;
