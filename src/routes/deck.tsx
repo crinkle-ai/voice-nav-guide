@@ -352,10 +352,30 @@ function ValidationCard({
 
 function MvpSlide(_: SlideProps) {
   const steps = [
-    { num: "01", icon: <Database className="h-5 w-5 md:h-7 md:w-7" />, title: "Mine the Data", desc: "Analyze site search queries, top exit pages, and call center/chat transcripts to surface the highest-confusion user journeys." },
-    { num: "02", icon: <Users className="h-5 w-5 md:h-7 md:w-7" />, title: "Pick Your Pilot Segment", desc: "Choose one user type with a clear, bounded journey (e.g. turning-65 first-timers)." },
-    { num: "03", icon: <Map className="h-5 w-5 md:h-7 md:w-7" />, title: "Map 5 Intent Scenarios", desc: "Define the specific things that segment says, and the navigation path the AI takes for each one." },
-    { num: "04", icon: <TrendingUp className="h-5 w-5 md:h-7 md:w-7" />, title: "Measure & Expand", desc: "Track containment rate, enrollment intent lift, and agent deflection; use results to justify expanding to the next segment." },
+    {
+      num: "01",
+      icon: <Database className="h-5 w-5 md:h-7 md:w-7" />,
+      title: "Mine the Data",
+      desc: "Analyze site search queries, top exit pages, and call center/chat transcripts to surface the highest-confusion user journeys — and the exact moments where users currently abandon or escalate to a human.",
+    },
+    {
+      num: "02",
+      icon: <Users className="h-5 w-5 md:h-7 md:w-7" />,
+      title: "Pick Your Pilot Segment",
+      desc: "Choose one user type with a clear, bounded journey (e.g. turning-65 first-timers). Set the guardrails: what the AI handles, what it scopes itself to, and when it hands off to a person.",
+    },
+    {
+      num: "03",
+      icon: <Map className="h-5 w-5 md:h-7 md:w-7" />,
+      title: "Map 5 Intent Scenarios",
+      desc: "Define what the segment says, the navigation path the AI takes, and the fallback chain for each: confidence threshold → relevant search or page → scope signal → human handoff.",
+    },
+    {
+      num: "04",
+      icon: <TrendingUp className="h-5 w-5 md:h-7 md:w-7" />,
+      title: "Measure & Expand",
+      desc: "Track containment rate, enrollment intent lift, and agent deflection — plus fallback usage and handoff quality. Use results to tighten scenarios and justify expanding to the next segment.",
+    },
   ];
   return (
     <SlideShell eyebrow="Defining the MVP">
@@ -363,7 +383,7 @@ function MvpSlide(_: SlideProps) {
         How we scope the <span className="text-primary">minimum viable navigator.</span>
       </h2>
       <p className="mt-3 md:mt-8 text-sm md:text-2xl text-muted-foreground">
-        A focused, data-driven approach to launching with confidence.
+        A focused, data-driven approach — with graceful degradation built into every scenario from day one.
       </p>
       <div className="mt-4 md:mt-12 grid gap-2 md:gap-5 md:grid-cols-2 max-w-5xl">
         {steps.map((s) => (
