@@ -696,6 +696,105 @@ export function BottomVoiceBar() {
     }
   }, [dispatch]);
 
+  // Reconnect the WebSocket while a live session is active. Keeps the mic
+  // pipeline running; the open socket is replaced and setup is resent.
+  const reconnectLive = useCallback(async () => {
+    if (userStoppedRef.current) return;
+    if (reconnectingRef.current) return;
+    reconnectingRef.current = true;
+    reconnectAttemptsRef.current += 1;
+    const attempt = reconnectAttemptsRef.current;
+    setStatus("connecting");
+    setCaption("Reconnecting…");
+    dispatch({ type: "SET_VOICE_STATE", voiceState: "thinking" });
+    try {
+      const res = await fetch("/api/voice-session", { method: "POST" });
+      if (!res.ok) throw new Error("session failed");
+      const { websocketUrl } = (await res.json()) as { websocketUrl: string };
+      if (userStoppedRef.current) return;
+      const ws = new WebSocket(websocketUrl);
+      wsRef.current = ws;
+      attachWsHandlers(ws);
+      ws.onopen = () => {
+        try { ws.send(JSON.stringify({ setup: {} })); } catch { /* noop */ }
+      };
+      ws.onerror = () => { /* handled by onclose */ };
+      ws.onclose = () => {
+        wsRef.current = null;
+        prewarmReadyRef.current = false;
+        reconnectingRef.current = false;
+        if (userStoppedRef.current) return;
+        if (streamRef.current && reconnectAttemptsRef.current < 5) {
+          setTimeout(() => { void reconnectLive(); }, 1500);
+        } else if (streamRef.current) {
+          // Give up — drop to idle.
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          stop();
+          setErrorMsg("Connection lost. Tap Start to try again.");
+          setStatus("error");
+        }
+      };
+    } catch {
+      reconnectingRef.current = false;
+      if (!userStoppedRef.current && streamRef.current && attempt < 5) {
+        setTimeout(() => { void reconnectLive(); }, 1500);
+      } else if (streamRef.current) {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        stop();
+        setErrorMsg("Connection lost. Tap Start to try again.");
+        setStatus("error");
+      }
+    }
+  }, [attachWsHandlers, dispatch, stop]);
+
+  // Tear down and rebuild just the mic/audio-input pipeline without touching
+  // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
+  const rebuildMicPipeline = useCallback(async () => {
+    if (!streamRef.current && !micCtxRef.current) return;
+    try { processorRef.current?.disconnect(); } catch { /* noop */ }
+    try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    await micCtxRef.current?.close().catch(() => {});
+    micCtxRef.current = null;
+    processorRef.current = null;
+    sourceNodeRef.current = null;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+      });
+      streamRef.current = stream;
+      const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const micCtx = new AudioCtor({ sampleRate: 16000 });
+      micCtxRef.current = micCtx;
+      const source = micCtx.createMediaStreamSource(stream);
+      sourceNodeRef.current = source;
+      const processor = micCtx.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+      processor.onaudioprocess = (e) => {
+        lastAudioProcessAtRef.current = Date.now();
+        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
+        if (mutedRef.current) return;
+        const sock = wsRef.current;
+        if (!sock || sock.readyState !== WebSocket.OPEN) return;
+        const input = e.inputBuffer.getChannelData(0);
+        const pcm = floatTo16BitPCM(input);
+        sock.send(
+          JSON.stringify({
+            realtimeInput: {
+              audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
+            },
+          }),
+        );
+      };
+      source.connect(processor);
+      processor.connect(micCtx.destination);
+      lastAudioProcessAtRef.current = Date.now();
+    } catch {
+      /* mic rebuild failed — leave session; user can press Stop */
+    }
+  }, []);
+
   const start = useCallback(async () => {
     if (startingRef.current || status === "connecting" || status === "live") return;
     startingRef.current = true;
