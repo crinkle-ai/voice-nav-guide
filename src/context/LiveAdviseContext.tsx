@@ -307,6 +307,13 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
         timersRef.current.push(t);
       });
 
+    // Prefetch the first few agent voice lines in parallel so playback starts
+    // immediately and there's no fetch gap between lines.
+    const agentLines = script.filter((s): s is Extract<ScriptStep, { kind: "agentSay" }> => s.kind === "agentSay");
+    agentLines.slice(0, 3).forEach((s) => prefetchSarahVoice(s.text));
+
+
+
     for (const step of script) {
       if (step.delay && step.delay > 0) await sleep(step.delay);
       if (isCancelled()) return;
