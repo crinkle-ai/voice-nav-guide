@@ -188,6 +188,23 @@ async function playSarahVoice(text: string) {
     .then(() => playSarahVoiceNow(text, runId));
 }
 
+// Cache of in-flight / completed TTS fetches keyed by text so we can prefetch
+// the next line while the current one is still playing.
+const sarahBlobCache = new Map<string, Promise<Blob | null>>();
+
+function prefetchSarahVoice(text: string) {
+  if (typeof window === "undefined") return;
+  if (sarahBlobCache.has(text)) return;
+  const p = fetch("/api/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, voice: "Kore" }),
+  })
+    .then(async (res) => (res.ok ? await res.blob() : null))
+    .catch(() => null);
+  sarahBlobCache.set(text, p);
+}
+
 async function playSarahVoiceNow(text: string, runId: number) {
   if (runId !== sarahVoiceRunId) return;
 
@@ -195,15 +212,14 @@ async function playSarahVoiceNow(text: string, runId: number) {
   currentSarahRequest = controller;
 
   try {
-    const res = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voice: "Kore" }),
-      signal: controller.signal,
-    });
-    if (!res.ok || controller.signal.aborted || runId !== sarahVoiceRunId) return;
-    const blob = await res.blob();
-    if (controller.signal.aborted || runId !== sarahVoiceRunId) return;
+    let blobPromise = sarahBlobCache.get(text);
+    if (!blobPromise) {
+      prefetchSarahVoice(text);
+      blobPromise = sarahBlobCache.get(text)!;
+    }
+    const blob = await blobPromise;
+    sarahBlobCache.delete(text);
+    if (!blob || controller.signal.aborted || runId !== sarahVoiceRunId) return;
     const url = URL.createObjectURL(blob);
     if (runId !== sarahVoiceRunId) {
       URL.revokeObjectURL(url);
@@ -238,6 +254,7 @@ async function playSarahVoiceNow(text: string, runId: number) {
     if (currentSarahRequest === controller) currentSarahRequest = null;
   }
 }
+
 
 
 export function LiveAdviseProvider({ children }: { children: ReactNode }) {
