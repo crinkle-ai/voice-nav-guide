@@ -102,57 +102,82 @@ function buildScript(pathname: string): ScriptStep[] {
   const onCompare = pathname.startsWith("/compare-plans");
   const onDoctors = pathname.startsWith("/find-doctors");
   const opener = onCompare
-    ? "Hi! I'm Sarah — I can see your screen. Looks like you're comparing Medicare Advantage plans. Want me to walk through the top two with you?"
+    ? "Hi! I'm Sarah — I can see your screen. Looks like you're comparing Medicare Advantage plans. Mind if I drive for a moment?"
     : onDoctors
-      ? "Hi! I'm Sarah — I can see you're checking which doctors are in-network. Happy to help you confirm coverage."
-      : "Hi! I'm Sarah — thanks for reaching out. I can see your screen. Mind if I walk you through your options?";
+      ? "Hi! I'm Sarah — I can see you're checking which doctors are in-network. Let me pull up plan comparisons that include your saved doctors."
+      : "Hi! I'm Sarah — thanks for reaching out. Mind if I take you to the plan comparison screen so I can show you a couple of strong options?";
 
-  return [
+  const steps: ScriptStep[] = [
     { at: 0, kind: "speaking", on: true },
     { at: 0, kind: "transcript", speaker: "agent", text: opener },
     { at: 5500, kind: "speaking", on: false },
-    { at: 6000, kind: "highlight", selector: onCompare ? "#plan-results" : "#hero", label: "Here's what I see" },
-    { at: 7500, kind: "speaking", on: true },
+  ];
+
+  // Offset for the comparison flow — pushed later if we need to navigate first.
+  let t = 6000;
+
+  if (!onCompare) {
+    steps.push(
+      { at: t, kind: "guidance", text: "Sarah is taking you to plan comparison" },
+      { at: t + 200, kind: "navigate", to: "/compare-plans" },
+      { at: t + 1400, kind: "speaking", on: true },
+      {
+        at: t + 1400,
+        kind: "transcript",
+        speaker: "agent",
+        text: "Okay, I've got us on the comparison screen. Let me scroll down to the results.",
+      },
+      { at: t + 5500, kind: "speaking", on: false },
+    );
+    t += 6000;
+  }
+
+  steps.push(
+    { at: t, kind: "guidance", text: "Sarah is scrolling to the plan results" },
+    { at: t + 100, kind: "scrollTo", selector: "#plan-results" },
+    { at: t + 800, kind: "highlight", selector: "#plan-results", label: "Here's what I see" },
+    { at: t + 1500, kind: "speaking", on: true },
     {
-      at: 7500,
+      at: t + 1500,
       kind: "transcript",
       speaker: "agent",
-      text: onCompare
-        ? "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together."
-        : "Let me share a quick side-by-side of two popular Medicare Advantage plans in your area.",
+      text: "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together.",
     },
-    { at: 12000, kind: "speaking", on: false },
-    { at: 12500, kind: "pushComparison" },
-    { at: 13500, kind: "comparisonHighlight", row: "premium" },
-    { at: 14000, kind: "speaking", on: true },
+    { at: t + 6000, kind: "speaking", on: false },
+    { at: t + 6300, kind: "guidance", text: "Sarah pulled up a side-by-side comparison" },
+    { at: t + 6500, kind: "pushComparison" },
+    { at: t + 7500, kind: "comparisonHighlight", row: "premium" },
+    { at: t + 8000, kind: "speaking", on: true },
     {
-      at: 14000,
+      at: t + 8000,
       kind: "transcript",
       speaker: "agent",
       text: "The Aetna PPO is $0/month with a higher out-of-pocket max. The Humana HMO is $19/month but caps your annual costs lower.",
     },
-    { at: 20000, kind: "comparisonHighlight", row: "moop" },
-    { at: 20500, kind: "speaking", on: false },
-    { at: 22000, kind: "comparisonHighlight", row: "dental" },
-    { at: 22500, kind: "speaking", on: true },
+    { at: t + 14000, kind: "comparisonHighlight", row: "moop" },
+    { at: t + 14500, kind: "speaking", on: false },
+    { at: t + 16000, kind: "comparisonHighlight", row: "dental" },
+    { at: t + 16500, kind: "speaking", on: true },
     {
-      at: 22500,
+      at: t + 16500,
       kind: "transcript",
       speaker: "agent",
       text: "Both include dental and vision — that's usually the deciding factor for first-timers. Any specific dental work coming up?",
     },
-    { at: 28000, kind: "speaking", on: false },
-    { at: 30000, kind: "highlight", selector: null, label: null },
-    { at: 30000, kind: "comparisonHighlight", row: null },
-    { at: 30500, kind: "speaking", on: true },
+    { at: t + 22000, kind: "speaking", on: false },
+    { at: t + 24000, kind: "highlight", selector: null, label: null },
+    { at: t + 24000, kind: "comparisonHighlight", row: null },
+    { at: t + 24500, kind: "speaking", on: true },
     {
-      at: 30500,
+      at: t + 24500,
       kind: "transcript",
       speaker: "agent",
       text: "I'm here whenever you're ready — no pressure. Take your time, and ping me if you want to enroll together.",
     },
-    { at: 36000, kind: "speaking", on: false },
-  ];
+    { at: t + 30000, kind: "speaking", on: false },
+  );
+
+  return steps;
 }
 
 export function LiveAdviseProvider({ children }: { children: ReactNode }) {
@@ -163,6 +188,11 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
   const [highlightLabel, setHighlightLabel] = useState<string | null>(null);
   const [pushedComparison, setPushedComparison] = useState<PushedPlan[] | null>(null);
   const [comparisonHighlightRow, setComparisonHighlightRow] = useState<string | null>(null);
+  const [guidanceToast, setGuidanceToast] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+  const navRef = useRef(navigate);
+  useEffect(() => { navRef.current = navigate; }, [navigate]);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const pathRef = useRef(pathname);
@@ -185,6 +215,7 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
     setHighlightLabel(null);
     setPushedComparison(null);
     setComparisonHighlightRow(null);
+    setGuidanceToast(null);
   }, []);
 
   const runScript = useCallback((script: ScriptStep[]) => {
