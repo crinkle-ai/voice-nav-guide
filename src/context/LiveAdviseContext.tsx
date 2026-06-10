@@ -278,53 +278,66 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
     setGuidanceToast(null);
   }, []);
 
-  const runScript = useCallback((script: ScriptStep[]) => {
+  const runScript = useCallback(async (script: ScriptStep[]) => {
+    const runId = sarahVoiceRunId;
+    const isCancelled = () => runId !== sarahVoiceRunId;
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const t = setTimeout(resolve, ms);
+        timersRef.current.push(t);
+      });
+
     for (const step of script) {
-      const t = setTimeout(() => {
-        switch (step.kind) {
-          case "transcript":
-            setTranscript((prev) => [
-              ...prev,
-              { id: `t-${idCounter.current++}`, speaker: step.speaker, text: step.text, at: Date.now() },
-            ]);
-            if (step.speaker === "agent") {
-              void playSarahVoice(step.text);
-            }
-            break;
-          case "highlight":
-            setHighlightSelector(step.selector);
-            setHighlightLabel(step.label ?? null);
-            break;
-          case "speaking":
-            setSpeaking(step.on);
-            break;
-          case "pushComparison":
-            setPushedComparison(DEMO_PLANS);
-            break;
-          case "comparisonHighlight":
-            setComparisonHighlightRow(step.row);
-            break;
-          case "navigate":
-            try { navRef.current({ to: step.to as "/" }); } catch { /* noop */ }
-            break;
-          case "scrollTo": {
-            const el = document.querySelector(step.selector) as HTMLElement | null;
-            el?.scrollIntoView({ behavior: "smooth", block: "center" });
-            break;
-          }
-          case "guidance": {
-            setGuidanceToast(step.text);
-            const clearT = setTimeout(() => {
-              setGuidanceToast((cur) => (cur === step.text ? null : cur));
-            }, 2200);
-            timersRef.current.push(clearT);
-            break;
-          }
+      if (step.delay && step.delay > 0) await sleep(step.delay);
+      if (isCancelled()) return;
+
+      switch (step.kind) {
+        case "agentSay": {
+          // Wait for any in-flight voice to finish before starting the next line
+          try { await sarahVoiceQueue; } catch { /* noop */ }
+          if (isCancelled()) return;
+          setTranscript((prev) => [
+            ...prev,
+            { id: `t-${idCounter.current++}`, speaker: "agent", text: step.text, at: Date.now() },
+          ]);
+          setSpeaking(true);
+          void playSarahVoice(step.text);
+          // Anchor subsequent steps to the END of this voice line
+          try { await sarahVoiceQueue; } catch { /* noop */ }
+          if (isCancelled()) return;
+          setSpeaking(false);
+          break;
         }
-      }, step.at);
-      timersRef.current.push(t);
+        case "highlight":
+          setHighlightSelector(step.selector);
+          setHighlightLabel(step.label ?? null);
+          break;
+        case "pushComparison":
+          setPushedComparison(DEMO_PLANS);
+          break;
+        case "comparisonHighlight":
+          setComparisonHighlightRow(step.row);
+          break;
+        case "navigate":
+          try { navRef.current({ to: step.to as "/" }); } catch { /* noop */ }
+          break;
+        case "scrollTo": {
+          const el = document.querySelector(step.selector) as HTMLElement | null;
+          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          break;
+        }
+        case "guidance": {
+          setGuidanceToast(step.text);
+          const clearT = setTimeout(() => {
+            setGuidanceToast((cur) => (cur === step.text ? null : cur));
+          }, 2200);
+          timersRef.current.push(clearT);
+          break;
+        }
+      }
     }
   }, []);
+
 
   const startCall = useCallback(() => {
     clearTimers();
