@@ -42,50 +42,6 @@ function matchesMyPlansIntent(text: string): boolean {
   return MY_PLANS_TRIGGERS.some((re) => re.test(text));
 }
 
-type LearnTopic = "part-a" | "part-b" | "part-c" | "part-d" | "medigap";
-
-const LEARN_TOPIC_TRIGGERS: Array<{ topic: LearnTopic; re: RegExp }> = [
-  { topic: "part-a", re: /\bpart\s*a\b/i },
-  { topic: "part-b", re: /\bpart\s*b\b/i },
-  { topic: "part-c", re: /\b(part\s*c|medicare\s+advantage)\b/i },
-  { topic: "part-d", re: /\b(part\s*d|prescription\s+drug(\s+coverage)?)\b/i },
-  { topic: "medigap", re: /\b(medigap|(medicare\s+)?supplement(\s+plan)?)\b/i },
-];
-
-function matchesLearnTopic(text: string): LearnTopic | null {
-  for (const { topic, re } of LEARN_TOPIC_TRIGGERS) {
-    if (re.test(text)) return topic;
-  }
-  return null;
-}
-
-type GlossaryTerm =
-  | "premium"
-  | "deductible"
-  | "copay"
-  | "coinsurance"
-  | "out-of-pocket-max"
-  | "network"
-  | "formulary";
-
-const GLOSSARY_TRIGGERS: Array<{ term: GlossaryTerm; re: RegExp }> = [
-  { term: "deductible", re: /\bdeductibles?\b/i },
-  { term: "premium", re: /\b(monthly\s+)?premiums?\b/i },
-  { term: "copay", re: /\bco-?pays?(ment)?\b/i },
-  { term: "coinsurance", re: /\bco-?insurance\b/i },
-  { term: "out-of-pocket-max", re: /\bout[\s-]of[\s-]pocket(\s+(max(imum)?|limit))?\b/i },
-  { term: "formulary", re: /\bformular(y|ies)\b/i },
-  { term: "network", re: /\b(in-?network|out-?of-?network|provider\s+network)\b/i },
-];
-
-function matchesGlossaryTerm(text: string): GlossaryTerm | null {
-  // Bias toward "what is/does X mean" framing but also fire on any mention.
-  for (const { term, re } of GLOSSARY_TRIGGERS) {
-    if (re.test(text)) return term;
-  }
-  return null;
-}
-
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
   deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
@@ -654,7 +610,6 @@ export function BottomVoiceBar() {
             }
           });
         }
-        void curPath;
       }
       if (msg.serverContent?.outputTranscription?.text) {
         const outputText = msg.serverContent.outputTranscription.text;
