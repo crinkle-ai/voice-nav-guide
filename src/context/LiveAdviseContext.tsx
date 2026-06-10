@@ -111,33 +111,36 @@ function buildScript(pathname: string): ScriptStep[] {
 
   const steps: ScriptStep[] = [
     { kind: "agentSay", text: permissionAsk },
-    { delay: 200, kind: "guidance", text: "You allowed Sarah to view your screen" },
-    { delay: 800, kind: "agentSay", text: followUp },
+    { delay: 100, kind: "guidance", text: "You allowed Sarah to view your screen" },
+    { delay: 200, kind: "agentSay", text: followUp },
   ];
 
   if (!onCompare) {
     steps.push(
-      { delay: 400, kind: "guidance", text: "Sarah is taking you to plan comparison" },
-      { delay: 200, kind: "navigate", to: "/compare-plans" },
-      { delay: 1200, kind: "agentSay", text: "Okay, I've got us on the comparison screen. Let me scroll down to the results." },
+      { delay: 150, kind: "guidance", text: "Sarah is taking you to plan comparison" },
+      { delay: 100, kind: "navigate", to: "/compare-plans" },
+      { delay: 400, kind: "agentSay", text: "Okay, I've got us on the comparison screen. Let me scroll down to the results." },
     );
   }
 
   steps.push(
-    { delay: 500, kind: "guidance", text: "Sarah is scrolling to the plan results" },
+    { delay: 150, kind: "guidance", text: "Sarah is scrolling to the plan results" },
     { delay: 100, kind: "scrollTo", selector: "#plan-results" },
-    { delay: 700, kind: "highlight", selector: "#plan-results", label: "Here's what I see" },
-    { delay: 700, kind: "agentSay", text: "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together." },
-    { delay: 300, kind: "guidance", text: "Sarah pulled up a side-by-side comparison" },
-    { delay: 200, kind: "pushComparison" },
-    { delay: 1000, kind: "comparisonHighlight", row: "premium" },
-    { delay: 500, kind: "agentSay", text: "The Aetna PPO is $0/month with a higher out-of-pocket max. The Humana HMO is $19/month but caps your annual costs lower." },
-    { delay: 400, kind: "comparisonHighlight", row: "moop" },
-    { delay: 1400, kind: "comparisonHighlight", row: "dental" },
-    { delay: 600, kind: "agentSay", text: "Both include dental and vision — that's usually the deciding factor for first-timers. Any specific dental work coming up?" },
-    { delay: 600, kind: "highlight", selector: null, label: null },
+    { delay: 250, kind: "highlight", selector: "#plan-results", label: "Here's what I see" },
+    { delay: 150, kind: "agentSay", text: "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together." },
+    { delay: 150, kind: "guidance", text: "Sarah pulled up a side-by-side comparison" },
+    { delay: 150, kind: "pushComparison" },
+    { delay: 400, kind: "comparisonHighlight", row: "premium" },
+    { delay: 150, kind: "agentSay", text: "The Aetna PPO is $0/month with a higher out-of-pocket max. The Humana HMO is $19/month but caps your annual costs lower." },
+    { delay: 300, kind: "comparisonHighlight", row: "moop" },
+    { delay: 900, kind: "comparisonHighlight", row: "dental" },
+    { delay: 200, kind: "agentSay", text: "Both include dental and vision — that's usually the deciding factor for first-timers. Any specific dental work coming up?" },
+    { delay: 300, kind: "highlight", selector: null, label: null },
     { delay: 0, kind: "comparisonHighlight", row: null },
   );
+
+  return steps;
+}
 
   return steps;
 }
