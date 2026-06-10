@@ -371,13 +371,42 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
     stopSarahVoice();
     resetState();
     setStatus("connecting");
-    const connectTimer = setTimeout(() => {
-      setStatus("connected");
-      const script = buildScript(pathRef.current);
-      runScript(script);
-    }, 1800);
-    timersRef.current.push(connectTimer);
+
+    // Build the script and start fetching all of Sarah's voice lines NOW,
+    // while the "connecting" spinner is visible. The first line's blob is
+    // typically the slowest, so we wait until it's ready (or 12s max) before
+    // flipping to "connected" — that way Sarah speaks almost immediately
+    // once the connecting UI disappears.
+    const script = buildScript(pathRef.current);
+    const firstLine = script.find(
+      (s): s is Extract<ScriptStep, { kind: "agentSay" }> => s.kind === "agentSay",
+    );
+    script.forEach((s) => {
+      if (s.kind === "agentSay") prefetchSarahVoice(s.text);
+    });
+
+    const minConnectMs = 1200;
+    const maxConnectMs = 12000;
+    const startedAt = Date.now();
+    const firstReady = firstLine
+      ? (sarahBlobCache.get(firstLine.text) ?? Promise.resolve(null))
+      : Promise.resolve(null);
+    const timeout = new Promise<null>((resolve) => {
+      const t = setTimeout(() => resolve(null), maxConnectMs);
+      timersRef.current.push(t);
+    });
+
+    Promise.race([firstReady, timeout]).then(() => {
+      const elapsed = Date.now() - startedAt;
+      const wait = Math.max(0, minConnectMs - elapsed);
+      const connectTimer = setTimeout(() => {
+        setStatus("connected");
+        runScript(script);
+      }, wait);
+      timersRef.current.push(connectTimer);
+    });
   }, [clearTimers, resetState, runScript]);
+
 
   const endCall = useCallback(() => {
     clearTimers();
