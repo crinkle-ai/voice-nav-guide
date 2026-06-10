@@ -1,87 +1,43 @@
-# Live Advise — Human Agent Co-Browse Demo
+## Two changes
 
-A faux-live demo where a consumer can "call" a licensed Crinkle agent who joins their session, sees their context, highlights things on the page, and pushes a side-by-side plan comparison. Frames the human handoff as the safety net to the Voice AI Navigator.
+### 1. Agent-drives-the-screen upgrade (Live Advise)
 
-## What gets built
+Make Sarah actually move the consumer's screen — navigate routes, scroll to sections, open the comparison drawer — with a small "Sarah is guiding your screen" toast each time so viewers understand what's happening.
 
-### 1. `LiveAdviseProvider` + global state
-New context (`src/context/LiveAdviseContext.tsx`) holding:
-- `status`: `idle | connecting | connected | ended`
-- `agent`: `{ name: "Sarah Chen", title: "Licensed Medicare Advisor", license: "NPN #19284756", state: "TX", avatar }`
-- `contextSummary`: derived from existing `AppContext` (current route, saved doctors, saved plans, ZIP, last AI intent)
-- `highlightSelector`: CSS selector the "agent" is currently spotlighting
-- `pushedComparison`: array of plan IDs to show side-by-side
-- Scripted timeline runner that advances the demo
+**`src/context/LiveAdviseContext.tsx`** — extend the timeline runner:
+- Add new `ScriptStep` kinds: `navigate` (route path), `scrollTo` (CSS selector), `guidance` (toast string).
+- Add `guidanceToast: string | null` to context state; auto-clear ~1.8s after set.
+- Call `useNavigate()` from `@tanstack/react-router` at the top of the provider; capture in a ref so the timeline can call it.
+- Implement `scrollTo` via `document.querySelector(sel)?.scrollIntoView({behavior:'smooth', block:'center'})`.
+- Rewrite `buildScript` so when call starts from `/` or `/learn`, the script:
+  1. Sarah opens with context line
+  2. `guidance: "Sarah is taking you to plan comparison"` + `navigate('/compare-plans')`
+  3. `scrollTo('#plan-results')` + `guidance: "Sarah is scrolling to the results"`
+  4. `highlight('#plan-results')` (existing)
+  5. `pushComparison` (existing) + `guidance: "Sarah pulled up a side-by-side"`
+  6. Continues with existing comparison-highlight beats
+- When call starts already on `/compare-plans`, skip the navigate step and go straight to scroll/highlight.
 
-### 2. `LiveAdvisePanel` (the call UI)
-Bottom-right docked panel (resizable / minimizable), sits above the existing voice bar:
-- **Agent video tile** — looping muted MP4 of a friendly agent (generated/stock); waveform when "speaking"
-- **Agent identity card** — name, headshot, license #, state, "Licensed in TX • Online now"
-- **Context summary** — "I can see you're on Compare Plans, viewing 3 Medicare Advantage options, saved Dr. Patel, ZIP 78701" (pulled live from AppContext)
-- **Live transcript** — scripted agent dialogue appearing line-by-line
-- **Action chips** — "End call", "Mute", "Stop sharing"
+**`src/components/GuidanceToast.tsx`** (new) — top-center pill, emerald, with cursor icon, reads `guidanceToast` from context, fades in/out. Mounted globally.
 
-### 3. `AgentHighlightOverlay`
-Renders a pulsing outlined box + tooltip over whatever element the agent is "pointing at" (driven by `highlightSelector`). Smooth scrolls into view. Used on /compare-plans to highlight specific plan cards.
+**`src/routes/__root.tsx`** — import and mount `<GuidanceToast />` next to the other Live Advise components.
 
-### 4. `PushedComparisonDrawer`
-When the agent "pushes" a comparison, a drawer slides up showing 2 plans side-by-side (premium, deductible, MOOP, networks, drug tiers, dental/vision). Reuses existing plan data.
+### 2. Feasibility & vendors box on Human Safety Net slide
 
-### 5. Entry points
-- **Top nav** (`TopNav.tsx`) — new "Talk to an agent" button (phone + video icon), green accent, always visible
-- **Voice AI handoff** — `BottomVoiceBar` / `VoiceNavigator` gains a "Connect me to a licensed agent" intent that triggers Live Advise with the AI's current context passed in
-- **`/compare-plans` CTA** — sticky banner: "Review these plans with a licensed agent →"
-- **Deck slide** — new slide between Solution and MVP: **"The Human Safety Net: Live Advise Co-Browse"** explaining AI → human handoff with full context, why this is the differentiator vs. pure-AI competitors
+**`src/routes/deck.tsx`** — in `LiveAdviseSlide`, add a new box below the existing italic line:
 
-### 6. Scripted demo flow
-When started, runs ~45-second timeline:
-1. 0s — "Connecting you to a licensed Crinkle agent…" spinner
-2. 3s — Sarah's video tile fades in, "Hi! I'm Sarah, I can see your screen. Looks like you're comparing Medicare Advantage plans in 78701 — want me to walk through the top 2 with you?"
-3. 8s — Highlight overlay pulses around first plan card
-4. 14s — "This Aetna PPO has a $0 premium but a higher MOOP — here's how it compares to the Humana plan you saved…"
-5. 18s — Pushed comparison drawer slides up with both plans
-6. 28s — Highlight jumps to "Dental coverage" row in comparison
-7. 38s — "Any questions on coverage for Dr. Patel? I can confirm she's in-network." → highlights saved doctor pill
-8. Call stays open; user can end anytime
+> **Feasibility: this is a buyable, mature category.**
+> Co-browse has shipped in production for 15+ years. **Vendors:** Glance (used by Humana, Anthem, Allstate), Upscope, Surfly, plus built-in modules in Genesys, Cisco Webex, and Salesforce Service Cloud. HIPAA-compliant deployments exist today. **Our build is the AI→human context handoff — the co-browse pipe itself is commodity.**
 
-### 7. Deck slide content
-Title: **The Human Safety Net** • Subtitle: *AI handles 80%. Live Advise handles the moments that matter.*
-Three columns:
-- **Seamless handoff** — AI passes full context (page, intent, saved items) so the agent doesn't ask "what's your ZIP?" again
-- **Co-browse, not screen share** — agent highlights, scrolls, and pushes comparisons inside the consumer's existing browser session — no Zoom, no install
-- **Trust + compliance** — licensed agent identity surfaced, NPN visible, call recorded for QA
+Style: bordered card with a `ShieldCheck` or `Database` icon, muted background, sits below the three pillar cards but above the "Try it" italic line. Compact — single paragraph, ~3 lines.
 
-CTA at bottom: "Try Live Advise →" links to home with `?liveadvise=1` to auto-trigger the demo.
+## Out of scope
+- Real WebRTC / `getDisplayMedia()` — explicitly not needed; the demo stays fully scripted.
+- Per-action consent chips — opening line covers the framing.
+- Recording/persistence of co-browse sessions.
 
-## Technical details
-
-- **No real WebRTC.** Agent "video" is a looping MP4 asset (generated via imagegen or stock). Waveform is CSS animation tied to a scripted "speaking" boolean.
-- **Highlight overlay** uses `getBoundingClientRect()` on the target selector, renders a fixed-position div with `outline` + `box-shadow` pulse animation, recalculates on scroll/resize.
-- **Context summary** reads from existing `AppContext` (no new persistence). Updates live if user navigates during the call.
-- **Z-index stack:** highlight overlay (40) < pushed drawer (45) < Live Advise panel (50) < existing voice bar (50, repositioned left when call active).
-- **Bottom padding** already handles voice bar; panel docks above it without further changes.
-- **Mobile:** panel collapses to a compact pill ("📞 On call with Sarah") that expands on tap.
-- **Auto-trigger:** `?liveadvise=1` query param on any route starts the demo flow immediately — used by the deck slide CTA.
-
-## Files
-
-New:
-- `src/context/LiveAdviseContext.tsx` — provider, state, scripted timeline
-- `src/components/LiveAdvisePanel.tsx` — docked call UI
-- `src/components/AgentHighlightOverlay.tsx` — page highlight box
-- `src/components/PushedComparisonDrawer.tsx` — side-by-side plans
-- `src/components/TalkToAgentButton.tsx` — reusable entry button
-- `src/assets/agent-sarah.mp4.asset.json` — looping agent video (generated)
-
-Edited:
-- `src/routes/__root.tsx` — wrap in `LiveAdviseProvider`, mount panel + overlay
-- `src/components/TopNav.tsx` — add "Talk to an agent" button
-- `src/routes/compare-plans.tsx` — add sticky "Review with agent" CTA
-- `src/components/BottomVoiceBar.tsx` (or `VoiceNavigator.tsx`) — add "Connect to agent" intent that calls `startLiveAdvise()` with current AI context
-- `src/routes/deck.tsx` — insert new "Human Safety Net" slide; bump total slide count
-
-## Out of scope (can add later)
-- Real WebRTC / Twilio / Daily integration
-- Actual scheduling / agent routing
-- Recording / transcript persistence
-- Two-way video (consumer camera)
+## Technical notes
+- Route navigation from inside `LiveAdviseProvider`: `const navigate = useNavigate(); const navRef = useRef(navigate); useEffect(() => { navRef.current = navigate; }, [navigate]);` then call `navRef.current({ to: path })` from the timer callback.
+- `scrollTo` waits ~200ms after `navigate` so the target DOM exists before querying.
+- `guidance` events set `guidanceToast`, and each runner tick that sets it also queues a clear-timer at +1800ms.
+- All existing functionality (highlight overlay, pushed comparison, transcript, mute/end) untouched.

@@ -18,6 +18,7 @@ import { BottomVoiceBar } from "@/components/BottomVoiceBar";
 import { LiveAdvisePanel } from "@/components/LiveAdvisePanel";
 import { AgentHighlightOverlay } from "@/components/AgentHighlightOverlay";
 import { PushedComparisonDrawer } from "@/components/PushedComparisonDrawer";
+import { GuidanceToast } from "@/components/GuidanceToast";
 
 
 function NotFoundComponent() {
@@ -161,6 +162,7 @@ function RootComponent() {
             <AgentHighlightOverlay />
             <PushedComparisonDrawer />
             <LiveAdvisePanel />
+            <GuidanceToast />
           </div>
         </LiveAdviseProvider>
       </AppProvider>

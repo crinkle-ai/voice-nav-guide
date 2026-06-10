@@ -456,7 +456,20 @@ function LiveAdviseSlide(_: SlideProps) {
           </div>
         ))}
       </div>
-      <p className="mt-4 md:mt-8 max-w-3xl text-xs md:text-base italic text-muted-foreground border-l-4 border-primary pl-3 md:pl-4">
+      <div className="mt-4 md:mt-8 max-w-5xl rounded-xl border-2 border-primary/30 bg-primary/5 p-3 md:p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <ShieldCheck className="h-4 w-4 md:h-5 md:w-5" />
+          </div>
+          <div className="text-xs md:text-base leading-snug text-foreground">
+            <span className="font-bold">Feasibility: a buyable, mature category.</span>{" "}
+            <span className="text-muted-foreground">
+              Co-browse has shipped in production for 15+ years. Vendors include <span className="font-semibold text-foreground">Glance</span> (Humana, Anthem, Allstate), <span className="font-semibold text-foreground">Upscope</span>, <span className="font-semibold text-foreground">Surfly</span>, plus built-in modules in <span className="font-semibold text-foreground">Genesys</span>, <span className="font-semibold text-foreground">Cisco Webex</span>, and <span className="font-semibold text-foreground">Salesforce Service Cloud</span>. HIPAA-compliant deployments exist today. <span className="font-semibold text-foreground">Our build is the AI→human context handoff — the co-browse pipe itself is commodity.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p className="mt-3 md:mt-6 max-w-3xl text-xs md:text-base italic text-muted-foreground border-l-4 border-primary pl-3 md:pl-4">
         Try it: click "Talk to an agent" anywhere in the demo to see Sarah co-browse the experience with you.
       </p>
     </SlideShell>
