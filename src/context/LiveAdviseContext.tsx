@@ -227,6 +227,9 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
               ...prev,
               { id: `t-${idCounter.current++}`, speaker: step.speaker, text: step.text, at: Date.now() },
             ]);
+            if (step.speaker === "agent") {
+              void playSarahVoice(step.text);
+            }
             break;
           case "highlight":
             setHighlightSelector(step.selector);
