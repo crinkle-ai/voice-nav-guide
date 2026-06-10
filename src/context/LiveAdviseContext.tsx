@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 
 export type LiveAdviseStatus = "idle" | "connecting" | "connected" | "ended";
 
@@ -32,6 +32,7 @@ interface LiveAdviseState {
   highlightLabel: string | null;
   pushedComparison: PushedPlan[] | null;
   comparisonHighlightRow: string | null;
+  guidanceToast: string | null;
   agent: {
     name: string;
     title: string;
@@ -92,7 +93,10 @@ type ScriptStep =
   | { at: number; kind: "highlight"; selector: string | null; label?: string | null }
   | { at: number; kind: "speaking"; on: boolean }
   | { at: number; kind: "pushComparison" }
-  | { at: number; kind: "comparisonHighlight"; row: string | null };
+  | { at: number; kind: "comparisonHighlight"; row: string | null }
+  | { at: number; kind: "navigate"; to: string }
+  | { at: number; kind: "scrollTo"; selector: string }
+  | { at: number; kind: "guidance"; text: string };
 
 function buildScript(pathname: string): ScriptStep[] {
   const onCompare = pathname.startsWith("/compare-plans");
