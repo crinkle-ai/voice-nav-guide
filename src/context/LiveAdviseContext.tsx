@@ -101,20 +101,26 @@ type ScriptStep =
 function buildScript(pathname: string): ScriptStep[] {
   const onCompare = pathname.startsWith("/compare-plans");
   const onDoctors = pathname.startsWith("/find-doctors");
-  const opener = onCompare
-    ? "Hi! I'm Sarah — I can see your screen. Looks like you're comparing Medicare Advantage plans. Mind if I drive for a moment?"
+  const permissionAsk =
+    "Hi! I'm Sarah. Before we get started, would it be okay if I viewed your screen so I can walk you through this together? You'll see a prompt from your browser — just hit Allow.";
+  const followUp = onCompare
+    ? "Perfect, thanks for sharing. Looks like you're comparing Medicare Advantage plans. Mind if I drive for a moment?"
     : onDoctors
-      ? "Hi! I'm Sarah — I can see you're checking which doctors are in-network. Let me pull up plan comparisons that include your saved doctors."
-      : "Hi! I'm Sarah — thanks for reaching out. Mind if I take you to the plan comparison screen so I can show you a couple of strong options?";
+      ? "Perfect, thanks for sharing. I can see you're checking which doctors are in-network. Let me pull up plan comparisons that include your saved doctors."
+      : "Perfect, thanks for sharing. Mind if I take you to the plan comparison screen so I can show you a couple of strong options?";
 
   const steps: ScriptStep[] = [
     { at: 0, kind: "speaking", on: true },
-    { at: 0, kind: "transcript", speaker: "agent", text: opener },
-    { at: 5500, kind: "speaking", on: false },
+    { at: 0, kind: "transcript", speaker: "agent", text: permissionAsk },
+    { at: 7000, kind: "speaking", on: false },
+    { at: 7200, kind: "guidance", text: "You allowed Sarah to view your screen" },
+    { at: 8000, kind: "speaking", on: true },
+    { at: 8000, kind: "transcript", speaker: "agent", text: followUp },
+    { at: 13500, kind: "speaking", on: false },
   ];
 
   // Offset for the comparison flow — pushed later if we need to navigate first.
-  let t = 6000;
+  let t = 14000;
 
   if (!onCompare) {
     steps.push(
