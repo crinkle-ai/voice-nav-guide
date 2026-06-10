@@ -1,51 +1,87 @@
+# Live Advise — Human Agent Co-Browse Demo
 
-## Diagnosis
+A faux-live demo where a consumer can "call" a licensed Crinkle agent who joins their session, sees their context, highlights things on the page, and pushes a side-by-side plan comparison. Frames the human handoff as the safety net to the Voice AI Navigator.
 
-Both bugs share one root cause: the Gemini Live model sometimes **answers in voice without emitting the corresponding tool call**, so the app never navigates or opens the callback form. Looking at the wiring in `src/components/BottomVoiceBar.tsx`:
+## What gets built
 
-- The `handleToolCall` switch for `navigate_to`, `highlight_section`, `explain_term`, and `request_agent_callback` is correct — when the model emits the tool, the app does the right thing.
-- There is already a **scripted regex fallback** on the user's transcribed input for two intents: `matchesAgentIntent` (opens the callback form) and `matchesMyPlansIntent` (routes to `/my-plans`).
-- There is **no fallback** for Learn topics (Part A/B/C/D, Medigap) or glossary terms (deductible, premium, etc.). When the model decides to just explain "Part B covers doctor visits…" without calling `highlight_section`, the user stays put.
-- The agent fallback regexes do trigger on "talk to an agent" but **fail on modifiers like "talk to a telesales agent"** — the regex `(real\s+)?(person|human|agent|…)` only allows the literal modifier "real", so "telesales agent" / "licensed agent" / "Medicare agent" slip through and nothing opens.
+### 1. `LiveAdviseProvider` + global state
+New context (`src/context/LiveAdviseContext.tsx`) holding:
+- `status`: `idle | connecting | connected | ended`
+- `agent`: `{ name: "Sarah Chen", title: "Licensed Medicare Advisor", license: "NPN #19284756", state: "TX", avatar }`
+- `contextSummary`: derived from existing `AppContext` (current route, saved doctors, saved plans, ZIP, last AI intent)
+- `highlightSelector`: CSS selector the "agent" is currently spotlighting
+- `pushedComparison`: array of plan IDs to show side-by-side
+- Scripted timeline runner that advances the demo
 
-The system prompt is already strong about tool-first behavior; tightening it further is high-effort and low-yield (Gemini Live tool calling has known flakiness). The right fix is to make the client guarantee the navigation behavior whenever the user's transcript clearly signals intent.
+### 2. `LiveAdvisePanel` (the call UI)
+Bottom-right docked panel (resizable / minimizable), sits above the existing voice bar:
+- **Agent video tile** — looping muted MP4 of a friendly agent (generated/stock); waveform when "speaking"
+- **Agent identity card** — name, headshot, license #, state, "Licensed in TX • Online now"
+- **Context summary** — "I can see you're on Compare Plans, viewing 3 Medicare Advantage options, saved Dr. Patel, ZIP 78701" (pulled live from AppContext)
+- **Live transcript** — scripted agent dialogue appearing line-by-line
+- **Action chips** — "End call", "Mute", "Stop sharing"
 
-## Plan
+### 3. `AgentHighlightOverlay`
+Renders a pulsing outlined box + tooltip over whatever element the agent is "pointing at" (driven by `highlightSelector`). Smooth scrolls into view. Used on /compare-plans to highlight specific plan cards.
 
-Edit `src/components/BottomVoiceBar.tsx` only — this is a UI/client behavior fix, no backend changes.
+### 4. `PushedComparisonDrawer`
+When the agent "pushes" a comparison, a drawer slides up showing 2 plans side-by-side (premium, deductible, MOOP, networks, drug tiers, dental/vision). Reuses existing plan data.
 
-### 1. Loosen the agent-callback regex
+### 5. Entry points
+- **Top nav** (`TopNav.tsx`) — new "Talk to an agent" button (phone + video icon), green accent, always visible
+- **Voice AI handoff** — `BottomVoiceBar` / `VoiceNavigator` gains a "Connect me to a licensed agent" intent that triggers Live Advise with the AI's current context passed in
+- **`/compare-plans` CTA** — sticky banner: "Review these plans with a licensed agent →"
+- **Deck slide** — new slide between Solution and MVP: **"The Human Safety Net: Live Advise Co-Browse"** explaining AI → human handoff with full context, why this is the differentiator vs. pure-AI competitors
 
-Replace the modifier capture group so any adjective(s) between "a/an" and `person|human|agent|representative|rep|someone|advisor|broker` are allowed (e.g. "telesales agent", "licensed agent", "Medicare agent", "real human"). Same change applied to all four agent triggers that currently use `(real\s+)?`.
+### 6. Scripted demo flow
+When started, runs ~45-second timeline:
+1. 0s — "Connecting you to a licensed Crinkle agent…" spinner
+2. 3s — Sarah's video tile fades in, "Hi! I'm Sarah, I can see your screen. Looks like you're comparing Medicare Advantage plans in 78701 — want me to walk through the top 2 with you?"
+3. 8s — Highlight overlay pulses around first plan card
+4. 14s — "This Aetna PPO has a $0 premium but a higher MOOP — here's how it compares to the Humana plan you saved…"
+5. 18s — Pushed comparison drawer slides up with both plans
+6. 28s — Highlight jumps to "Dental coverage" row in comparison
+7. 38s — "Any questions on coverage for Dr. Patel? I can confirm she's in-network." → highlights saved doctor pill
+8. Call stays open; user can end anytime
 
-### 2. Add a Learn-topic intent matcher
+### 7. Deck slide content
+Title: **The Human Safety Net** • Subtitle: *AI handles 80%. Live Advise handles the moments that matter.*
+Three columns:
+- **Seamless handoff** — AI passes full context (page, intent, saved items) so the agent doesn't ask "what's your ZIP?" again
+- **Co-browse, not screen share** — agent highlights, scrolls, and pushes comparisons inside the consumer's existing browser session — no Zoom, no install
+- **Trust + compliance** — licensed agent identity surfaced, NPN visible, call recorded for QA
 
-Add `matchesLearnTopic(text)` that returns `{ topic: "part-a" | "part-b" | "part-c" | "part-d" | "medigap" } | null` for phrases like:
-- "what is Part A", "tell me about Part B", "explain Part C", "Medicare Advantage"
-- "what's Part D", "prescription drug coverage"
-- "what is Medigap", "supplement plan"
+CTA at bottom: "Try Live Advise →" links to home with `?liveadvise=1` to auto-trigger the demo.
 
-### 3. Add a glossary-term intent matcher
+## Technical details
 
-Add `matchesGlossaryTerm(text)` that returns one of `premium | deductible | copay | coinsurance | out-of-pocket-max | network | formulary` for phrases like "what is a deductible", "what does formulary mean", "what's a copay", "explain coinsurance", "out of pocket maximum", "in-network".
+- **No real WebRTC.** Agent "video" is a looping MP4 asset (generated via imagegen or stock). Waveform is CSS animation tied to a scripted "speaking" boolean.
+- **Highlight overlay** uses `getBoundingClientRect()` on the target selector, renders a fixed-position div with `outline` + `box-shadow` pulse animation, recalculates on scroll/resize.
+- **Context summary** reads from existing `AppContext` (no new persistence). Updates live if user navigates during the call.
+- **Z-index stack:** highlight overlay (40) < pushed drawer (45) < Live Advise panel (50) < existing voice bar (50, repositioned left when call active).
+- **Bottom padding** already handles voice bar; panel docks above it without further changes.
+- **Mobile:** panel collapses to a compact pill ("📞 On call with Sarah") that expands on tap.
+- **Auto-trigger:** `?liveadvise=1` query param on any route starts the demo flow immediately — used by the deck slide CTA.
 
-### 4. Wire the new matchers into the existing transcript handler
+## Files
 
-In the `inputTranscription` block (around line 504-525), after the existing `matchesAgentIntent` / `matchesMyPlansIntent` checks, add:
+New:
+- `src/context/LiveAdviseContext.tsx` — provider, state, scripted timeline
+- `src/components/LiveAdvisePanel.tsx` — docked call UI
+- `src/components/AgentHighlightOverlay.tsx` — page highlight box
+- `src/components/PushedComparisonDrawer.tsx` — side-by-side plans
+- `src/components/TalkToAgentButton.tsx` — reusable entry button
+- `src/assets/agent-sarah.mp4.asset.json` — looping agent video (generated)
 
-- If `matchesLearnTopic` returns a topic and the user is not already on `/learn` highlighting that section: `navigate({ to: "/learn" })`, then `setTimeout(() => { highlightSection(topic); dispatch({ type: "SET_HIGHLIGHT", section: topic }); }, 400)`.
-- If `matchesGlossaryTerm` returns a term: same as above with `section = `glossary-${term}``.
-- Use a `lastFallbackRef` (per-turn) so we don't re-fire the same navigation while the user keeps talking in the same turn — reset it on `turnComplete`.
+Edited:
+- `src/routes/__root.tsx` — wrap in `LiveAdviseProvider`, mount panel + overlay
+- `src/components/TopNav.tsx` — add "Talk to an agent" button
+- `src/routes/compare-plans.tsx` — add sticky "Review with agent" CTA
+- `src/components/BottomVoiceBar.tsx` (or `VoiceNavigator.tsx`) — add "Connect to agent" intent that calls `startLiveAdvise()` with current AI context
+- `src/routes/deck.tsx` — insert new "Human Safety Net" slide; bump total slide count
 
-These run alongside any tool call the model does emit; the `handleToolCall` path is idempotent for navigation (same destination just re-navigates), and the scripted highlight uses the same `highlightSection` helper, so double-firing is harmless.
-
-### 5. (Optional, small) Tighten one prompt line
-
-In `src/routes/api/voice-session.ts` SYSTEM_PROMPT, add one sentence under "TOOL RULES" reinforcing that any answer about a Medicare Part, glossary term, or callback request **must** be preceded by the matching tool call — never explain first. Keep this small; the scripted fallback is the real fix.
-
-## Files touched
-
-- `src/components/BottomVoiceBar.tsx` — regex loosening, two new matchers, hook them into the transcript handler.
-- `src/routes/api/voice-session.ts` — one-sentence prompt nudge (optional).
-
-No schema, server-function, or routing changes.
+## Out of scope (can add later)
+- Real WebRTC / Twilio / Daily integration
+- Actual scheduling / agent routing
+- Recording / transcript persistence
+- Two-way video (consumer camera)
