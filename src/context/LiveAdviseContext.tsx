@@ -182,27 +182,71 @@ function buildScript(pathname: string): ScriptStep[] {
 
 // --- Sarah voice (Gemini TTS) ---
 let currentSarahAudio: HTMLAudioElement | null = null;
+let currentSarahAudioUrl: string | null = null;
+let currentSarahRequest: AbortController | null = null;
+let sarahVoiceRunId = 0;
+
+function stopSarahVoice() {
+  sarahVoiceRunId += 1;
+
+  if (currentSarahRequest) {
+    currentSarahRequest.abort();
+    currentSarahRequest = null;
+  }
+
+  if (currentSarahAudio) {
+    currentSarahAudio.pause();
+    currentSarahAudio.removeAttribute("src");
+    currentSarahAudio.load();
+    currentSarahAudio = null;
+  }
+
+  if (currentSarahAudioUrl) {
+    URL.revokeObjectURL(currentSarahAudioUrl);
+    currentSarahAudioUrl = null;
+  }
+}
+
 async function playSarahVoice(text: string) {
   if (typeof window === "undefined") return;
+
+  stopSarahVoice();
+  const runId = sarahVoiceRunId;
+  const controller = new AbortController();
+  currentSarahRequest = controller;
+
   try {
-    if (currentSarahAudio) {
-      currentSarahAudio.pause();
-      currentSarahAudio = null;
-    }
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voice: "Kore" }),
+      signal: controller.signal,
     });
-    if (!res.ok) return;
+    if (!res.ok || controller.signal.aborted || runId !== sarahVoiceRunId) return;
     const blob = await res.blob();
+    if (controller.signal.aborted || runId !== sarahVoiceRunId) return;
     const url = URL.createObjectURL(blob);
+    if (runId !== sarahVoiceRunId) {
+      URL.revokeObjectURL(url);
+      return;
+    }
     const audio = new Audio(url);
+    currentSarahAudioUrl = url;
     currentSarahAudio = audio;
-    audio.onended = () => URL.revokeObjectURL(url);
+    const cleanup = () => {
+      if (currentSarahAudio === audio) currentSarahAudio = null;
+      if (currentSarahAudioUrl === url) {
+        URL.revokeObjectURL(url);
+        currentSarahAudioUrl = null;
+      }
+    };
+    audio.onended = cleanup;
+    audio.onerror = cleanup;
     await audio.play().catch(() => {});
   } catch {
     /* noop — voice is non-blocking */
+  } finally {
+    if (currentSarahRequest === controller) currentSarahRequest = null;
   }
 }
 
@@ -295,6 +339,7 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
 
   const startCall = useCallback(() => {
     clearTimers();
+    stopSarahVoice();
     resetState();
     setStatus("connecting");
     const connectTimer = setTimeout(() => {
@@ -307,6 +352,7 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
 
   const endCall = useCallback(() => {
     clearTimers();
+    stopSarahVoice();
     setStatus("ended");
     setSpeaking(false);
     setHighlightSelector(null);
@@ -324,7 +370,10 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
     setComparisonHighlightRow(null);
   }, []);
 
-  useEffect(() => () => clearTimers(), [clearTimers]);
+  useEffect(() => () => {
+    clearTimers();
+    stopSarahVoice();
+  }, [clearTimers]);
 
   const contextSummary = useMemo(() => {
     if (pathname.startsWith("/compare-plans")) return "Compare Plans · Medicare Advantage, ZIP 78701";
