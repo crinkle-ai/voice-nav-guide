@@ -89,18 +89,18 @@ const DEMO_PLANS: PushedPlan[] = [
 ];
 
 type ScriptStep =
-  | { at: number; kind: "transcript"; speaker: "agent" | "you"; text: string }
-  | { at: number; kind: "highlight"; selector: string | null; label?: string | null }
-  | { at: number; kind: "speaking"; on: boolean }
-  | { at: number; kind: "pushComparison" }
-  | { at: number; kind: "comparisonHighlight"; row: string | null }
-  | { at: number; kind: "navigate"; to: string }
-  | { at: number; kind: "scrollTo"; selector: string }
-  | { at: number; kind: "guidance"; text: string };
+  | { delay?: number; kind: "agentSay"; text: string }
+  | { delay?: number; kind: "highlight"; selector: string | null; label: string | null }
+  | { delay?: number; kind: "pushComparison" }
+  | { delay?: number; kind: "comparisonHighlight"; row: string | null }
+  | { delay?: number; kind: "navigate"; to: string }
+  | { delay?: number; kind: "scrollTo"; selector: string }
+  | { delay?: number; kind: "guidance"; text: string };
 
 function buildScript(pathname: string): ScriptStep[] {
   const onCompare = pathname.startsWith("/compare-plans");
   const onDoctors = pathname.startsWith("/find-doctors");
+
   const permissionAsk =
     "Hi! I'm Sarah. Before we get started, would it be okay if I viewed your screen so I can walk you through this together? You'll see a prompt from your browser — just hit Allow.";
   const followUp = onCompare
@@ -110,77 +110,33 @@ function buildScript(pathname: string): ScriptStep[] {
       : "Perfect, thanks for sharing. Mind if I take you to the plan comparison screen so I can show you a couple of strong options?";
 
   const steps: ScriptStep[] = [
-    { at: 0, kind: "speaking", on: true },
-    { at: 0, kind: "transcript", speaker: "agent", text: permissionAsk },
-    { at: 7000, kind: "speaking", on: false },
-    { at: 7200, kind: "guidance", text: "You allowed Sarah to view your screen" },
-    { at: 8000, kind: "speaking", on: true },
-    { at: 8000, kind: "transcript", speaker: "agent", text: followUp },
-    { at: 13500, kind: "speaking", on: false },
+    { kind: "agentSay", text: permissionAsk },
+    { delay: 200, kind: "guidance", text: "You allowed Sarah to view your screen" },
+    { delay: 800, kind: "agentSay", text: followUp },
   ];
-
-  // Offset for the comparison flow — pushed later if we need to navigate first.
-  let t = 14000;
 
   if (!onCompare) {
     steps.push(
-      { at: t, kind: "guidance", text: "Sarah is taking you to plan comparison" },
-      { at: t + 200, kind: "navigate", to: "/compare-plans" },
-      { at: t + 1400, kind: "speaking", on: true },
-      {
-        at: t + 1400,
-        kind: "transcript",
-        speaker: "agent",
-        text: "Okay, I've got us on the comparison screen. Let me scroll down to the results.",
-      },
-      { at: t + 5500, kind: "speaking", on: false },
+      { delay: 400, kind: "guidance", text: "Sarah is taking you to plan comparison" },
+      { delay: 200, kind: "navigate", to: "/compare-plans" },
+      { delay: 1200, kind: "agentSay", text: "Okay, I've got us on the comparison screen. Let me scroll down to the results." },
     );
-    t += 6000;
   }
 
   steps.push(
-    { at: t, kind: "guidance", text: "Sarah is scrolling to the plan results" },
-    { at: t + 100, kind: "scrollTo", selector: "#plan-results" },
-    { at: t + 800, kind: "highlight", selector: "#plan-results", label: "Here's what I see" },
-    { at: t + 1500, kind: "speaking", on: true },
-    {
-      at: t + 1500,
-      kind: "transcript",
-      speaker: "agent",
-      text: "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together.",
-    },
-    { at: t + 6000, kind: "speaking", on: false },
-    { at: t + 6300, kind: "guidance", text: "Sarah pulled up a side-by-side comparison" },
-    { at: t + 6500, kind: "pushComparison" },
-    { at: t + 7500, kind: "comparisonHighlight", row: "premium" },
-    { at: t + 8000, kind: "speaking", on: true },
-    {
-      at: t + 8000,
-      kind: "transcript",
-      speaker: "agent",
-      text: "The Aetna PPO is $0/month with a higher out-of-pocket max. The Humana HMO is $19/month but caps your annual costs lower.",
-    },
-    { at: t + 14000, kind: "comparisonHighlight", row: "moop" },
-    { at: t + 14500, kind: "speaking", on: false },
-    { at: t + 16000, kind: "comparisonHighlight", row: "dental" },
-    { at: t + 16500, kind: "speaking", on: true },
-    {
-      at: t + 16500,
-      kind: "transcript",
-      speaker: "agent",
-      text: "Both include dental and vision — that's usually the deciding factor for first-timers. Any specific dental work coming up?",
-    },
-    { at: t + 22000, kind: "speaking", on: false },
-    { at: t + 24000, kind: "highlight", selector: null, label: null },
-    { at: t + 24000, kind: "comparisonHighlight", row: null },
-    { at: t + 24500, kind: "speaking", on: true },
-    {
-      at: t + 24500,
-      kind: "transcript",
-      speaker: "agent",
-      text: "I'm here whenever you're ready — no pressure. Take your time, and ping me if you want to enroll together.",
-    },
-    { at: t + 30000, kind: "speaking", on: false },
+    { delay: 500, kind: "guidance", text: "Sarah is scrolling to the plan results" },
+    { delay: 100, kind: "scrollTo", selector: "#plan-results" },
+    { delay: 700, kind: "highlight", selector: "#plan-results", label: "Here's what I see" },
+    { delay: 700, kind: "agentSay", text: "I'll pull the two strongest options side-by-side so we can compare premium, out-of-pocket max, and dental together." },
+    { delay: 300, kind: "guidance", text: "Sarah pulled up a side-by-side comparison" },
+    { delay: 200, kind: "pushComparison" },
+    { delay: 1000, kind: "comparisonHighlight", row: "premium" },
+    { delay: 500, kind: "agentSay", text: "The Aetna PPO is $0/month with a higher out-of-pocket max. The Humana HMO is $19/month but caps your annual costs lower." },
+    { delay: 400, kind: "comparisonHighlight", row: "moop" },
+    { delay: 1400, kind: "comparisonHighlight", row: "dental" },
+    { delay: 600, kind: "agentSay", text: "Both include dental and vision — that's usually the deciding factor for first-timers. Any specific dental work coming up?" },
+    { delay: 600, kind: "highlight", selector: null, label: null },
+    { delay: 0, kind: "comparisonHighlight", row: null },
   );
 
   return steps;
