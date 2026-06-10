@@ -45,6 +45,7 @@ export const Route = createFileRoute("/api/tts")({
             contents: [{ parts: [{ text }] }],
             config: {
               responseModalities: ["AUDIO"],
+              maxOutputTokens: 8192,
               speechConfig: {
                 voiceConfig: {
                   prebuiltVoiceConfig: { voiceName: voice || "Kore" },
