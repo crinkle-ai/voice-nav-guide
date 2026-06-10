@@ -654,25 +654,7 @@ export function BottomVoiceBar() {
             }
           });
         }
-        const learnTopic = matchesLearnTopic(transcript);
-        if (learnTopic) {
-          fireOnce(`learn:${learnTopic}`, () => {
-            lastSentPathRef.current = "/learn";
-            if (curPath !== "/learn") navigate({ to: "/learn" });
-            dispatch({ type: "SET_HIGHLIGHT", section: learnTopic });
-            setTimeout(() => highlightSection(learnTopic), 400);
-          });
-        }
-        const term = matchesGlossaryTerm(transcript);
-        if (term) {
-          const section = `glossary-${term}`;
-          fireOnce(`glossary:${term}`, () => {
-            lastSentPathRef.current = "/learn";
-            if (curPath !== "/learn") navigate({ to: "/learn" });
-            dispatch({ type: "SET_HIGHLIGHT", section });
-            setTimeout(() => highlightSection(section), 400);
-          });
-        }
+        void curPath;
       }
       if (msg.serverContent?.outputTranscription?.text) {
         const outputText = msg.serverContent.outputTranscription.text;
