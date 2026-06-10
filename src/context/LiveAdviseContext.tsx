@@ -176,6 +176,7 @@ function stopSarahVoice() {
   }
 
   sarahVoiceQueue = Promise.resolve();
+  sarahBlobCache.clear();
 }
 
 async function playSarahVoice(text: string) {
