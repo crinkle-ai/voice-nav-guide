@@ -3,6 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { Check, Lock, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
+import { TalkToAgentButton } from "@/components/TalkToAgentButton";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home" },
@@ -77,6 +78,8 @@ export function TopNav() {
             My Plans
           </Link>
 
+          <TalkToAgentButton />
+
           <Link
             to="/deck"
             className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -85,6 +88,7 @@ export function TopNav() {
           >
             <Info className="h-5 w-5" />
           </Link>
+
 
           {authed ? (
             <button

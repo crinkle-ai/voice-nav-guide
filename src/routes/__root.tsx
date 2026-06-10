@@ -12,8 +12,12 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider } from "@/context/AppContext";
+import { LiveAdviseProvider } from "@/context/LiveAdviseContext";
 import { TopNav } from "@/components/TopNav";
 import { BottomVoiceBar } from "@/components/BottomVoiceBar";
+import { LiveAdvisePanel } from "@/components/LiveAdvisePanel";
+import { AgentHighlightOverlay } from "@/components/AgentHighlightOverlay";
+import { PushedComparisonDrawer } from "@/components/PushedComparisonDrawer";
 
 
 function NotFoundComponent() {
@@ -149,11 +153,16 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <div className="min-h-screen bg-background pb-40 sm:pb-36 text-foreground [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]">
-          <TopNav />
-          <Outlet />
-          <BottomVoiceBar />
-        </div>
+        <LiveAdviseProvider>
+          <div className="min-h-screen bg-background pb-40 sm:pb-36 text-foreground [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]">
+            <TopNav />
+            <Outlet />
+            <BottomVoiceBar />
+            <AgentHighlightOverlay />
+            <PushedComparisonDrawer />
+            <LiveAdvisePanel />
+          </div>
+        </LiveAdviseProvider>
       </AppProvider>
     </QueryClientProvider>
   );
