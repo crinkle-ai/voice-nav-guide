@@ -807,8 +807,8 @@ export function BottomVoiceBar() {
           typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
         if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
         const greetingPrompt = hasIntroduced
-          ? "[SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. 'I'm here — how can I help?'). Then stop."
-          : "[SESSION_START] Greet the user in ONE short sentence as their Medicare Navigator and invite their question. Then stop.";
+          ? "[SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. 'I'm here — how can I help?'), then wait silently for them to speak."
+          : "[SESSION_START] Greet the user in ONE short sentence as their Medicare Navigator and invite their question, then wait silently for them to speak. Do not end or close the session — keep listening.";
         ws.send(
           JSON.stringify({
             clientContent: {
