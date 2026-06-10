@@ -257,6 +257,7 @@ export function BottomVoiceBar() {
   // Pre-warmed WebSocket: opened on mount, setup sent, setupComplete received,
   // but mic + audio contexts not yet created (mic requires user gesture).
   const prewarmReadyRef = useRef(false);
+  const prewarmInFlightRef = useRef(false);
   const pendingActivateRef = useRef(false);
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userStoppedRef = useRef(false);
