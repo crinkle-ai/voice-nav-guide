@@ -12,7 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, X, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video } from "lucide-react";
+import { TalkToAgentButton } from "@/components/TalkToAgentButton";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
@@ -78,6 +79,20 @@ function ComparePlans() {
       <p className="mt-4 text-xl text-muted-foreground">
         Use the filters to narrow things down. Pick up to 3 plans to compare side-by-side.
       </p>
+
+      <div className="mt-6 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+            <Video className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-sm font-bold text-foreground">Want a licensed agent to review these with you?</div>
+            <div className="text-xs text-muted-foreground">Sarah can join your screen, walk through comparisons, and answer questions live — no install, no callback.</div>
+          </div>
+        </div>
+        <TalkToAgentButton variant="ghost" label="Review with an agent" className="shrink-0" />
+      </div>
+
 
       <section id="premium-filter" className="mt-8 grid gap-5 rounded-xl border bg-card p-5 md:grid-cols-2">
         <div>

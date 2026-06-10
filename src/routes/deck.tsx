@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones, FlaskConical, Users, LineChart, Target, ClipboardList, Stethoscope, Heart, Phone, Database, Map, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones, FlaskConical, Users, LineChart, Target, ClipboardList, Stethoscope, Heart, Phone, Database, Map, TrendingUp, Video, ScreenShare, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/deck")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/deck")({
 function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const total = 7;
+  const total = 8;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -123,7 +123,7 @@ function SlideDeck() {
 
 type SlideProps = { onLaunch: () => void };
 
-const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, MvpSlide, Slide5, Slide6];
+const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, LiveAdviseSlide, Slide4, MvpSlide, Slide5, Slide6];
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
@@ -413,6 +413,52 @@ function MvpSlide(_: SlideProps) {
           </div>
         ))}
       </div>
+    </SlideShell>
+  );
+}
+
+function LiveAdviseSlide(_: SlideProps) {
+  const pillars = [
+    {
+      icon: <ScreenShare className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Seamless context handoff",
+      desc: "When the user wants a human, the AI passes everything it knows — current page, intent, saved doctors, plans being compared — so the agent never asks 'what's your ZIP?' again.",
+    },
+    {
+      icon: <Video className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Co-browse, not screen share",
+      desc: "The agent joins the same browser session: highlights plan cards, scrolls to the right row, and pushes side-by-side comparisons live. No Zoom link, no installer, no role-play permissions.",
+    },
+    {
+      icon: <ShieldCheck className="h-5 w-5 md:h-7 md:w-7" />,
+      label: "Trust + compliance built in",
+      desc: "Licensed agent identity is surfaced on screen — name, NPN, state. Every session is recorded and attributable, which matters in a regulated category like Medicare.",
+    },
+  ];
+  return (
+    <SlideShell eyebrow="The Human Safety Net">
+      <h2 className="text-xl sm:text-3xl md:text-6xl font-bold tracking-tight leading-tight max-w-5xl">
+        AI handles 80%. <span className="text-primary">Live Advise handles the moments that matter.</span>
+      </h2>
+      <p className="mt-3 md:mt-6 text-sm md:text-2xl text-muted-foreground max-w-4xl">
+        A licensed agent can drop into the consumer's session — see their screen, push comparisons, answer in real time. The AI doesn't replace the call center; it earns the right to escalate.
+      </p>
+      <div className="mt-4 md:mt-10 grid gap-2 md:gap-4 max-w-5xl">
+        {pillars.map((p) => (
+          <div key={p.label} className="flex items-start gap-3 md:gap-5 rounded-xl border bg-card p-3 md:p-5 shadow-sm">
+            <div className="flex h-10 w-10 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              {p.icon}
+            </div>
+            <div>
+              <div className="text-sm md:text-xl font-semibold">{p.label}</div>
+              <p className="mt-1 text-xs md:text-base text-muted-foreground leading-snug">{p.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 md:mt-8 max-w-3xl text-xs md:text-base italic text-muted-foreground border-l-4 border-primary pl-3 md:pl-4">
+        Try it: click "Talk to an agent" anywhere in the demo to see Sarah co-browse the experience with you.
+      </p>
     </SlideShell>
   );
 }
