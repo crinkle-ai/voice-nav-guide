@@ -142,8 +142,7 @@ function buildScript(pathname: string): ScriptStep[] {
   return steps;
 }
 
-  return steps;
-}
+
 
 // --- Sarah voice (Gemini TTS) ---
 let currentSarahAudio: HTMLAudioElement | null = null;
