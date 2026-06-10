@@ -1272,6 +1272,9 @@ export function BottomVoiceBar() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <span>Medicare Navigator</span>
+            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+              AI
+            </span>
             {isLive && (
               <span className="flex items-center gap-1 text-xs font-normal text-emerald-600">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -1288,7 +1291,7 @@ export function BottomVoiceBar() {
                   ? (muted ? "Mic muted — tap to unmute" : "")
                   : isConnecting
                     ? "Connecting…"
-                    : "Tap Start to talk to your guide"}
+                    : "Tap Start to talk to your AI guide — or use \"Talk to an agent\" up top for a licensed human."}
           </div>
         </div>
 
