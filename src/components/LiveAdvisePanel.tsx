@@ -19,17 +19,26 @@ export function LiveAdvisePanel() {
 
   if (minimized) {
     return (
-      <button
-        onClick={() => setMinimized(false)}
-        className="fixed bottom-44 right-4 z-[50] flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-white shadow-2xl hover:bg-emerald-700 transition"
-      >
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-        </span>
-        <span className="text-sm font-semibold">On call with {agent.name.split(" ")[0]}</span>
-        <Maximize2 className="h-4 w-4" />
-      </button>
+      <div className="fixed bottom-44 right-4 z-[50] flex items-center gap-2">
+        <button
+          onClick={() => setMinimized(false)}
+          className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-white shadow-2xl transition hover:bg-emerald-700"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          </span>
+          <span className="text-sm font-semibold">On call with {agent.name.split(" ")[0]}</span>
+          <Maximize2 className="h-4 w-4" />
+        </button>
+        <button
+          onClick={endCall}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white shadow-2xl transition hover:bg-red-700"
+          aria-label="End call"
+        >
+          <PhoneOff className="h-4 w-4" />
+        </button>
+      </div>
     );
   }
 
