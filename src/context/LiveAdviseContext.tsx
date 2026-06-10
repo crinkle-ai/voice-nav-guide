@@ -241,6 +241,22 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
           case "comparisonHighlight":
             setComparisonHighlightRow(step.row);
             break;
+          case "navigate":
+            try { navRef.current({ to: step.to as "/" }); } catch { /* noop */ }
+            break;
+          case "scrollTo": {
+            const el = document.querySelector(step.selector) as HTMLElement | null;
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            break;
+          }
+          case "guidance": {
+            setGuidanceToast(step.text);
+            const clearT = setTimeout(() => {
+              setGuidanceToast((cur) => (cur === step.text ? null : cur));
+            }, 2200);
+            timersRef.current.push(clearT);
+            break;
+          }
         }
       }, step.at);
       timersRef.current.push(t);
@@ -297,13 +313,14 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
       highlightLabel,
       pushedComparison,
       comparisonHighlightRow,
+      guidanceToast,
       agent: AGENT,
       startCall,
       endCall,
       closeComparison,
       contextSummary,
     }),
-    [status, speaking, transcript, highlightSelector, highlightLabel, pushedComparison, comparisonHighlightRow, startCall, endCall, closeComparison, contextSummary],
+    [status, speaking, transcript, highlightSelector, highlightLabel, pushedComparison, comparisonHighlightRow, guidanceToast, startCall, endCall, closeComparison, contextSummary],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
