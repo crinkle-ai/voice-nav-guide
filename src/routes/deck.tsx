@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones, FlaskConical, Users, LineChart, Target, ClipboardList, Stethoscope, Heart, Phone, Database, Map, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Mic, Compass, BookOpen, Headphones, FlaskConical, Users, LineChart, Target, ClipboardList, Stethoscope, Heart, Phone, Database, Map, TrendingUp, Video, ScreenShare, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/deck")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/deck")({
 function SlideDeck() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const total = 7;
+  const total = 8;
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -123,7 +123,7 @@ function SlideDeck() {
 
 type SlideProps = { onLaunch: () => void };
 
-const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, Slide4, MvpSlide, Slide5, Slide6];
+const SLIDES: Array<(p: SlideProps) => React.ReactElement> = [Slide1, Slide2, Slide3, LiveAdviseSlide, Slide4, MvpSlide, Slide5, Slide6];
 
 function SlideShell({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
   return (
