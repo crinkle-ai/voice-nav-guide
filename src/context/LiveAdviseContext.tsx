@@ -180,6 +180,33 @@ function buildScript(pathname: string): ScriptStep[] {
   return steps;
 }
 
+// --- Sarah voice (Gemini TTS) ---
+let currentSarahAudio: HTMLAudioElement | null = null;
+async function playSarahVoice(text: string) {
+  if (typeof window === "undefined") return;
+  try {
+    if (currentSarahAudio) {
+      currentSarahAudio.pause();
+      currentSarahAudio = null;
+    }
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice: "Kore" }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentSarahAudio = audio;
+    audio.onended = () => URL.revokeObjectURL(url);
+    await audio.play().catch(() => {});
+  } catch {
+    /* noop — voice is non-blocking */
+  }
+}
+
+
 export function LiveAdviseProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<LiveAdviseStatus>("idle");
   const [speaking, setSpeaking] = useState(false);
@@ -227,6 +254,9 @@ export function LiveAdviseProvider({ children }: { children: ReactNode }) {
               ...prev,
               { id: `t-${idCounter.current++}`, speaker: step.speaker, text: step.text, at: Date.now() },
             ]);
+            if (step.speaker === "agent") {
+              void playSarahVoice(step.text);
+            }
             break;
           case "highlight":
             setHighlightSelector(step.selector);
