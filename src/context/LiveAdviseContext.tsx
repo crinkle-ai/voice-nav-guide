@@ -184,7 +184,9 @@ function buildScript(pathname: string): ScriptStep[] {
 let currentSarahAudio: HTMLAudioElement | null = null;
 let currentSarahAudioUrl: string | null = null;
 let currentSarahRequest: AbortController | null = null;
+let currentSarahAudioDone: (() => void) | null = null;
 let sarahVoiceRunId = 0;
+let sarahVoiceQueue: Promise<void> = Promise.resolve();
 
 function stopSarahVoice() {
   sarahVoiceRunId += 1;
@@ -201,17 +203,32 @@ function stopSarahVoice() {
     currentSarahAudio = null;
   }
 
+  if (currentSarahAudioDone) {
+    currentSarahAudioDone();
+    currentSarahAudioDone = null;
+  }
+
   if (currentSarahAudioUrl) {
     URL.revokeObjectURL(currentSarahAudioUrl);
     currentSarahAudioUrl = null;
   }
+
+  sarahVoiceQueue = Promise.resolve();
 }
 
 async function playSarahVoice(text: string) {
   if (typeof window === "undefined") return;
 
-  stopSarahVoice();
   const runId = sarahVoiceRunId;
+
+  sarahVoiceQueue = sarahVoiceQueue
+    .catch(() => {})
+    .then(() => playSarahVoiceNow(text, runId));
+}
+
+async function playSarahVoiceNow(text: string, runId: number) {
+  if (runId !== sarahVoiceRunId) return;
+
   const controller = new AbortController();
   currentSarahRequest = controller;
 
@@ -242,7 +259,17 @@ async function playSarahVoice(text: string) {
     };
     audio.onended = cleanup;
     audio.onerror = cleanup;
-    await audio.play().catch(() => {});
+    await new Promise<void>((resolve) => {
+      const finish = () => {
+        cleanup();
+        if (currentSarahAudioDone === finish) currentSarahAudioDone = null;
+        resolve();
+      };
+      currentSarahAudioDone = finish;
+      audio.onended = finish;
+      audio.onerror = finish;
+      audio.play().catch(finish);
+    });
   } catch {
     /* noop — voice is non-blocking */
   } finally {
