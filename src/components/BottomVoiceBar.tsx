@@ -257,6 +257,7 @@ export function BottomVoiceBar() {
   // Pre-warmed WebSocket: opened on mount, setup sent, setupComplete received,
   // but mic + audio contexts not yet created (mic requires user gesture).
   const prewarmReadyRef = useRef(false);
+  const prewarmInFlightRef = useRef(false);
   const pendingActivateRef = useRef(false);
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userStoppedRef = useRef(false);
@@ -700,12 +701,13 @@ export function BottomVoiceBar() {
   // Does NOT request mic (that needs a user gesture) — only opens the socket
   // and waits for setupComplete from Gemini.
   const prewarm = useCallback(async () => {
-    if (wsRef.current || userStoppedRef.current) return;
+    if (wsRef.current || userStoppedRef.current || prewarmInFlightRef.current) return;
+    prewarmInFlightRef.current = true;
     try {
       const res = await fetch("/api/voice-session", { method: "POST" });
       if (!res.ok) return;
       const { websocketUrl } = (await res.json()) as { websocketUrl: string };
-      if (userStoppedRef.current) return;
+      if (userStoppedRef.current || wsRef.current) return;
       const ws = new WebSocket(websocketUrl);
       wsRef.current = ws;
       attachWsHandlers(ws);
@@ -714,7 +716,7 @@ export function BottomVoiceBar() {
       };
       ws.onerror = () => { /* handled by onclose */ };
       ws.onclose = () => {
-        wsRef.current = null;
+        if (wsRef.current === ws) wsRef.current = null;
         prewarmReadyRef.current = false;
         if (prewarmKeepaliveTimerRef.current) {
           clearInterval(prewarmKeepaliveTimerRef.current);
@@ -731,6 +733,7 @@ export function BottomVoiceBar() {
         }
       };
     } catch { /* swallow — user will retry via Start */ }
+    finally { prewarmInFlightRef.current = false; }
   }, [attachWsHandlers, scheduleLiveReconnect]);
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
