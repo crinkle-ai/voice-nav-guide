@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/tts")({
           const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
           const wav = pcmToWav(pcm, sampleRate);
 
-          return new Response(wav, {
+          return new Response(new Uint8Array(wav), {
             status: 200,
             headers: {
               "Content-Type": "audio/wav",
