@@ -105,7 +105,8 @@ export function TopNav() {
 
       {/* Journey progress */}
       <div className="border-t bg-muted/40">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 text-sm">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 sm:px-6 py-3 text-sm overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
           <span className="font-semibold text-muted-foreground">Your journey:</span>
           <ol className="flex items-center gap-2">
             {JOURNEY_STEPS.map((step, idx) => {
