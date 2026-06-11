@@ -363,12 +363,22 @@ export function BottomVoiceBar() {
             page = "/login";
             try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
           }
+          // Pre-seed highlighted section so the destination page can auto-expand it on mount.
+          // Always dispatch (with null when absent) to clear stale highlight state from a prior nav.
+          const sectionArg = typeof fc.args?.section === "string" && fc.args.section.trim()
+            ? (fc.args.section as string)
+            : null;
+          dispatch({ type: "SET_HIGHLIGHT", section: sectionArg });
           lastSentPathRef.current = page;
-          respond({ ok: true, navigated: page });
+          respond({ ok: true, navigated: page, section: sectionArg ?? undefined });
           if (page === "/login") {
             navigate({ to: "/login", search: { redirect: "/my-plans" } });
           } else {
             navigate({ to: page });
+          }
+          if (sectionArg) {
+            // Also attempt to scroll/outline once the destination renders.
+            setTimeout(() => highlightSection(sectionArg), 600);
           }
         } else if (fc.name === "highlight_section" && typeof fc.args?.section === "string") {
           const section = fc.args.section;
