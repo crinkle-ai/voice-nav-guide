@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { Check, Lock, LogOut, Info } from "lucide-react";
+import { Check, Lock, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
