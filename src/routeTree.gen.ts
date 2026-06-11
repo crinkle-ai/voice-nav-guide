@@ -16,6 +16,8 @@ import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DeckLiveRouteImport } from './routes/deck.live'
+import { Route as DeckAiRouteImport } from './routes/deck.ai'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -55,6 +57,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeckLiveRoute = DeckLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => DeckRoute,
+} as any)
+const DeckAiRoute = DeckAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => DeckRoute,
+} as any)
 const ApiVoiceSessionRoute = ApiVoiceSessionRouteImport.update({
   id: '/api/voice-session',
   path: '/api/voice-session',
@@ -74,7 +86,7 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
-  '/deck': typeof DeckRoute
+  '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -82,11 +94,13 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
+  '/deck/ai': typeof DeckAiRoute
+  '/deck/live': typeof DeckLiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
-  '/deck': typeof DeckRoute
+  '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -94,12 +108,14 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
+  '/deck/ai': typeof DeckAiRoute
+  '/deck/live': typeof DeckLiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/compare-plans': typeof ComparePlansRoute
-  '/deck': typeof DeckRoute
+  '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
@@ -107,6 +123,8 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
+  '/deck/ai': typeof DeckAiRoute
+  '/deck/live': typeof DeckLiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +139,8 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
+    | '/deck/ai'
+    | '/deck/live'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +153,8 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
+    | '/deck/ai'
+    | '/deck/live'
   id:
     | '__root__'
     | '/'
@@ -145,12 +167,14 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
+    | '/deck/ai'
+    | '/deck/live'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ComparePlansRoute: typeof ComparePlansRoute
-  DeckRoute: typeof DeckRoute
+  DeckRoute: typeof DeckRouteWithChildren
   FindDoctorsRoute: typeof FindDoctorsRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
@@ -211,6 +235,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deck/live': {
+      id: '/deck/live'
+      path: '/live'
+      fullPath: '/deck/live'
+      preLoaderRoute: typeof DeckLiveRouteImport
+      parentRoute: typeof DeckRoute
+    }
+    '/deck/ai': {
+      id: '/deck/ai'
+      path: '/ai'
+      fullPath: '/deck/ai'
+      preLoaderRoute: typeof DeckAiRouteImport
+      parentRoute: typeof DeckRoute
+    }
     '/api/voice-session': {
       id: '/api/voice-session'
       path: '/api/voice-session'
@@ -235,10 +273,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DeckRouteChildren {
+  DeckAiRoute: typeof DeckAiRoute
+  DeckLiveRoute: typeof DeckLiveRoute
+}
+
+const DeckRouteChildren: DeckRouteChildren = {
+  DeckAiRoute: DeckAiRoute,
+  DeckLiveRoute: DeckLiveRoute,
+}
+
+const DeckRouteWithChildren = DeckRoute._addFileChildren(DeckRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComparePlansRoute: ComparePlansRoute,
-  DeckRoute: DeckRoute,
+  DeckRoute: DeckRouteWithChildren,
   FindDoctorsRoute: FindDoctorsRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
