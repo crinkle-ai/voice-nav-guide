@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, ScreenShare, X } from "lucide-react";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 import liveAgentVideo from "@/assets/live-agent-cobrowse.mp4.asset.json";
 
-export const Route = createFileRoute("/deck")({
+export const Route = createFileRoute("/deck/")({
   head: () => ({
     meta: [
       { title: "Executive Decks · Crinkle Navigator" },
