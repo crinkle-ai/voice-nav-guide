@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
+import liveAgentVideo from "@/assets/live-agent-cobrowse.mp4.asset.json";
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import {
