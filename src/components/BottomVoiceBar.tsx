@@ -216,6 +216,7 @@ export function BottomVoiceBar() {
   const prewarmInFlightRef = useRef(false);
   const pendingActivateRef = useRef(false);
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prewarmReconnectAttemptsRef = useRef(0);
   const userStoppedRef = useRef(false);
   const lastAudioProcessAtRef = useRef<number>(0);
   const lastAudioChunkRef = useRef<number>(0);
@@ -225,9 +226,11 @@ export function BottomVoiceBar() {
   const reconnectLiveRef = useRef<(() => void) | null>(null);
   const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
+  const micRebuildInFlightRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
   const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
 
 
@@ -556,6 +559,9 @@ export function BottomVoiceBar() {
           // Live-session reconnect just completed.
           reconnectingRef.current = false;
           reconnectAttemptsRef.current = 0;
+          // Force the next pathname effect to re-push [CURRENT PAGE] so the
+          // freshly-reconnected model knows where the user actually is.
+          lastSentPathRef.current = null;
           sendNoopTurn();
           statusRef.current = "live";
           setStatus("live");
@@ -567,6 +573,7 @@ export function BottomVoiceBar() {
             sendNoopTurn();
           }, PREWARM_KEEPALIVE_MS);
         }
+
       }
 
       if (msg.serverContent?.modelTurn?.parts) {
@@ -579,11 +586,12 @@ export function BottomVoiceBar() {
       }
       if (msg.serverContent?.inputTranscription?.text) {
         const inputText = msg.serverContent.inputTranscription.text;
-        if (!isInternalControlText(inputText)) {
+        if (inputText.trim() && !isInternalControlText(inputText)) {
           userSpeechSeenRef.current = true;
           clearIdleTimers();
           turnTranscriptRef.current += " " + inputText;
         }
+
         const transcript = turnTranscriptRef.current;
         const fired = turnFallbackFiredRef.current;
         const fireOnce = (key: string, fn: () => void) => {
@@ -649,6 +657,7 @@ export function BottomVoiceBar() {
       wsRef.current = ws;
       attachWsHandlers(ws);
       ws.onopen = () => {
+        prewarmReconnectAttemptsRef.current = 0;
         try { ws.send(JSON.stringify({ setup: {} })); } catch { /* noop */ }
       };
       ws.onerror = () => { /* handled by onclose */ };
@@ -665,13 +674,19 @@ export function BottomVoiceBar() {
           return;
         }
         if (!userStoppedRef.current) {
+          // Cap the prewarm-only reconnect so we don't hammer a down server.
+          const attempt = prewarmReconnectAttemptsRef.current + 1;
+          prewarmReconnectAttemptsRef.current = attempt;
+          if (attempt > 8) return;
+          const delay = Math.min(2000 * 2 ** Math.max(0, attempt - 1), 30_000);
           if (prewarmReconnectTimerRef.current) clearTimeout(prewarmReconnectTimerRef.current);
-          prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, 2000);
+          prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, delay);
         }
       };
     } catch { /* swallow — user will retry via Start */ }
     finally { prewarmInFlightRef.current = false; }
   }, [attachWsHandlers, scheduleLiveReconnect]);
+
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
   // Requires the WS to be open and setupComplete received.
@@ -840,59 +855,73 @@ export function BottomVoiceBar() {
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
   const rebuildMicPipeline = useCallback(async () => {
     if (!streamRef.current && !micCtxRef.current) return;
+    // Hard re-entry guard: mic onended, watchdog, and visibilitychange can all
+    // call this simultaneously. Without this, a second rebuild starts while
+    // the first is awaiting getUserMedia and leaks the prior stream/processor.
+    if (micRebuildInFlightRef.current) return;
+    micRebuildInFlightRef.current = true;
     micTeardownInProgressRef.current = true;
-    try { processorRef.current?.disconnect(); } catch { /* noop */ }
-    try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => {
-      t.onended = null;
-      t.stop();
-    });
-    streamRef.current = null;
-    await micCtxRef.current?.close().catch(() => {});
-    micTeardownInProgressRef.current = false;
-    micCtxRef.current = null;
-    processorRef.current = null;
-    sourceNodeRef.current = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+      try { processorRef.current?.disconnect(); } catch { /* noop */ }
+      try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
+      streamRef.current?.getTracks().forEach((t) => {
+        t.onended = null;
+        t.stop();
       });
-      streamRef.current = stream;
-      attachMicEndedHandlers(stream);
-      const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const micCtx = new AudioCtor({ sampleRate: 16000 });
-      micCtxRef.current = micCtx;
-      const source = micCtx.createMediaStreamSource(stream);
-      sourceNodeRef.current = source;
-      const processor = micCtx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
-      processor.onaudioprocess = (e) => {
-        const now = Date.now();
-        lastAudioProcessAtRef.current = now;
-        lastAudioChunkRef.current = now;
-        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
-        if (mutedRef.current) return;
-        const sock = wsRef.current;
-        if (!sock || sock.readyState !== WebSocket.OPEN) return;
-        const input = e.inputBuffer.getChannelData(0);
-        const pcm = floatTo16BitPCM(input);
-        sock.send(
-          JSON.stringify({
-            realtimeInput: {
-              audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
-            },
-          }),
-        );
-      };
-      source.connect(processor);
-      processor.connect(micCtx.destination);
-      lastAudioProcessAtRef.current = Date.now();
-      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
-    } catch {
+      streamRef.current = null;
+      await micCtxRef.current?.close().catch(() => {});
       micTeardownInProgressRef.current = false;
-      /* mic rebuild failed — leave session; user can press Stop */
+      micCtxRef.current = null;
+      processorRef.current = null;
+      sourceNodeRef.current = null;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+        });
+        streamRef.current = stream;
+        attachMicEndedHandlers(stream);
+        const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const micCtx = new AudioCtor({ sampleRate: 16000 });
+        micCtxRef.current = micCtx;
+        const source = micCtx.createMediaStreamSource(stream);
+        sourceNodeRef.current = source;
+        const processor = micCtx.createScriptProcessor(4096, 1, 1);
+        processorRef.current = processor;
+        processor.onaudioprocess = (e) => {
+          const now = Date.now();
+          lastAudioProcessAtRef.current = now;
+          lastAudioChunkRef.current = now;
+          if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
+          if (mutedRef.current) return;
+          const sock = wsRef.current;
+          if (!sock || sock.readyState !== WebSocket.OPEN) return;
+          const input = e.inputBuffer.getChannelData(0);
+          const pcm = floatTo16BitPCM(input);
+          sock.send(
+            JSON.stringify({
+              realtimeInput: {
+                audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
+              },
+            }),
+          );
+        };
+        source.connect(processor);
+        processor.connect(micCtx.destination);
+        lastAudioProcessAtRef.current = Date.now();
+        lastAudioChunkRef.current = lastAudioProcessAtRef.current;
+      } catch {
+        // Mic rebuild failed — surface so the user knows the session is dead
+        // rather than sitting silently with a "Live" pill and no working mic.
+        micTeardownInProgressRef.current = false;
+        if (!userStoppedRef.current) {
+          setCaption("Microphone disconnected — tap End and Start to reconnect.");
+        }
+      }
+    } finally {
+      micRebuildInFlightRef.current = false;
     }
   }, [attachMicEndedHandlers]);
+
 
   useEffect(() => {
     rebuildMicPipelineRef.current = () => { void rebuildMicPipeline(); };
@@ -905,9 +934,15 @@ export function BottomVoiceBar() {
     userStoppedRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    // Clear any leftover state from a prior aborted attempt so we can't
+    // auto-fire activate on a stale setupComplete or trip the reconnect cap.
+    pendingActivateRef.current = false;
+    reconnectingRef.current = false;
+    reconnectAttemptsRef.current = 0;
     clearIdleTimers();
     setErrorMsg(null);
     setCaption("");
+
 
     // iOS Safari requires AudioContext to be created synchronously inside the
     // user gesture handler — create both contexts NOW, before any await.
