@@ -50,7 +50,7 @@ export function LiveAdvisePanel() {
           src={agent.avatar}
           alt={agent.name}
           className={cn(
-            "h-full w-full object-cover object-center transition-all duration-500",
+            "h-full w-full object-cover object-[center_15%] transition-all duration-500",
             connecting && "blur-sm opacity-50",
           )}
         />
