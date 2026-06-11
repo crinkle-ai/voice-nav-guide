@@ -855,59 +855,73 @@ export function BottomVoiceBar() {
   // the WebSocket. Used by the watchdog when the ScriptProcessorNode stalls.
   const rebuildMicPipeline = useCallback(async () => {
     if (!streamRef.current && !micCtxRef.current) return;
+    // Hard re-entry guard: mic onended, watchdog, and visibilitychange can all
+    // call this simultaneously. Without this, a second rebuild starts while
+    // the first is awaiting getUserMedia and leaks the prior stream/processor.
+    if (micRebuildInFlightRef.current) return;
+    micRebuildInFlightRef.current = true;
     micTeardownInProgressRef.current = true;
-    try { processorRef.current?.disconnect(); } catch { /* noop */ }
-    try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
-    streamRef.current?.getTracks().forEach((t) => {
-      t.onended = null;
-      t.stop();
-    });
-    streamRef.current = null;
-    await micCtxRef.current?.close().catch(() => {});
-    micTeardownInProgressRef.current = false;
-    micCtxRef.current = null;
-    processorRef.current = null;
-    sourceNodeRef.current = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+      try { processorRef.current?.disconnect(); } catch { /* noop */ }
+      try { sourceNodeRef.current?.disconnect(); } catch { /* noop */ }
+      streamRef.current?.getTracks().forEach((t) => {
+        t.onended = null;
+        t.stop();
       });
-      streamRef.current = stream;
-      attachMicEndedHandlers(stream);
-      const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const micCtx = new AudioCtor({ sampleRate: 16000 });
-      micCtxRef.current = micCtx;
-      const source = micCtx.createMediaStreamSource(stream);
-      sourceNodeRef.current = source;
-      const processor = micCtx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
-      processor.onaudioprocess = (e) => {
-        const now = Date.now();
-        lastAudioProcessAtRef.current = now;
-        lastAudioChunkRef.current = now;
-        if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
-        if (mutedRef.current) return;
-        const sock = wsRef.current;
-        if (!sock || sock.readyState !== WebSocket.OPEN) return;
-        const input = e.inputBuffer.getChannelData(0);
-        const pcm = floatTo16BitPCM(input);
-        sock.send(
-          JSON.stringify({
-            realtimeInput: {
-              audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
-            },
-          }),
-        );
-      };
-      source.connect(processor);
-      processor.connect(micCtx.destination);
-      lastAudioProcessAtRef.current = Date.now();
-      lastAudioChunkRef.current = lastAudioProcessAtRef.current;
-    } catch {
+      streamRef.current = null;
+      await micCtxRef.current?.close().catch(() => {});
       micTeardownInProgressRef.current = false;
-      /* mic rebuild failed — leave session; user can press Stop */
+      micCtxRef.current = null;
+      processorRef.current = null;
+      sourceNodeRef.current = null;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+        });
+        streamRef.current = stream;
+        attachMicEndedHandlers(stream);
+        const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const micCtx = new AudioCtor({ sampleRate: 16000 });
+        micCtxRef.current = micCtx;
+        const source = micCtx.createMediaStreamSource(stream);
+        sourceNodeRef.current = source;
+        const processor = micCtx.createScriptProcessor(4096, 1, 1);
+        processorRef.current = processor;
+        processor.onaudioprocess = (e) => {
+          const now = Date.now();
+          lastAudioProcessAtRef.current = now;
+          lastAudioChunkRef.current = now;
+          if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
+          if (mutedRef.current) return;
+          const sock = wsRef.current;
+          if (!sock || sock.readyState !== WebSocket.OPEN) return;
+          const input = e.inputBuffer.getChannelData(0);
+          const pcm = floatTo16BitPCM(input);
+          sock.send(
+            JSON.stringify({
+              realtimeInput: {
+                audio: { mimeType: "audio/pcm;rate=16000", data: arrayBufferToBase64(pcm) },
+              },
+            }),
+          );
+        };
+        source.connect(processor);
+        processor.connect(micCtx.destination);
+        lastAudioProcessAtRef.current = Date.now();
+        lastAudioChunkRef.current = lastAudioProcessAtRef.current;
+      } catch {
+        // Mic rebuild failed — surface so the user knows the session is dead
+        // rather than sitting silently with a "Live" pill and no working mic.
+        micTeardownInProgressRef.current = false;
+        if (!userStoppedRef.current) {
+          setCaption("Microphone disconnected — tap End and Start to reconnect.");
+        }
+      }
+    } finally {
+      micRebuildInFlightRef.current = false;
     }
   }, [attachMicEndedHandlers]);
+
 
   useEffect(() => {
     rebuildMicPipelineRef.current = () => { void rebuildMicPipeline(); };
