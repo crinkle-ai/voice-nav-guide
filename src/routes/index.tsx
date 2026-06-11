@@ -41,38 +41,39 @@ function Home() {
   useTrackPage("home", "/");
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
+    <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
       {/* Hero */}
-      <section id="hero" className="grid gap-10 md:grid-cols-[1.3fr_1fr] md:items-center">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
-            <ShieldCheck className="h-4 w-4" /> Medicare Open Enrollment is here
+      <section id="hero" className="grid gap-8 md:gap-10 md:grid-cols-[1.3fr_1fr] md:items-center">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs sm:text-sm font-medium text-accent-foreground">
+            <ShieldCheck className="h-4 w-4 shrink-0" /> Medicare Open Enrollment is here
           </div>
-          <h1 className="mt-5 text-5xl font-bold tracking-tight text-foreground md:text-6xl">
+          <h1 className="mt-4 sm:mt-5 text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
             Medicare coverage built around your life.
           </h1>
-          <p className="mt-5 text-xl text-muted-foreground">
+          <p className="mt-4 sm:mt-5 text-base sm:text-xl text-muted-foreground">
             Crinkle Health offers Medicare Advantage, Medigap, and Part D plans with the doctors you trust, the prescriptions you take, and the extras that make every day a little easier.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="h-14 px-7 text-lg">
+          <div className="mt-6 sm:mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg" className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg">
               <Link to="/compare-plans">
                 <ClipboardList className="h-5 w-5" /> Shop Medicare plans
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-14 px-7 text-lg">
+            <Button asChild size="lg" variant="outline" className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg">
               <Link to="/learn">Medicare basics →</Link>
             </Button>
           </div>
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-2">
-              <Phone className="h-4 w-4" /> 1-800-555-0143 (TTY 711)
+              <Phone className="h-4 w-4 shrink-0" /> 1-800-555-0143 (TTY 711)
             </span>
             <span className="inline-flex items-center gap-2">
-              <Calendar className="h-4 w-4" /> Mon–Fri, 8am–8pm local time
+              <Calendar className="h-4 w-4 shrink-0" /> Mon–Fri, 8am–8pm local time
             </span>
           </div>
         </div>
+
 
         {/* Quick eligibility card */}
         <div className="rounded-2xl border bg-card p-6 shadow-sm">
