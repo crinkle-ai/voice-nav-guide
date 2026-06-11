@@ -218,7 +218,7 @@ function Home() {
 
 function PlanCard({ badge, title, desc, bullets }: { badge?: string; title: string; desc: string; bullets: string[] }) {
   return (
-    <div className="relative flex flex-col rounded-xl border bg-card p-6 shadow-sm">
+    <div className="relative flex flex-col rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
       {badge && (
         <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
           {badge}
