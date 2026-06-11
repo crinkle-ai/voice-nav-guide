@@ -1311,12 +1311,13 @@ export function BottomVoiceBar() {
               type="button"
               onClick={() => setMuted((m) => !m)}
               aria-label={muted ? "Unmute mic" : "Mute mic"}
-              className={`flex h-11 w-11 items-center justify-center rounded-full border transition ${
+              className={`flex shrink-0 h-12 w-12 sm:h-11 sm:w-11 items-center justify-center rounded-full border transition ${
                 muted ? "bg-muted text-muted-foreground" : "bg-background text-foreground hover:bg-accent"
               }`}
             >
               {muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
+
             <button
               type="button"
               onClick={stop}
