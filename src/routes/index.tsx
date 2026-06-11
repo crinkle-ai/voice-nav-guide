@@ -104,22 +104,25 @@ function Home() {
         </div>
       </section>
 
-      {/* Demo video */}
+      {/* Demo videos */}
       <section id="demo" className="mt-10 sm:mt-16">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">See how it works</h2>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-          A quick walkthrough of finding and comparing Medicare plans with Crinkle.
+          Two ways to get help — talk to your AI guide, or hand off to a licensed agent who co-browses with you in real time.
         </p>
-        <div className="mt-4 sm:mt-6 overflow-hidden rounded-2xl border shadow-sm bg-black">
-          <video
+        <div className="mt-4 sm:mt-6 grid gap-5 sm:gap-6 md:grid-cols-2">
+          <DemoVideoCard
+            kicker="AI Guide"
+            title="Find & compare Medicare plans with AI"
+            desc="A quick walkthrough of using your AI guide to shop plans."
             src={demoVideo.url}
-            controls
-            preload="metadata"
-            playsInline
-            className="w-full h-auto block"
-          >
-            Your browser does not support the video tag.
-          </video>
+          />
+          <DemoVideoCard
+            kicker="Live Agent · Co-browse"
+            title="Hand off to a licensed agent"
+            desc="Sarah joins the session and walks you through Aetna PPO vs. Humana HMO."
+            src={liveAgentVideo.url}
+          />
         </div>
       </section>
 
