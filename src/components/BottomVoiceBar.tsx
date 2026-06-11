@@ -586,11 +586,12 @@ export function BottomVoiceBar() {
       }
       if (msg.serverContent?.inputTranscription?.text) {
         const inputText = msg.serverContent.inputTranscription.text;
-        if (!isInternalControlText(inputText)) {
+        if (inputText.trim() && !isInternalControlText(inputText)) {
           userSpeechSeenRef.current = true;
           clearIdleTimers();
           turnTranscriptRef.current += " " + inputText;
         }
+
         const transcript = turnTranscriptRef.current;
         const fired = turnFallbackFiredRef.current;
         const fireOnce = (key: string, fn: () => void) => {
