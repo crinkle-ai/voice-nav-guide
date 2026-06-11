@@ -1322,7 +1322,7 @@ export function BottomVoiceBar() {
               type="button"
               onClick={stop}
               aria-label="End session"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground transition hover:bg-destructive/90"
+              className="flex shrink-0 h-12 w-12 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground transition hover:bg-destructive/90"
             >
               <PhoneOff className="h-5 w-5" />
             </button>
