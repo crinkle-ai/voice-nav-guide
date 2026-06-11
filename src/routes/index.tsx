@@ -255,7 +255,7 @@ function BenefitItem({ icon, title, desc }: { icon: React.ReactNode; title: stri
 
 function ResourceCard({ to, icon, kicker, title, desc }: { to: string; icon: React.ReactNode; kicker: string; title: string; desc: string }) {
   return (
-    <Link to={to} className="group rounded-xl border bg-card p-6 transition-all hover:border-primary hover:shadow-md">
+    <Link to={to} className="group block rounded-xl border bg-card p-5 sm:p-6 transition-all hover:border-primary hover:shadow-md active:bg-accent/30 min-h-[44px]">
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</div>
         <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{kicker}</span>
