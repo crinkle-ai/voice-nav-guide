@@ -1249,25 +1249,25 @@ export function BottomVoiceBar() {
       )}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
 
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 pr-36 sm:gap-4 sm:px-6 sm:pr-40">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:pr-40">
+        <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
           M
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span>Medicare Navigator</span>
-            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            <span className="truncate">Medicare Navigator</span>
+            <span className="hidden sm:inline rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
               AI
             </span>
             {isLive && (
-              <span className="flex items-center gap-1 text-xs font-normal text-emerald-600">
+              <span className="flex shrink-0 items-center gap-1 text-xs font-normal text-emerald-600">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                 Live
               </span>
             )}
           </div>
-          <div className="truncate text-sm text-muted-foreground">
+          <div className="truncate text-xs sm:text-sm text-muted-foreground">
             {errorMsg
               ? <span className="text-destructive">{errorMsg}</span>
               : caption
@@ -1284,10 +1284,11 @@ export function BottomVoiceBar() {
           <button
             type="button"
             onClick={start}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            aria-label="Start voice session"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground transition hover:bg-primary/90 h-12 w-12 sm:h-auto sm:w-auto sm:px-5 sm:py-2.5 text-sm font-semibold"
           >
-            <Mic className="h-4 w-4" />
-            Start
+            <Mic className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Start</span>
           </button>
         )}
 
@@ -1295,12 +1296,14 @@ export function BottomVoiceBar() {
           <button
             type="button"
             disabled
-            className="inline-flex items-center gap-2 rounded-full bg-muted px-5 py-2.5 text-sm font-semibold text-muted-foreground"
+            aria-label="Connecting"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-muted text-muted-foreground h-12 w-12 sm:h-auto sm:w-auto sm:px-5 sm:py-2.5 text-sm font-semibold"
           >
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Connecting
+            <Loader2 className="h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
+            <span className="hidden sm:inline">Connecting</span>
           </button>
         )}
+
 
         {isLive && (
           <>
@@ -1308,17 +1311,18 @@ export function BottomVoiceBar() {
               type="button"
               onClick={() => setMuted((m) => !m)}
               aria-label={muted ? "Unmute mic" : "Mute mic"}
-              className={`flex h-11 w-11 items-center justify-center rounded-full border transition ${
+              className={`flex shrink-0 h-12 w-12 sm:h-11 sm:w-11 items-center justify-center rounded-full border transition ${
                 muted ? "bg-muted text-muted-foreground" : "bg-background text-foreground hover:bg-accent"
               }`}
             >
               {muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
+
             <button
               type="button"
               onClick={stop}
               aria-label="End session"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground transition hover:bg-destructive/90"
+              className="flex shrink-0 h-12 w-12 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground transition hover:bg-destructive/90"
             >
               <PhoneOff className="h-5 w-5" />
             </button>
