@@ -1,9 +1,10 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/context/AppContext";
-import { Check, Lock, LogOut } from "lucide-react";
+import { Check, Lock, LogOut, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home" },
@@ -23,10 +24,11 @@ export function TopNav() {
   const navigate = useNavigate();
   const { state } = useApp();
   const [authed, setAuthed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Re-check auth on every navigation so the lock/logout state stays in sync.
   useEffect(() => {
     setAuthed(isAuthed());
+    setMobileOpen(false);
   }, [pathname]);
 
   const handleLogout = () => {
@@ -38,16 +40,17 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 py-3 sm:py-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-base sm:text-lg">
+        <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-base sm:text-lg shrink-0">
             M
           </div>
-          <span className="text-base sm:text-xl font-semibold text-foreground whitespace-nowrap">
+          <span className="text-base sm:text-xl font-semibold text-foreground truncate">
             Crinkle Health
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1 overflow-x-auto -mx-2 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.to;
             return (
@@ -88,7 +91,6 @@ export function TopNav() {
             View Deck
           </Link>
 
-
           {authed ? (
             <button
               type="button"
@@ -100,20 +102,93 @@ export function TopNav() {
             </button>
           ) : null}
         </nav>
-      </div>
 
+        {/* Mobile hamburger */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              aria-label="Open menu"
+              className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border border-input text-foreground hover:bg-accent"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[85vw] sm:w-80 p-0 flex flex-col">
+            <SheetHeader className="border-b px-5 py-4">
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-1 p-3 overflow-y-auto">
+              {NAV_ITEMS.map((item) => {
+                const active = pathname === item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={`min-h-11 flex items-center rounded-md px-4 py-3 text-base font-medium transition-colors ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+
+              <Link
+                to="/my-plans"
+                onClick={() => setMobileOpen(false)}
+                className={`min-h-11 flex items-center gap-2 rounded-md px-4 py-3 text-base font-medium transition-colors ${
+                  pathname === "/my-plans"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                {!authed && <Lock className="h-4 w-4 opacity-70" />}
+                My Plans
+              </Link>
+
+              <Link
+                to="/deck"
+                onClick={() => setMobileOpen(false)}
+                className="min-h-11 flex items-center rounded-md px-4 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                View Deck
+              </Link>
+
+              <div className="px-1 pt-2">
+                <TalkToAgentButton />
+              </div>
+
+              {authed ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                  className="mt-2 min-h-11 inline-flex items-center justify-center gap-2 rounded-md border border-input px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              ) : null}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
 
       {/* Journey progress */}
       <div className="border-t bg-muted/40">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 sm:px-6 py-3 text-sm overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
-          <span className="font-semibold text-muted-foreground">Your journey:</span>
+          <span className="font-semibold text-muted-foreground shrink-0">Your journey:</span>
           <ol className="flex items-center gap-2">
             {JOURNEY_STEPS.map((step, idx) => {
               const visited = state.journey.visitedPages.includes(step.path);
               const isCurrent = pathname === step.path;
               return (
-                <li key={step.path} className="flex items-center gap-2">
+                <li key={step.path} className="flex items-center gap-2 shrink-0">
                   <div
                     className={`flex items-center gap-2 rounded-full px-3 py-1 ${
                       isCurrent
