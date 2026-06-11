@@ -113,11 +113,12 @@ const TOOLS = [
     functionDeclarations: [
       {
         name: "navigate_to",
-        description: "Navigate the live website to one of the app pages.",
+        description: "Navigate the live website to one of the app pages. Optionally pre-highlight a section on the destination page by passing its id in `section` — use this instead of chaining a separate highlight_section call when moving to another page.",
         parameters: {
           type: "OBJECT",
           properties: {
             page: { type: "STRING", enum: ["/", "/learn", "/find-doctors", "/compare-plans", "/my-plans", "/login"] },
+            section: { type: "STRING", description: "Optional section id to highlight after navigation, e.g. part-a" },
           },
           required: ["page"],
         },
