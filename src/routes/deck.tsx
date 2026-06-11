@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, ScreenShare, X } from "lucide-react";
-import { useTrackPage } from "@/context/AppContext";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 import liveAgentVideo from "@/assets/live-agent-cobrowse.mp4.asset.json";
 
