@@ -127,8 +127,8 @@ function Home() {
       <section id="plans" className="mt-12 sm:mt-20">
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Coverage for every kind of Medicare</h2>
-            <p className="mt-2 text-base sm:text-lg text-muted-foreground">
+            <h2 className="text-xl sm:text-3xl font-bold text-foreground">Coverage for every kind of Medicare</h2>
+            <p className="mt-2 text-sm sm:text-lg text-muted-foreground">
               Whether you want all-in-one simplicity or the freedom to see any provider, we have a plan that fits.
             </p>
           </div>
@@ -158,9 +158,8 @@ function Home() {
 
       {/* Benefits */}
       <section id="benefits" className="mt-12 sm:mt-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What you can get with a Crinkle Medicare plan</h2>
-        <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-
+        <h2 className="text-xl sm:text-3xl font-bold text-foreground">What you can get with a Crinkle Medicare plan</h2>
+        <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <BenefitItem icon={<Stethoscope className="h-5 w-5" />} title="Primary & specialist visits" desc="$0 copays on many in-network visits." />
           <BenefitItem icon={<Pill className="h-5 w-5" />} title="Prescription drugs" desc="Hundreds of generics at $0 with Part D." />
           <BenefitItem icon={<Smile className="h-5 w-5" />} title="Dental & hearing" desc="Cleanings, exams, and hearing aid allowances." />
@@ -174,7 +173,7 @@ function Home() {
 
       {/* Resources / next steps */}
       <section id="resources" className="mt-12 sm:mt-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New to Medicare? Start here.</h2>
+        <h2 className="text-xl sm:text-3xl font-bold text-foreground">New to Medicare? Start here.</h2>
         <div className="mt-6 grid gap-4 sm:gap-6 md:grid-cols-3">
           <ResourceCard
             to="/learn"
@@ -198,6 +197,11 @@ function Home() {
             desc="Side-by-side premiums, deductibles, and benefits in your area."
           />
         </div>
+        <div className="mt-6 md:hidden">
+          <Link to="/compare-plans" className="block text-center text-base font-semibold text-primary hover:underline">
+            Compare all plans →
+          </Link>
+        </div>
       </section>
 
       {/* Trust strip */}
@@ -206,6 +210,7 @@ function Home() {
         <TrustItem icon={<Heart className="h-5 w-5" />} title="4.5 ★ average plan rating" desc="Across our Medicare Advantage plans (CMS, 2025)." />
         <TrustItem icon={<Phone className="h-5 w-5" />} title="Licensed agents, no pressure" desc="Talk to a real person who only recommends what fits." />
       </section>
+
     </main>
   );
 }
