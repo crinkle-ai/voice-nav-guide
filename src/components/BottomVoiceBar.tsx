@@ -934,9 +934,15 @@ export function BottomVoiceBar() {
     userStoppedRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    // Clear any leftover state from a prior aborted attempt so we can't
+    // auto-fire activate on a stale setupComplete or trip the reconnect cap.
+    pendingActivateRef.current = false;
+    reconnectingRef.current = false;
+    reconnectAttemptsRef.current = 0;
     clearIdleTimers();
     setErrorMsg(null);
     setCaption("");
+
 
     // iOS Safari requires AudioContext to be created synchronously inside the
     // user gesture handler — create both contexts NOW, before any await.
