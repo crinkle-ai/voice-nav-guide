@@ -38,6 +38,7 @@ function SlideDeck() {
       if (e.key === "ArrowRight" || e.key === " ") next();
       else if (e.key === "ArrowLeft") prev();
       else if (e.key === "Enter" && index === MAIN_COUNT - 1) launch();
+      else if (e.key === "Escape") launch();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
