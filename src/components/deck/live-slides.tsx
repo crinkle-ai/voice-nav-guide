@@ -20,8 +20,8 @@ function LiveOpportunitySlide(_: SlideProps) {
     {
       stat: "$200B+",
       claim: "in annual Medicare Advantage premiums — and a category where agent-assisted sales still dominate.",
-      source: "CMS · 2025 Medicare enrollment data",
-      href: "https://www.cms.gov/research-statistics-data-and-systems/statistics-trends-and-reports",
+      source: "CMS · Medicare Enrollment Dashboard",
+      href: "https://data.cms.gov/summary-statistics-on-beneficiary-enrollment/medicare-and-medicaid-reports/medicare-monthly-enrollment",
     },
     {
       stat: "1 in 3",
