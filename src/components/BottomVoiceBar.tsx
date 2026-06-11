@@ -559,6 +559,9 @@ export function BottomVoiceBar() {
           // Live-session reconnect just completed.
           reconnectingRef.current = false;
           reconnectAttemptsRef.current = 0;
+          // Force the next pathname effect to re-push [CURRENT PAGE] so the
+          // freshly-reconnected model knows where the user actually is.
+          lastSentPathRef.current = null;
           sendNoopTurn();
           statusRef.current = "live";
           setStatus("live");
@@ -570,6 +573,7 @@ export function BottomVoiceBar() {
             sendNoopTurn();
           }, PREWARM_KEEPALIVE_MS);
         }
+
       }
 
       if (msg.serverContent?.modelTurn?.parts) {
