@@ -150,15 +150,17 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouter().state.location.pathname;
+  const hideVoiceBar = pathname.startsWith("/deck");
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <LiveAdviseProvider>
-          <div className="min-h-screen bg-background pb-40 sm:pb-36 text-foreground [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]">
+          <div className={`min-h-screen bg-background text-foreground ${hideVoiceBar ? "" : "pb-40 sm:pb-36 [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]"}`}>
             <TopNav />
             <Outlet />
-            <BottomVoiceBar />
+            {!hideVoiceBar && <BottomVoiceBar />}
             <AgentHighlightOverlay />
             <PushedComparisonDrawer />
             <LiveAdvisePanel />
@@ -168,5 +170,6 @@ function RootComponent() {
       </AppProvider>
     </QueryClientProvider>
   );
+
 }
 
