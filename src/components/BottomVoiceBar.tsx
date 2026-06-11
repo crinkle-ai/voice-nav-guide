@@ -216,6 +216,7 @@ export function BottomVoiceBar() {
   const prewarmInFlightRef = useRef(false);
   const pendingActivateRef = useRef(false);
   const prewarmReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prewarmReconnectAttemptsRef = useRef(0);
   const userStoppedRef = useRef(false);
   const lastAudioProcessAtRef = useRef<number>(0);
   const lastAudioChunkRef = useRef<number>(0);
@@ -225,9 +226,11 @@ export function BottomVoiceBar() {
   const reconnectLiveRef = useRef<(() => void) | null>(null);
   const rebuildMicPipelineRef = useRef<(() => void) | null>(null);
   const micTeardownInProgressRef = useRef(false);
+  const micRebuildInFlightRef = useRef(false);
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
   const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
 
 
