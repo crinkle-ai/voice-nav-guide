@@ -43,7 +43,7 @@ export function LiveAdvisePanel() {
   }
 
   return (
-    <div className="fixed top-20 bottom-44 right-4 z-[50] flex w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-card shadow-2xl shadow-emerald-500/20 animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed top-20 bottom-44 right-4 z-[50] flex w-[420px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-card shadow-2xl shadow-emerald-500/20 animate-in slide-in-from-bottom-4 duration-300">
       {/* Header: agent video tile */}
       <div className="relative h-56 overflow-hidden bg-gradient-to-br from-emerald-900 to-emerald-700">
         <img
