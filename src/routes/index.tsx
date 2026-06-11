@@ -173,9 +173,9 @@ function Home() {
       </section>
 
       {/* Resources / next steps */}
-      <section id="resources" className="mt-20">
-        <h2 className="text-3xl font-bold text-foreground">New to Medicare? Start here.</h2>
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
+      <section id="resources" className="mt-12 sm:mt-20">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">New to Medicare? Start here.</h2>
+        <div className="mt-6 grid gap-4 sm:gap-6 md:grid-cols-3">
           <ResourceCard
             to="/learn"
             icon={<BookOpen className="h-6 w-6" />}
@@ -201,7 +201,7 @@ function Home() {
       </section>
 
       {/* Trust strip */}
-      <section id="trust" className="mt-20 grid gap-4 rounded-xl border bg-muted/40 p-6 md:grid-cols-3">
+      <section id="trust" className="mt-12 sm:mt-20 grid gap-4 rounded-xl border bg-muted/40 p-4 sm:p-6 md:grid-cols-3">
         <TrustItem icon={<ShieldCheck className="h-5 w-5" />} title="A Medicare-approved carrier" desc="Contracted with the federal Medicare program." />
         <TrustItem icon={<Heart className="h-5 w-5" />} title="4.5 ★ average plan rating" desc="Across our Medicare Advantage plans (CMS, 2025)." />
         <TrustItem icon={<Phone className="h-5 w-5" />} title="Licensed agents, no pressure" desc="Talk to a real person who only recommends what fits." />
@@ -209,6 +209,7 @@ function Home() {
     </main>
   );
 }
+
 
 function PlanCard({ badge, title, desc, bullets }: { badge?: string; title: string; desc: string; bullets: string[] }) {
   return (
