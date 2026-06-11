@@ -31,13 +31,18 @@ export const Route = createFileRoute("/api/tts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const fallback = (reason: string) =>
+          new Response(JSON.stringify({ fallback: true, reason }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
         try {
           const { text, voice } = (await request.json()) as { text: string; voice?: string };
           if (!text || typeof text !== "string" || text.length > 800) {
             return new Response("Invalid text", { status: 400 });
           }
           const apiKey = process.env.GEMINI_API_KEY;
-          if (!apiKey) return new Response("Missing GEMINI_API_KEY", { status: 500 });
+          if (!apiKey) return fallback("missing_key");
 
           const ai = new GoogleGenAI({ apiKey });
           const resp = await ai.models.generateContent({
@@ -57,7 +62,7 @@ export const Route = createFileRoute("/api/tts")({
           const part = resp.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
           const b64 = (part as any)?.inlineData?.data;
           const mime: string = (part as any)?.inlineData?.mimeType || "audio/L16;rate=24000";
-          if (!b64) return new Response("No audio returned", { status: 502 });
+          if (!b64) return fallback("no_audio");
 
           const pcm = Buffer.from(b64, "base64");
           const rateMatch = mime.match(/rate=(\d+)/);
@@ -73,7 +78,7 @@ export const Route = createFileRoute("/api/tts")({
           });
         } catch (e) {
           console.error("TTS error", e);
-          return new Response("TTS failed", { status: 500 });
+          return fallback("exception");
         }
       },
     },
