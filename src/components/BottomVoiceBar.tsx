@@ -657,6 +657,7 @@ export function BottomVoiceBar() {
       wsRef.current = ws;
       attachWsHandlers(ws);
       ws.onopen = () => {
+        prewarmReconnectAttemptsRef.current = 0;
         try { ws.send(JSON.stringify({ setup: {} })); } catch { /* noop */ }
       };
       ws.onerror = () => { /* handled by onclose */ };
@@ -673,13 +674,19 @@ export function BottomVoiceBar() {
           return;
         }
         if (!userStoppedRef.current) {
+          // Cap the prewarm-only reconnect so we don't hammer a down server.
+          const attempt = prewarmReconnectAttemptsRef.current + 1;
+          prewarmReconnectAttemptsRef.current = attempt;
+          if (attempt > 8) return;
+          const delay = Math.min(2000 * 2 ** Math.max(0, attempt - 1), 30_000);
           if (prewarmReconnectTimerRef.current) clearTimeout(prewarmReconnectTimerRef.current);
-          prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, 2000);
+          prewarmReconnectTimerRef.current = setTimeout(() => { void prewarm(); }, delay);
         }
       };
     } catch { /* swallow — user will retry via Start */ }
     finally { prewarmInFlightRef.current = false; }
   }, [attachWsHandlers, scheduleLiveReconnect]);
+
 
   // Activate the pre-warmed session: get mic, wire audio contexts, send greeting.
   // Requires the WS to be open and setupComplete received.
