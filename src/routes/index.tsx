@@ -124,19 +124,19 @@ function Home() {
       </section>
 
       {/* Plan types */}
-      <section id="plans" className="mt-20">
+      <section id="plans" className="mt-12 sm:mt-20">
         <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold text-foreground">Coverage for every kind of Medicare</h2>
-            <p className="mt-2 text-lg text-muted-foreground">
+          <div className="min-w-0">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Coverage for every kind of Medicare</h2>
+            <p className="mt-2 text-base sm:text-lg text-muted-foreground">
               Whether you want all-in-one simplicity or the freedom to see any provider, we have a plan that fits.
             </p>
           </div>
-          <Link to="/compare-plans" className="hidden text-base font-semibold text-primary hover:underline md:inline">
+          <Link to="/compare-plans" className="hidden text-base font-semibold text-primary hover:underline md:inline shrink-0">
             Compare all plans →
           </Link>
         </div>
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:gap-6 md:grid-cols-3">
           <PlanCard
             badge="Most popular"
             title="Medicare Advantage (Part C)"
@@ -157,9 +157,10 @@ function Home() {
       </section>
 
       {/* Benefits */}
-      <section id="benefits" className="mt-20">
-        <h2 className="text-3xl font-bold text-foreground">What you can get with a Crinkle Medicare plan</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <section id="benefits" className="mt-12 sm:mt-20">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What you can get with a Crinkle Medicare plan</h2>
+        <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+
           <BenefitItem icon={<Stethoscope className="h-5 w-5" />} title="Primary & specialist visits" desc="$0 copays on many in-network visits." />
           <BenefitItem icon={<Pill className="h-5 w-5" />} title="Prescription drugs" desc="Hundreds of generics at $0 with Part D." />
           <BenefitItem icon={<Smile className="h-5 w-5" />} title="Dental & hearing" desc="Cleanings, exams, and hearing aid allowances." />
