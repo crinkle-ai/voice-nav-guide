@@ -106,7 +106,7 @@ export function LiveAdvisePanel() {
       </div>
 
       {/* Transcript */}
-      <div ref={scrollRef} className="h-48 overflow-y-auto px-3 py-2 space-y-2">
+      <div ref={scrollRef} className="h-40 overflow-y-auto px-3 py-2 space-y-2">
         {transcript.length === 0 && !connecting && (
           <p className="text-xs text-muted-foreground italic">Sarah is on the line…</p>
         )}
