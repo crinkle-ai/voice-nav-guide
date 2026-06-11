@@ -68,6 +68,14 @@ function SlideDeck() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      <button
+        onClick={launch}
+        className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-card/90 border shadow-lg backdrop-blur transition hover:bg-card"
+        aria-label="Close deck"
+      >
+        <X className="h-5 w-5 md:h-6 md:w-6" />
+      </button>
+
       <div className="relative flex-1 overflow-hidden pb-24">
         {SLIDES.map((Slide, i) => (
           <div
