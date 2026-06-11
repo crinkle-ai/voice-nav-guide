@@ -37,24 +37,24 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 py-3 sm:py-4">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-base sm:text-lg">
             M
           </div>
-          <span className="text-xl font-semibold text-foreground">
+          <span className="text-base sm:text-xl font-semibold text-foreground whitespace-nowrap">
             Crinkle Health
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto -mx-2 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.to;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`rounded-md px-4 py-2 text-base font-medium transition-colors ${
+                className={`shrink-0 rounded-md px-3 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors ${
                   active
                     ? "bg-primary text-primary-foreground"
                     : "text-foreground hover:bg-accent hover:text-accent-foreground"
@@ -67,7 +67,7 @@ export function TopNav() {
 
           <Link
             to="/my-plans"
-            className={`flex items-center gap-1.5 rounded-md px-4 py-2 text-base font-medium transition-colors ${
+            className={`shrink-0 flex items-center gap-1.5 rounded-md px-3 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors ${
               pathname === "/my-plans"
                 ? "bg-primary text-primary-foreground"
                 : "text-foreground hover:bg-accent hover:text-accent-foreground"
@@ -82,11 +82,10 @@ export function TopNav() {
 
           <Link
             to="/deck"
-            className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-            title="About this demo (executive deck)"
-            aria-label="About this demo"
+            className="shrink-0 ml-1 inline-flex items-center rounded-md px-3 py-2 text-sm sm:text-base font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            title="View executive deck"
           >
-            <Info className="h-5 w-5" />
+            View Deck
           </Link>
 
 
@@ -94,7 +93,7 @@ export function TopNav() {
             <button
               type="button"
               onClick={handleLogout}
-              className="ml-1 inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className="shrink-0 ml-1 inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
               title="Sign out (resets demo)"
             >
               <LogOut className="h-3.5 w-3.5" /> Sign out
@@ -102,6 +101,7 @@ export function TopNav() {
           ) : null}
         </nav>
       </div>
+
 
       {/* Journey progress */}
       <div className="border-t bg-muted/40">
