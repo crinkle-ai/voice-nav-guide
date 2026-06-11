@@ -45,11 +45,10 @@ export function LiveAdvisePanel() {
   return (
     <div className="fixed bottom-44 right-4 z-[50] flex w-[420px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-card shadow-2xl shadow-emerald-500/20 animate-in slide-in-from-bottom-4 duration-300">
       {/* Header: agent video tile */}
-      <div className="relative h-72 overflow-hidden bg-gradient-to-br from-emerald-900 to-emerald-700">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-emerald-900 to-emerald-700">
         <img
           src={agent.avatar}
           alt={agent.name}
-          style={{ objectPosition: "center 20%" }}
           className={cn(
             "h-full w-full object-cover object-center transition-all duration-500",
             connecting && "blur-sm opacity-50",
