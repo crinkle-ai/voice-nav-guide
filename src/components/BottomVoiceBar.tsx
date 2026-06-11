@@ -1249,7 +1249,7 @@ export function BottomVoiceBar() {
       )}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
 
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 pr-36 sm:gap-4 sm:px-6 sm:pr-40">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:pr-40">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
           M
         </div>
