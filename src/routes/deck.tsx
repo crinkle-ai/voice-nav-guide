@@ -14,7 +14,6 @@ export const Route = createFileRoute("/deck")({
 });
 
 function DeckChooser() {
-  useTrackPage("deck-chooser", "/deck");
   const navigate = useNavigate();
 
   return (
