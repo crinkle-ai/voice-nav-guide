@@ -394,6 +394,7 @@ export function BottomVoiceBar() {
 
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
+          turnNavFiredRef.current = true;
           const raw = fc.args.page as string;
           let page = (raw === "/home" ? "/" : raw) as
             | "/" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
