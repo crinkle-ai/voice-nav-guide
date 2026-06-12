@@ -495,6 +495,7 @@ export function BottomVoiceBar() {
             respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
           }
         } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
+          turnNavFiredRef.current = true;
           const term = fc.args.term as string;
           const section = `glossary-${term}`;
           lastSentPathRef.current = "/learn";
