@@ -92,7 +92,7 @@ function FindDoctors() {
         {doctors.map((d) => {
           const saved = state.savedDoctorIds.includes(d.id);
           return (
-            <article key={d.id} className="flex flex-col gap-3 rounded-xl border bg-card p-5 md:flex-row md:items-start md:justify-between">
+            <article key={d.id} id={`doctor-${d.id}`} className="flex flex-col gap-3 rounded-xl border bg-card p-5 scroll-mt-24 md:flex-row md:items-start md:justify-between">
               <div>
                 <h3 className="text-xl font-semibold text-foreground">{d.name}</h3>
                 <p className="text-muted-foreground">{d.specialty}</p>
