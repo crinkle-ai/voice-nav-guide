@@ -42,6 +42,44 @@ function matchesMyPlansIntent(text: string): boolean {
   return MY_PLANS_TRIGGERS.some((re) => re.test(text));
 }
 
+// User explicitly names a destination. Order matters — check "learn" first
+// because "learn more about plans" should still mean Learn, not Plans.
+type NavTarget = "/" | "/learn" | "/find-doctors" | "/compare-plans";
+const NAV_USER_TRIGGERS: Array<{ re: RegExp; to: NavTarget }> = [
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\b(open|show|pull\s+up)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\bi(?:'d| would)?\s+like\s+to\s+learn\s+(more\s+)?about\s+medicare\b/i, to: "/learn" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?(find\s+a\s+)?doctors?(\s+page)?\b/i, to: "/find-doctors" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?(find\s+a\s+)?doctors?(\s+page)?\b/i, to: "/find-doctors" },
+  { re: /\b(find|search\s+for)\s+(a\s+)?doctors?\s+(page|finder|tool)\b/i, to: "/find-doctors" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\b(open|show|pull\s+up)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\bcompare\s+(the\s+)?plans?\b/i, to: "/compare-plans" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?home(\s*page)?\b/i, to: "/" },
+  { re: /\b(go|head|navigate)\s+(to|back\s+to)\s+(the\s+)?home(\s*page)?\b/i, to: "/" },
+];
+
+function matchesNavIntent(text: string): NavTarget | null {
+  for (const { re, to } of NAV_USER_TRIGGERS) if (re.test(text)) return to;
+  return null;
+}
+
+// Model said it would navigate but never fired the tool. Same idea, but
+// matches the model's own narration phrasing ("taking you to…", "I'll open…").
+function modelAnnouncedNav(text: string): NavTarget | null {
+  const t = text.toLowerCase();
+  if (t.trim().endsWith("?")) return null;
+  const intent = /(taking you|take you|i'?ll open|i'?ve opened|opening (up )?(the )?|let'?s (go|head)|head(ing)? (over )?to|bring(ing)? you (to|over)|pulling up|i'?ll pull up|i'?ll go ahead|let me (take|pull) you)/i.test(t);
+  if (!intent) return null;
+  if (/learn/.test(t)) return "/learn";
+  if (/doctor/.test(t)) return "/find-doctors";
+  if (/(compare|plans page|plan page)/.test(t)) return "/compare-plans";
+  if (/(home ?page|back home)/.test(t)) return "/";
+  return null;
+}
+
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
   deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
