@@ -635,6 +635,7 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.modelTurn?.parts) {
+        modelTurnActiveRef.current = true;
         for (const part of msg.serverContent.modelTurn.parts) {
           if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
             playPcm(part.inlineData.data);
@@ -676,16 +677,53 @@ export function BottomVoiceBar() {
             }
           });
         }
+        // Deterministic page navigation when the user names a destination.
+        const navTarget = matchesNavIntent(transcript);
+        if (navTarget && navTarget !== curPath) {
+          fireOnce(`nav:${navTarget}`, () => {
+            turnNavFiredRef.current = true;
+            lastSentPathRef.current = navTarget;
+            dispatch({ type: "SET_HIGHLIGHT", section: null });
+            navigate({ to: navTarget });
+          });
+        }
       }
       if (msg.serverContent?.outputTranscription?.text) {
         const outputText = msg.serverContent.outputTranscription.text;
-        if (!isInternalControlText(outputText)) setLiveCaption(outputText);
+        if (!isInternalControlText(outputText)) {
+          turnOutputTranscriptRef.current += " " + outputText;
+          setLiveCaption(outputText);
+        }
       }
       if (msg.serverContent?.turnComplete) {
-        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Safety net: model narrated a navigation but never called the tool.
+        if (!turnNavFiredRef.current) {
+          const target = modelAnnouncedNav(turnOutputTranscriptRef.current);
+          if (target && target !== pathnameRef.current) {
+            console.warn(`[BottomVoiceBar] Fallback nav from model narration → ${target}`);
+            lastSentPathRef.current = target;
+            dispatch({ type: "SET_HIGHLIGHT", section: null });
+            navigate({ to: target });
+          }
+        }
+        modelTurnActiveRef.current = false;
+        turnNavFiredRef.current = false;
         turnTranscriptRef.current = "";
+        turnOutputTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Flush any page context we held back while she was speaking.
+        const queued = pendingPageContextRef.current;
+        if (queued) {
+          pendingPageContextRef.current = null;
+          const sock = wsRef.current;
+          if (sock && sock.readyState === WebSocket.OPEN) {
+            sock.send(JSON.stringify({
+              clientContent: { turns: [{ role: "user", parts: [{ text: queued }] }], turnComplete: false },
+            }));
+          }
+        }
       }
 
       if (msg.serverContent?.interrupted) {
