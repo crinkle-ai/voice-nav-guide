@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
-import liveAgentVideo from "@/assets/live-agent-cobrowse.mp4.asset.json";
+
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,20 +108,14 @@ function Home() {
       <section id="demo" className="mt-10 sm:mt-16">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">See how it works</h2>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-          Two ways to get help — talk to your AI guide, or hand off to a licensed agent who co-browses with you in real time.
+          Talk to your AI Medicare guide — it drives the site for you, from learning the basics to comparing plans.
         </p>
-        <div className="mt-4 sm:mt-6 grid gap-5 sm:gap-6 md:grid-cols-2">
+        <div className="mt-4 sm:mt-6 grid gap-5 sm:gap-6">
           <DemoVideoCard
             kicker="AI Guide"
             title="Find & compare Medicare plans with AI"
             desc="A quick walkthrough of using your AI guide to shop plans."
             src={demoVideo.url}
-          />
-          <DemoVideoCard
-            kicker="Live Agent · Co-browse"
-            title="Hand off to a licensed agent"
-            desc="Sarah joins the session and walks you through Aetna PPO vs. Humana HMO."
-            src={liveAgentVideo.url}
           />
         </div>
       </section>

@@ -3,7 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { Check, Lock, LogOut, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isAuthed, signOut } from "@/lib/mock-auth";
-import { TalkToAgentButton } from "@/components/TalkToAgentButton";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
@@ -81,7 +81,6 @@ export function TopNav() {
             My Plans
           </Link>
 
-          <TalkToAgentButton />
 
           <Link
             to="/deck"
@@ -158,9 +157,6 @@ export function TopNav() {
                 View Deck
               </Link>
 
-              <div className="px-1 pt-2">
-                <TalkToAgentButton />
-              </div>
 
               {authed ? (
                 <button
