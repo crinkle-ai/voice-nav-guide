@@ -177,7 +177,13 @@ export function BottomVoiceBar() {
   const [cbPhone, setCbPhone] = useState("");
   const [cbSnapshot, setCbSnapshot] = useState<CallbackSnapshot | null>(null);
   const turnTranscriptRef = useRef<string>("");
+  const turnOutputTranscriptRef = useRef<string>("");
+  const turnNavFiredRef = useRef<boolean>(false);
   const turnFallbackFiredRef = useRef<Set<string>>(new Set());
+  // If a [CURRENT PAGE] push arrives while the model is mid-turn, queue it
+  // and send after turnComplete so we don't cut her off.
+  const pendingPageContextRef = useRef<string | null>(null);
+  const modelTurnActiveRef = useRef<boolean>(false);
 
 
   const openAgentCallback = useCallback(() => {
