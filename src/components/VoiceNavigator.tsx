@@ -123,6 +123,10 @@ export function VoiceNavigator() {
     }
   }, [messages, navigate, dispatch]);
 
+  // Hold references to active utterances so Chrome doesn't GC them mid-speech
+  const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
+  const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Read latest assistant message aloud
   useEffect(() => {
     if (!voiceOn || typeof window === "undefined" || !window.speechSynthesis) return;
@@ -136,24 +140,65 @@ export function VoiceNavigator() {
     lastSpokenIdRef.current = last.id;
     spokenIdsRef.current.add(last.id);
     speakingInProgressRef.current = true;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.98;
-    u.onstart = () => dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
-    u.onend = () => {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    utterancesRef.current = [];
+
+    // Chrome cuts off utterances longer than ~200 chars / 15s. Split into
+    // sentence-sized chunks and queue them sequentially.
+    const chunks = text
+      .match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g)
+      ?.map((s) => s.trim())
+      .filter(Boolean) ?? [text];
+    // Further split any chunk over ~180 chars on commas / spaces
+    const sized: string[] = [];
+    for (const c of chunks) {
+      if (c.length <= 180) { sized.push(c); continue; }
+      const parts = c.split(/,\s+/);
+      let buf = "";
+      for (const p of parts) {
+        if ((buf + ", " + p).length > 180 && buf) { sized.push(buf); buf = p; }
+        else buf = buf ? `${buf}, ${p}` : p;
+      }
+      if (buf) sized.push(buf);
+    }
+
+    dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
+
+    // Chrome bug workaround: speechSynthesis pauses itself after ~15s.
+    // Periodically resume to keep the queue alive.
+    if (keepAliveRef.current) clearInterval(keepAliveRef.current);
+    keepAliveRef.current = setInterval(() => {
+      if (synth.speaking) {
+        synth.pause();
+        synth.resume();
+      }
+    }, 10000);
+
+    const finish = () => {
       speakingInProgressRef.current = false;
+      utterancesRef.current = [];
+      if (keepAliveRef.current) { clearInterval(keepAliveRef.current); keepAliveRef.current = null; }
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     };
-    u.onerror = () => {
-      speakingInProgressRef.current = false;
-      dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-    };
-    window.speechSynthesis.speak(u);
+
+    sized.forEach((chunk, i) => {
+      const u = new SpeechSynthesisUtterance(chunk);
+      u.rate = 0.98;
+      if (i === sized.length - 1) {
+        u.onend = finish;
+        u.onerror = finish;
+      }
+      utterancesRef.current.push(u);
+      synth.speak(u);
+    });
 
     return () => {
       if (typeof window !== "undefined" && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      if (keepAliveRef.current) { clearInterval(keepAliveRef.current); keepAliveRef.current = null; }
+      utterancesRef.current = [];
       speakingInProgressRef.current = false;
     };
   }, [messages, status, voiceOn, dispatch]);
