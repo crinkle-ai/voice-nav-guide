@@ -225,7 +225,10 @@ export const Route = createFileRoute("/api/voice-session")({
                     automaticActivityDetection: {
                       endOfSpeechSensitivity: "END_SENSITIVITY_LOW",
                       silenceDurationMs: 800,
-                      startOfSpeechSensitivity: "START_SENSITIVITY_LOW",
+                      // HIGH = more easily detects the user starting to speak.
+                      // LOW required loud, crisp speech and made the model deaf
+                      // to normal voices through laptop mics + noise suppression.
+                      startOfSpeechSensitivity: "START_SENSITIVITY_HIGH",
                     },
                   },
                   tools: TOOLS,

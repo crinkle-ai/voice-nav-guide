@@ -138,6 +138,38 @@ type LiveServerMessage = {
   };
 };
 
+// Downsample Float32 audio to 16 kHz when the AudioContext is running at a
+// different hardware rate (Safari and some devices ignore the requested
+// sampleRate). Without this, 48 kHz audio gets labeled "rate=16000" and the
+// model hears unintelligible slowed-down audio — it never detects speech.
+function resampleTo16k(input: Float32Array, fromRate: number): Float32Array {
+  if (fromRate === 16000) return input;
+  const ratio = fromRate / 16000;
+  const outLength = Math.floor(input.length / ratio);
+  const out = new Float32Array(outLength);
+  for (let i = 0; i < outLength; i++) {
+    const start = Math.floor(i * ratio);
+    const end = Math.min(Math.floor((i + 1) * ratio), input.length);
+    let sum = 0;
+    for (let j = start; j < end; j++) sum += input[j];
+    out[i] = end > start ? sum / (end - start) : input[start] ?? 0;
+  }
+  return out;
+}
+
+// Track mic signal level so the audit trail can tell "uploading silence"
+// apart from "uploading real speech the model is ignoring".
+let lastLevelAuditAt = 0;
+function auditMicLevel(input: Float32Array) {
+  const now = Date.now();
+  if (now - lastLevelAuditAt < 3000) return;
+  lastLevelAuditAt = now;
+  let sum = 0;
+  for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+  const rms = Math.sqrt(sum / input.length);
+  console.log(`[VoiceAudit] mic level rms=${rms.toFixed(4)}${rms < 0.001 ? " — SILENT (check OS mic/input device)" : ""}`);
+}
+
 // 16-bit PCM encode from Float32 [-1, 1]
 function floatTo16BitPCM(input: Float32Array): ArrayBuffer {
   const buffer = new ArrayBuffer(input.length * 2);
@@ -892,6 +924,7 @@ export function BottomVoiceBar() {
         micCtxRef.current = micCtx;
       }
       void micCtx.resume().catch(() => {});
+      console.log(`[VoiceAudit] mic context sampleRate=${micCtx.sampleRate}${micCtx.sampleRate !== 16000 ? " — resampling to 16k before upload" : ""}`);
       const source = micCtx.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
@@ -909,7 +942,8 @@ export function BottomVoiceBar() {
         if (!sock || sock.readyState !== WebSocket.OPEN) { micAudit("blocked: socket not open"); return; }
         micAudit("uploading audio");
         const input = e.inputBuffer.getChannelData(0);
-        const pcm = floatTo16BitPCM(input);
+        auditMicLevel(input);
+        const pcm = floatTo16BitPCM(resampleTo16k(input, micCtx!.sampleRate));
         sock.send(
           JSON.stringify({
             realtimeInput: {
@@ -1098,7 +1132,8 @@ export function BottomVoiceBar() {
           if (!sock || sock.readyState !== WebSocket.OPEN) { micAudit("blocked: socket not open (rebuilt mic)"); return; }
           micAudit("uploading audio (rebuilt mic)");
           const input = e.inputBuffer.getChannelData(0);
-          const pcm = floatTo16BitPCM(input);
+          auditMicLevel(input);
+          const pcm = floatTo16BitPCM(resampleTo16k(input, micCtx.sampleRate));
           sock.send(
             JSON.stringify({
               realtimeInput: {
