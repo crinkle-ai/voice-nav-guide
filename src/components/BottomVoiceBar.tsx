@@ -592,6 +592,9 @@ export function BottomVoiceBar() {
     startingRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    welcomeInProgressRef.current = false;
+    modelSpeakingRef.current = false;
+    modelTurnActiveRef.current = false;
     statusRef.current = "idle";
     setStatus("idle");
     setCaption("");
