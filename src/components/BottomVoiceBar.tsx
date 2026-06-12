@@ -941,7 +941,8 @@ export function BottomVoiceBar() {
         if (!sock || sock.readyState !== WebSocket.OPEN) { micAudit("blocked: socket not open"); return; }
         micAudit("uploading audio");
         const input = e.inputBuffer.getChannelData(0);
-        const pcm = floatTo16BitPCM(input);
+        auditMicLevel(input);
+        const pcm = floatTo16BitPCM(resampleTo16k(input, micCtx!.sampleRate));
         sock.send(
           JSON.stringify({
             realtimeInput: {
