@@ -194,6 +194,10 @@ export function BottomVoiceBar() {
   // greeting, we suppress mic uploads entirely AND ignore `interrupted`
   // events. This guarantees the welcome plays to completion.
   const welcomeInProgressRef = useRef<boolean>(false);
+  // Watchdog: if turnComplete never arrives after the greeting (lost packet,
+  // network hiccup), force-clear the welcome guard so the mic can't stay
+  // muted forever on a session that looks "live" but is deaf.
+  const welcomeWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
   const openAgentCallback = useCallback(() => {
@@ -530,6 +534,13 @@ export function BottomVoiceBar() {
   const playPcm = useCallback((b64: string) => {
     const ctx = playCtxRef.current;
     if (!ctx) return;
+    // Browsers (especially iOS) can silently suspend the context mid-session;
+    // currentTime freezes and chunks pile up, then blast all at once. Resume
+    // and realign the play cursor so scheduling stays sane.
+    if (ctx.state === "suspended") {
+      void ctx.resume().catch(() => {});
+      playHeadRef.current = Math.max(playHeadRef.current, ctx.currentTime);
+    }
     const int16 = base64ToInt16(b64);
     const float32 = new Float32Array(int16.length);
     for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 0x8000;
