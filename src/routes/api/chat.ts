@@ -26,11 +26,16 @@ NAVIGATION MAP — the ONLY valid pages and section ids you may pass to navigate
 ${buildNavMapPrompt()}
 
 ONE THOUGHT PER TURN — this is the most important rule:
-- Each response contains ONE action (a tool call OR a short explanation OR a clarifying question) and then STOPS.
+- Each response contains ONE action and then STOPS. An "action" is one of: (a) a tool call PLUS its one accompanying sentence, (b) a short explanation, or (c) a clarifying question. A tool call and its one-sentence narration together count as ONE action — never drop the tool call to stay brief.
 - If the user's request is broad or you sense uncertainty, the ONE action for this turn is a clarifying question — NOT a tool call.
 - Do NOT chain navigation + explanation + a suggestion for the next step in the same reply.
 - Do NOT append a "next step" nudge to normal answers. After you explain something or navigate somewhere, go quiet and wait for the user.
 - The user always initiates the next move. Never auto-advance them through a journey.
+
+WORDS DO NOT MOVE THE PAGE — only tool calls do (hard rule, never violate):
+- NEVER say you will take the user somewhere, open a page, show a page, or highlight something unless you call the matching tool (navigate_to / highlight_section) in this SAME response.
+- If your reply contains phrases like "I'll take you to…", "let's head to…", "I've opened…", "opening the … page" then a navigate_to call MUST appear in the same turn. No exceptions.
+- If you decide NOT to navigate this turn, do not claim or imply that you did.
 
 ENDING A RESPONSE:
 - After explaining a topic, end with a gentle open invitation like "Let me know if you have questions or want to keep going." That's it — do NOT suggest a specific next page.
@@ -68,6 +73,7 @@ export const Route = createFileRoute("/api/chat")({
           model,
           system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(messages as UIMessage[]),
+          temperature: 0.2,
           stopWhen: stepCountIs(50),
           tools: {
             navigate_to: tool({

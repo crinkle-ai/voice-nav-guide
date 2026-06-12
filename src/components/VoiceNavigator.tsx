@@ -130,6 +130,34 @@ export function VoiceNavigator() {
     }
   }, [messages, navigate, dispatch]);
 
+  // Safety net: if she SAYS she's navigating but never called navigate_to, navigate anyway.
+  const fallbackNavIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (status === "streaming" || status === "submitted") return;
+    const last = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!last || fallbackNavIdsRef.current.has(last.id)) return;
+    fallbackNavIdsRef.current.add(last.id);
+    const calledNav = last.parts.some((p) => p.type === "tool-navigate_to");
+    if (calledNav) return;
+    const text = extractText(last).toLowerCase();
+    // Only fire on explicit "I'm doing it now" phrasing — never on questions/offers.
+    const intent = /(take you|taking you|i'?ll open|i'?ve opened|opening up|let'?s (go|head)|head(ing)? (over )?to|bring(ing)? you (to|over)|i'?ll go ahead)/.test(text);
+    if (!intent || text.trim().endsWith("?")) return;
+    const target = /learn/.test(text)
+      ? "/learn"
+      : /doctor/.test(text)
+        ? "/find-doctors"
+        : /(compare|plans page)/.test(text)
+          ? "/compare-plans"
+          : /(home ?page|back home)/.test(text)
+            ? "/"
+            : null;
+    if (target) {
+      console.warn(`[VoiceNavigator] Fallback navigation: assistant announced navigation without calling navigate_to → ${target}`);
+      navigate({ to: target as "/" | "/learn" | "/find-doctors" | "/compare-plans" });
+    }
+  }, [messages, status, navigate]);
+
   // Hold references to active utterances so Chrome doesn't GC them mid-speech
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
