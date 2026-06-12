@@ -648,6 +648,7 @@ export function BottomVoiceBar() {
         modelTurnActiveRef.current = true;
         for (const part of msg.serverContent.modelTurn.parts) {
           if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
+            modelSpeakingRef.current = true;
             playPcm(part.inlineData.data);
             dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
           }
