@@ -845,7 +845,10 @@ export function BottomVoiceBar() {
       }
       void playCtx.resume().catch(() => {});
       playHeadRef.current = 0;
-      lastSentPathRef.current = null;
+      // Mark the current pathname as already pushed — we include it in the
+      // greeting prompt below, so the page-context effect must NOT fire a
+      // separate [CURRENT PAGE] message that would interrupt the welcome.
+      lastSentPathRef.current = pathnameRef.current;
 
       // Send the greeting now — Gemini will respond with audio over the
       // already-open socket, so the user hears a real voice with no delay.
@@ -854,9 +857,12 @@ export function BottomVoiceBar() {
         const hasIntroduced =
           typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
         if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+        const authTag = isAuthed() ? "[AUTH: signed-in]" : "[AUTH: signed-out]";
+        const pageTag = `[CURRENT PAGE: ${pathnameRef.current}] ${authTag}`;
         const greetingPrompt = hasIntroduced
-          ? "[SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. 'I'm here — how can I help?'), then wait silently for them to speak."
-          : "[SESSION_START] Greet the user in ONE short sentence as their Medicare Navigator and invite their question, then wait silently for them to speak. Do not end or close the session — keep listening.";
+          ? `${pageTag} [SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. "I'm here — how can I help?"), then wait silently for them to speak. Do NOT mention the current page.`
+          : `${pageTag} [SESSION_START] Greet the user in ONE short, complete sentence as their Medicare Navigator and invite their question. Then wait silently. Do NOT mention the current page. Do NOT call any tools. Do NOT end the session.`;
+        modelTurnActiveRef.current = true;
         ws.send(
           JSON.stringify({
             clientContent: {
@@ -866,6 +872,7 @@ export function BottomVoiceBar() {
           }),
         );
       }
+
 
       statusRef.current = "live";
       setStatus("live");
