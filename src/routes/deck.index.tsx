@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, ScreenShare, X } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
-import liveAgentVideo from "@/assets/live-agent-cobrowse.mp4.asset.json";
 
 export const Route = createFileRoute("/deck/")({
   head: () => ({
     meta: [
-      { title: "Executive Decks · Crinkle Navigator" },
-      { name: "description", content: "Choose a deck — AI Navigator or Live Agent Co-browse." },
+      { title: "Executive Deck · Crinkle Navigator" },
+      { name: "description", content: "Medicare Navigator — voice-guided AI executive preview." },
     ],
   }),
   component: DeckChooser,
@@ -26,18 +25,18 @@ function DeckChooser() {
         <X className="h-5 w-5 md:h-6 md:w-6" />
       </button>
 
-      <div className="mx-auto w-full max-w-7xl px-6 md:px-10 py-10 md:py-16">
+      <div className="mx-auto w-full max-w-5xl px-6 md:px-10 py-10 md:py-16">
         <div className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          Executive previews
+          Executive preview
         </div>
         <h1 className="mt-2 text-2xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-4xl">
-          Two stories. <span className="text-primary">Pick your deck.</span>
+          Medicare Navigator. <span className="text-primary">Open the deck.</span>
         </h1>
         <p className="mt-3 md:mt-5 text-sm md:text-xl text-muted-foreground max-w-3xl">
-          The AI Navigator deflects routine journeys. The Live Agent Co-browse converts the moments that matter. Different opportunity, different business case, different demo.
+          Voice-guided AI that drives the site for you — open enrollment without the maze.
         </p>
 
-        <div className="mt-8 md:mt-12 grid gap-5 md:gap-8 md:grid-cols-2">
+        <div className="mt-8 md:mt-12 grid gap-5 md:gap-8">
           <DeckCard
             to="/deck/ai"
             kicker="AI Guide"
@@ -48,21 +47,7 @@ function DeckChooser() {
             slideCount={4}
             appendixCount={3}
           />
-          <DeckCard
-            to="/deck/live"
-            kicker="Live Agent · Co-browse"
-            badge={<ScreenShare className="h-3.5 w-3.5" />}
-            title="Hand off to a licensed agent"
-            desc="Sarah joins the same session — sees what they see, walks them through plans in real time."
-            videoSrc={liveAgentVideo.url}
-            slideCount={4}
-            appendixCount={3}
-          />
         </div>
-
-        <p className="mt-8 md:mt-10 text-xs md:text-sm text-muted-foreground">
-          Both decks share the same MVP, validation, and Live Advise appendix slides. You can switch between decks at any time using the toggle inside.
-        </p>
       </div>
     </div>
   );
