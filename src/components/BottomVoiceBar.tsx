@@ -184,6 +184,16 @@ export function BottomVoiceBar() {
   // and send after turnComplete so we don't cut her off.
   const pendingPageContextRef = useRef<string | null>(null);
   const modelTurnActiveRef = useRef<boolean>(false);
+  // True while the model is actively producing audio for a turn. We use this
+  // to mute the mic upload so the model's own voice (echoed back through the
+  // device speaker into the mic) can't trip Gemini's VAD and trigger a
+  // self-interruption that cuts the reply off mid-sentence. Cleared on
+  // turnComplete. Especially important for the opening welcome.
+  const modelSpeakingRef = useRef<boolean>(false);
+  // Welcome guard: extra-strict — until the first turnComplete after the
+  // greeting, we suppress mic uploads entirely AND ignore `interrupted`
+  // events. This guarantees the welcome plays to completion.
+  const welcomeInProgressRef = useRef<boolean>(false);
 
 
   const openAgentCallback = useCallback(() => {
