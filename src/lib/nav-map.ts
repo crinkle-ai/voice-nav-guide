@@ -67,6 +67,29 @@ export const NAV_MAP: NavPageEntry[] = [
   },
 ];
 
+/**
+ * Dynamic id patterns — sections whose ids are generated from data (per item)
+ * rather than hand-written in a fixed list. Sarah is told these patterns
+ * explicitly so she can target individual items without guessing.
+ */
+export const ID_PATTERNS: { pattern: string; page: NavPage | "any"; whenToUse: string }[] = [
+  {
+    pattern: "glossary-<term>",
+    page: "/learn",
+    whenToUse: "Highlight a specific glossary term. <term> is the term lowercased with spaces replaced by hyphens. Examples: glossary-premium, glossary-deductible, glossary-copay, glossary-coinsurance, glossary-out-of-pocket-max, glossary-network, glossary-formulary.",
+  },
+  {
+    pattern: "plan-<planId>",
+    page: "/compare-plans",
+    whenToUse: "Highlight a specific plan row in the comparison table. Use only an id you've actually seen returned from the recommend_plans tool in this conversation — do NOT invent a plan id.",
+  },
+  {
+    pattern: "doctor-<doctorId>",
+    page: "/find-doctors",
+    whenToUse: "Highlight a specific doctor card. Use only an id you've actually seen returned from the search_doctors tool in this conversation — do NOT invent a doctor id.",
+  },
+];
+
 /** Compact registry string to inject into the AI system prompt. */
 export function buildNavMapPrompt(): string {
   const lines: string[] = [];
@@ -76,10 +99,15 @@ export function buildNavMapPrompt(): string {
       lines.push(`    • "${s.id}" — ${s.label}. Use when: ${s.whenToUse}`);
     }
   }
+  lines.push("");
+  lines.push("DYNAMIC ID PATTERNS (per-item ids generated from data — use these instead of guessing):");
+  for (const ip of ID_PATTERNS) {
+    lines.push(`- ${ip.pattern} (on ${ip.page}) — ${ip.whenToUse}`);
+  }
   return lines.join("\n");
 }
 
-/** Flat list of all valid section ids (for client-side validation/logging). */
+/** Flat list of all valid STATIC section ids (per-item dynamic ids not included). */
 export const ALL_SECTION_IDS: ReadonlySet<string> = new Set(
   NAV_MAP.flatMap((p) => p.sections.map((s) => s.id)),
 );
