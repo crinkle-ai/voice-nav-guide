@@ -718,12 +718,20 @@ export function BottomVoiceBar() {
           }
         }
         modelTurnActiveRef.current = false;
+        welcomeInProgressRef.current = false;
         turnNavFiredRef.current = false;
         turnTranscriptRef.current = "";
         turnOutputTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Keep the speaker flag on for a beat so the tail of the last audio
+        // buffer can play out without the mic immediately echoing it back.
+        const ctx = playCtxRef.current;
+        const tailMs = ctx
+          ? Math.max(150, Math.min(1500, (playHeadRef.current - ctx.currentTime) * 1000 + 250))
+          : 400;
+        setTimeout(() => { modelSpeakingRef.current = false; }, tailMs);
         // Flush any page context we held back while she was speaking.
         const queued = pendingPageContextRef.current;
         if (queued) {
@@ -738,8 +746,16 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.interrupted) {
-        stopAllAudio();
-        clearIdleTimers();
+        // Suppress self-interruptions: during the welcome, OR when no real
+        // user transcription has arrived this turn (echo/feedback only).
+        const hasRealUserSpeech = turnTranscriptRef.current.trim().length > 0;
+        if (welcomeInProgressRef.current || !hasRealUserSpeech) {
+          // Ignore — keep playing.
+        } else {
+          stopAllAudio();
+          modelSpeakingRef.current = false;
+          clearIdleTimers();
+        }
       }
       if (msg.toolCall?.functionCalls) {
         clearIdleTimers();
