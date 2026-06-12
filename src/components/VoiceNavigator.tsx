@@ -111,7 +111,14 @@ export function VoiceNavigator() {
           navigate({ to: page });
         } else if (name === "highlight_section" && typeof args.section === "string") {
           lastHandledToolIdsRef.current.add(id);
-          dispatch({ type: "SET_HIGHLIGHT", section: args.section });
+          const section = args.section;
+          // Defer the existence check so React has time to mount any newly-navigated page.
+          setTimeout(() => {
+            if (!document.getElementById(section)) {
+              console.warn(`[VoiceNavigator] highlight_section: no element with id="${section}" on ${window.location.pathname}`);
+            }
+          }, 400);
+          dispatch({ type: "SET_HIGHLIGHT", section });
         } else if (name === "request_agent_callback") {
           lastHandledToolIdsRef.current.add(id);
           setCallbackPhase("form");
