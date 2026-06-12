@@ -1010,6 +1010,7 @@ export function BottomVoiceBar() {
           lastAudioChunkRef.current = now;
           if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
           if (mutedRef.current) return;
+          if (welcomeInProgressRef.current || modelSpeakingRef.current) return;
           const sock = wsRef.current;
           if (!sock || sock.readyState !== WebSocket.OPEN) return;
           const input = e.inputBuffer.getChannelData(0);
