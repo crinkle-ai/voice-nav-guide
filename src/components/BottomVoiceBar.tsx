@@ -461,6 +461,7 @@ export function BottomVoiceBar() {
             respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
           }
         } else if (fc.name === "filter_plans") {
+          turnNavFiredRef.current = true;
           const raw = (fc.args ?? {}) as {
             type?: unknown;
             maxPremium?: unknown;
