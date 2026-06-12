@@ -1186,6 +1186,14 @@ export function BottomVoiceBar() {
       ? `[CURRENT PAGE: ${pathname}] ${authTag} [SYSTEM] The user just signed in and landed on ${postLogin}. Welcome them back in ONE short sentence and tell them their saved plans are now on screen. Then stop.`
       : `[CURRENT PAGE: ${pathname}] ${authTag}`;
 
+    // If the model is currently mid-turn, queue the push so we don't cut her
+    // off. The turnComplete handler flushes it. postLogin pushes are the
+    // exception — they need turnComplete to actually trigger her reply.
+    if (modelTurnActiveRef.current && !postLogin) {
+      pendingPageContextRef.current = text;
+      return;
+    }
+
     ws.send(
       JSON.stringify({
         clientContent: {
@@ -1194,6 +1202,7 @@ export function BottomVoiceBar() {
         },
       }),
     );
+
   }, [pathname, status]);
 
   // Pre-warm the WebSocket on mount so it's ready when the user presses Start.
