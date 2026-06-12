@@ -133,7 +133,7 @@ function ComparePlans() {
               {plans.map((p) => {
                 const checked = state.comparePlanIds.includes(p.id);
                 return (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} id={`plan-${p.id}`} className="scroll-mt-24">
                     <TableCell>
                       <Checkbox checked={checked} onCheckedChange={() => { setTouched(true); dispatch({ type: "TOGGLE_COMPARE_PLAN", id: p.id }); }} />
                     </TableCell>
