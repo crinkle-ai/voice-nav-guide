@@ -924,6 +924,7 @@ export function BottomVoiceBar() {
         micCtxRef.current = micCtx;
       }
       void micCtx.resume().catch(() => {});
+      console.log(`[VoiceAudit] mic context sampleRate=${micCtx.sampleRate}${micCtx.sampleRate !== 16000 ? " — resampling to 16k before upload" : ""}`);
       const source = micCtx.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
       const processor = micCtx.createScriptProcessor(4096, 1, 1);
