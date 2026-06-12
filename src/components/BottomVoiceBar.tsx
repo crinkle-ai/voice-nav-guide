@@ -6,6 +6,24 @@ import { useApp } from "@/context/AppContext";
 import { searchDoctors, listPlans } from "@/lib/catalog.functions";
 import { isAuthed, POST_LOGIN_VOICE_KEY } from "@/lib/mock-auth";
 
+// ---------------------------------------------------------------------------
+// VoiceAudit: lightweight diagnostic trail for the voice pipeline. Logs are
+// throttled/state-deduped so they don't flood the console, but give a clear
+// picture of where speech stops: mic gate → upload → transcription → tool.
+// ---------------------------------------------------------------------------
+let lastMicAuditAt = 0;
+let lastMicAuditState = "";
+function micAudit(state: string) {
+  const now = Date.now();
+  if (state !== lastMicAuditState || now - lastMicAuditAt > 3000) {
+    lastMicAuditAt = now;
+    lastMicAuditState = state;
+    console.log(`[VoiceAudit] mic: ${state}`);
+  }
+}
+
+
+
 // Allow any adjective(s) between the article and the noun: "telesales agent",
 // "licensed agent", "Medicare agent", "real human", "live person", etc.
 const AGENT_NOUN = "(?:person|human|agent|representative|rep|someone|advisor|broker)";
@@ -675,6 +693,7 @@ export function BottomVoiceBar() {
       if (msg.serverContent?.inputTranscription?.text) {
         const inputText = msg.serverContent.inputTranscription.text;
         if (inputText.trim() && !isInternalControlText(inputText)) {
+          console.log(`[VoiceAudit] heard user: "${inputText}"`);
           userSpeechSeenRef.current = true;
           clearIdleTimers();
           turnTranscriptRef.current += " " + inputText;
@@ -725,6 +744,7 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.turnComplete) {
+        console.log("[VoiceAudit] turnComplete — mic gate opening");
         // Safety net: model narrated a navigation but never called the tool.
         if (!turnNavFiredRef.current) {
           const target = modelAnnouncedNav(turnOutputTranscriptRef.current);
@@ -772,14 +792,17 @@ export function BottomVoiceBar() {
         // user transcription has arrived this turn (echo/feedback only).
         const hasRealUserSpeech = turnTranscriptRef.current.trim().length > 0;
         if (welcomeInProgressRef.current || !hasRealUserSpeech) {
+          console.log("[VoiceAudit] interrupted event IGNORED (welcome guard or no real user speech)");
           // Ignore — keep playing.
         } else {
+          console.log("[VoiceAudit] interrupted event HONORED — stopping audio");
           stopAllAudio();
           modelSpeakingRef.current = false;
           clearIdleTimers();
         }
       }
       if (msg.toolCall?.functionCalls) {
+        console.log(`[VoiceAudit] tool call(s): ${msg.toolCall.functionCalls.map((fc: { name?: string }) => fc.name).join(", ")}`);
         clearIdleTimers();
         for (const fc of msg.toolCall.functionCalls) handleToolCall(fc);
       }
@@ -878,12 +901,13 @@ export function BottomVoiceBar() {
         lastAudioProcessAtRef.current = now;
         lastAudioChunkRef.current = now;
         if (micCtx!.state === "suspended") { void micCtx!.resume().catch(() => {}); }
-        if (mutedRef.current) return;
+        if (mutedRef.current) { micAudit("blocked: user muted"); return; }
         // Anti-feedback: only suppress mic during the initial welcome.
         // After that, rely on browser echo cancellation + smart interrupted handling.
-        if (welcomeInProgressRef.current) return;
+        if (welcomeInProgressRef.current) { micAudit("blocked: welcome guard"); return; }
         const sock = wsRef.current;
-        if (!sock || sock.readyState !== WebSocket.OPEN) return;
+        if (!sock || sock.readyState !== WebSocket.OPEN) { micAudit("blocked: socket not open"); return; }
+        micAudit("uploading audio");
         const input = e.inputBuffer.getChannelData(0);
         const pcm = floatTo16BitPCM(input);
         sock.send(
@@ -1068,10 +1092,11 @@ export function BottomVoiceBar() {
           lastAudioProcessAtRef.current = now;
           lastAudioChunkRef.current = now;
           if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
-          if (mutedRef.current) return;
-          if (welcomeInProgressRef.current) return;
+          if (mutedRef.current) { micAudit("blocked: user muted (rebuilt mic)"); return; }
+          if (welcomeInProgressRef.current) { micAudit("blocked: welcome guard (rebuilt mic)"); return; }
           const sock = wsRef.current;
-          if (!sock || sock.readyState !== WebSocket.OPEN) return;
+          if (!sock || sock.readyState !== WebSocket.OPEN) { micAudit("blocked: socket not open (rebuilt mic)"); return; }
+          micAudit("uploading audio (rebuilt mic)");
           const input = e.inputBuffer.getChannelData(0);
           const pcm = floatTo16BitPCM(input);
           sock.send(
