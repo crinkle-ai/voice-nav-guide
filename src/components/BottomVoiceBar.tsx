@@ -744,6 +744,7 @@ export function BottomVoiceBar() {
         }
       }
       if (msg.serverContent?.turnComplete) {
+        console.log("[VoiceAudit] turnComplete — mic gate opening");
         // Safety net: model narrated a navigation but never called the tool.
         if (!turnNavFiredRef.current) {
           const target = modelAnnouncedNav(turnOutputTranscriptRef.current);
