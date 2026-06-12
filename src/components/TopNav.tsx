@@ -180,7 +180,7 @@ export function TopNav() {
       </div>
 
       {/* Journey progress */}
-      <div className="border-t bg-muted/40">
+      <div id="journey-strip" className="border-t bg-muted/40 scroll-mt-24">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 sm:px-6 py-3 text-sm overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <span className="font-semibold text-muted-foreground shrink-0">Your journey:</span>
           <ol className="flex items-center gap-2">
