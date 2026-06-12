@@ -851,10 +851,9 @@ export function BottomVoiceBar() {
         lastAudioChunkRef.current = now;
         if (micCtx!.state === "suspended") { void micCtx!.resume().catch(() => {}); }
         if (mutedRef.current) return;
-        // Anti-feedback: don't ship mic audio while the model is mid-utterance
-        // or the welcome is still playing — prevents speaker→mic echo from
-        // triggering a self-interruption.
-        if (welcomeInProgressRef.current || modelSpeakingRef.current) return;
+        // Anti-feedback: only suppress mic during the initial welcome.
+        // After that, rely on browser echo cancellation + smart interrupted handling.
+        if (welcomeInProgressRef.current) return;
         const sock = wsRef.current;
         if (!sock || sock.readyState !== WebSocket.OPEN) return;
         const input = e.inputBuffer.getChannelData(0);
@@ -1032,7 +1031,7 @@ export function BottomVoiceBar() {
           lastAudioChunkRef.current = now;
           if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
           if (mutedRef.current) return;
-          if (welcomeInProgressRef.current || modelSpeakingRef.current) return;
+          if (welcomeInProgressRef.current) return;
           const sock = wsRef.current;
           if (!sock || sock.readyState !== WebSocket.OPEN) return;
           const input = e.inputBuffer.getChannelData(0);
