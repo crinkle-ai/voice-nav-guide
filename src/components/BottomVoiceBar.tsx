@@ -433,6 +433,7 @@ export function BottomVoiceBar() {
             dispatch({ type: "SET_HIGHLIGHT", section });
           }, 400);
         } else if (fc.name === "search_doctors") {
+          turnNavFiredRef.current = true;
           const raw = (fc.args ?? {}) as { specialty?: unknown; city?: unknown; name?: unknown };
           const args = {
             specialty: typeof raw.specialty === "string" ? raw.specialty : undefined,
