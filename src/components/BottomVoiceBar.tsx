@@ -894,6 +894,8 @@ export function BottomVoiceBar() {
           ? `${pageTag} [SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. "I'm here — how can I help?"), then wait silently for them to speak. Do NOT mention the current page.`
           : `${pageTag} [SESSION_START] Greet the user in ONE short, complete sentence as their Medicare Navigator and invite their question. Then wait silently. Do NOT mention the current page. Do NOT call any tools. Do NOT end the session.`;
         modelTurnActiveRef.current = true;
+        modelSpeakingRef.current = true;
+        welcomeInProgressRef.current = true;
         ws.send(
           JSON.stringify({
             clientContent: {
