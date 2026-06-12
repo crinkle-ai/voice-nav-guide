@@ -223,9 +223,9 @@ export const Route = createFileRoute("/api/voice-session")({
                   inputAudioTranscription: {},
                   realtimeInputConfig: {
                     automaticActivityDetection: {
-                      endOfSpeechSensitivity: "END_SENSITIVITY_HIGH",
-                      silenceDurationMs: 400,
-                      startOfSpeechSensitivity: "START_SENSITIVITY_HIGH",
+                      endOfSpeechSensitivity: "END_SENSITIVITY_LOW",
+                      silenceDurationMs: 800,
+                      startOfSpeechSensitivity: "START_SENSITIVITY_LOW",
                     },
                   },
                   tools: TOOLS,

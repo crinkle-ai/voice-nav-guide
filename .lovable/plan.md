@@ -1,55 +1,35 @@
+# Make the live voice guide reliable: fix the cut-off welcome + missed navigation
 
-## Goal
+## What's actually going wrong
 
-"View Deck" currently jumps straight into the 4-slide AI Navigator story. The Live Agent + Co-browse experience is a different pane, different business case, different demo — it deserves its own 4-slide deck, parallel to the AI one. Add a chooser screen that mirrors the homepage's "See how it works" two-up layout (with each video previewed), and let the user pick which deck to enter.
+**1. The welcome cuts off mid-sentence — found the cause.**
+The moment the session goes live, the app sends the greeting prompt and then *immediately* sends a `[CURRENT PAGE: /]` context message (the page-tracking effect fires right away because the "last sent path" is reset to null on activation). Gemini Live treats any new client message as a reason to cancel what it's currently generating — so Sarah's welcome gets chopped off by our own context push.
 
-## UX
+**2. False "interruptions" also cut her off.**
+Voice detection is tuned to maximum sensitivity (`START_SENSITIVITY_HIGH`, 400ms silence). Any tiny noise — a breath, keyboard click, or speaker echo — registers as the user barging in, which instantly stops her audio mid-sentence.
 
-```text
-/deck                          ← NEW chooser landing
-   ┌──────────────────┬──────────────────┐
-   │ AI GUIDE         │ LIVE AGENT       │
-   │ [demo video]     │ [co-browse video]│
-   │ Medicare         │ Hand off to a    │
-   │ Navigator        │ licensed agent   │
-   │ 4 slides         │ 4 slides         │
-   │ [Open deck →]    │ [Open deck →]    │
-   └──────────────────┴──────────────────┘
-   Appendix: MVP · Validation · LiveAdvise (links below)
+**3. "Take me to the learn page" sometimes does nothing.**
+In the live voice path there is NO safety net for navigation. (We added one to the text chat widget earlier, but the bottom voice bar is a separate system.) If the model says "I'll take you to the Learn page" without firing the `navigate_to` tool, nothing happens. There are already deterministic fallbacks for "talk to an agent" and "my plans" — but not for the four main pages.
 
-/deck/ai          ← existing 4 main slides + appendix (current behavior)
-/deck/live        ← NEW 4 live-agent slides + shared appendix
-```
+## The fix (3 changes, all in `src/components/BottomVoiceBar.tsx` + 1 in `src/routes/api/voice-session.ts`)
 
-- Top nav "View Deck" → `/deck` chooser.
-- Each card autoplays muted/looped preview on hover (same `.mp4.asset.json` sources already on the homepage), with a "Open deck" CTA.
-- Inside either deck, keep the existing slide chrome (arrows, swipe, Esc to launch app). Add a small "Switch deck" pill in the corner so a viewer can jump between the two without going back to `/deck`.
+### A. Stop interrupting our own greeting
+- Hold the `[CURRENT PAGE]` context push while the model is mid-turn (speaking/generating). Queue it and send it only after `turnComplete`.
+- Include the current page directly in the greeting prompt instead, so she still knows where the user is from the very first turn.
 
-## New slides — Live Agent · Co-browse (parallel to the AI 4)
+### B. Calm down the barge-in sensitivity
+- Change voice detection from HIGH start sensitivity to default, and raise silence duration from 400ms → ~800ms. Real interruptions still work; random noise stops killing her sentences.
 
-1. **Opportunity** — "AI guidance gets people 80% of the way. The last mile is human." Stats on abandonment at enrollment, trust gap for high-stakes choices (Medicare specifically), what a licensed agent unlocks that an AI can't (binding advice, plan-specific recs, compliance).
-2. **Navigator: Live Co-browse** — what the product *is*. Sarah joins the same session, sees what the member sees, can highlight and drive without a screen-share install. Uses the existing `LiveAdvisePanel` screenshot/explainer beats.
-3. **Business case** — different math from the AI deck: conversion lift on assisted sessions, AHT reduction vs. a cold callback, licensed-agent utilization, CSAT/NPS deltas. Frame as *complement* to the AI deck's deflection story.
-4. **Demo** — embeds the `live-agent-cobrowse.mp4` (already uploaded) with the same "Launch the live experience" CTA the AI demo slide uses.
+### C. Deterministic navigation safety net (same approach as the agent-callback fallback that already works well)
+- **User-side**: when the user's transcribed speech contains an explicit destination ("take me to learn", "go to compare plans", "find doctors page", "go home"), navigate immediately — no waiting on the model. Same `fireOnce` pattern used for agent intent.
+- **Model-side**: track whether a `navigate_to` tool call happened during the turn. At `turnComplete`, if her spoken transcript announced navigation ("taking you to the Learn page…") but no tool fired, navigate based on her own words — identical to the fallback we built for the text chat.
 
-Appendix (MVP, Validation, LiveAdvise) stays shared — both decks link into the same 3 appendix slides.
+## Result
+- Welcome plays to the end, every time.
+- Saying "take me to the learn page" navigates even if the model flakes — guaranteed by code, not model behavior.
+- Fewer random mid-sentence cutoffs during normal conversation.
 
-## Implementation sketch
-
-- New route `src/routes/deck.tsx` becomes the chooser (replace current SlideDeck component).
-- Move existing deck content to `src/routes/deck.ai.tsx` (renders today's `SLIDES` array; URL becomes `/deck/ai`).
-- New `src/routes/deck.live.tsx` with the 4 new slide components above + the same appendix imports.
-- Extract `SlideDeck` shell (keyboard nav, swipe, arrows, progress) into `src/components/deck/SlideDeck.tsx` so both `/deck/ai` and `/deck/live` reuse it; each route passes its own `SLIDES` array and `mainCount`.
-- Extract the 3 appendix slides into `src/components/deck/appendix.tsx` so both decks import them.
-- Update the top-nav "View Deck" link target stays `/deck` (no change needed — it now lands on the chooser).
-- Add a "Switch deck" control in the shell that links to the sibling route.
-
-## Out of scope
-
-- No changes to the homepage "See how it works" section, the LiveAdvisePanel, or any video assets.
-- No new copy for appendix slides.
-- No analytics wiring beyond the existing `useTrackPage` hook (will add one call per route).
-
-## Open question
-
-I'm assuming you want the chooser to be the *default* `/deck` landing. Alternative: keep `/deck` going straight to AI (today's behavior) and only expose the Live deck via a "See the live-agent deck" link from slide 4. Which do you prefer?
+## Technical notes
+- Files touched: `src/components/BottomVoiceBar.tsx` (queued context push, transcript-based nav fallbacks, turn-level tool tracking), `src/routes/api/voice-session.ts` (VAD config).
+- No backend/database changes. The text-chat widget (VoiceNavigator) already has its fallback and is untouched.
+- I'll verify by exercising the live flow in a real browser session after the changes.

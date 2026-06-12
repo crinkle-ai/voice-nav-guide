@@ -42,6 +42,44 @@ function matchesMyPlansIntent(text: string): boolean {
   return MY_PLANS_TRIGGERS.some((re) => re.test(text));
 }
 
+// User explicitly names a destination. Order matters — check "learn" first
+// because "learn more about plans" should still mean Learn, not Plans.
+type NavTarget = "/" | "/learn" | "/find-doctors" | "/compare-plans";
+const NAV_USER_TRIGGERS: Array<{ re: RegExp; to: NavTarget }> = [
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\b(open|show|pull\s+up)\s+(the\s+)?learn(\s+page|\s+section)?\b/i, to: "/learn" },
+  { re: /\bi(?:'d| would)?\s+like\s+to\s+learn\s+(more\s+)?about\s+medicare\b/i, to: "/learn" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?(find\s+a\s+)?doctors?(\s+page)?\b/i, to: "/find-doctors" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?(find\s+a\s+)?doctors?(\s+page)?\b/i, to: "/find-doctors" },
+  { re: /\b(find|search\s+for)\s+(a\s+)?doctors?\s+(page|finder|tool)\b/i, to: "/find-doctors" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\b(go|head|navigate|jump)\s+(to|back\s+to)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\b(open|show|pull\s+up)\s+(the\s+)?(compare\s+)?plans?(\s+page)?\b/i, to: "/compare-plans" },
+  { re: /\bcompare\s+(the\s+)?plans?\b/i, to: "/compare-plans" },
+  { re: /\b(take|bring|send|get)\s+me\s+(to|back\s+to)\s+(the\s+)?home(\s*page)?\b/i, to: "/" },
+  { re: /\b(go|head|navigate)\s+(to|back\s+to)\s+(the\s+)?home(\s*page)?\b/i, to: "/" },
+];
+
+function matchesNavIntent(text: string): NavTarget | null {
+  for (const { re, to } of NAV_USER_TRIGGERS) if (re.test(text)) return to;
+  return null;
+}
+
+// Model said it would navigate but never fired the tool. Same idea, but
+// matches the model's own narration phrasing ("taking you to…", "I'll open…").
+function modelAnnouncedNav(text: string): NavTarget | null {
+  const t = text.toLowerCase();
+  if (t.trim().endsWith("?")) return null;
+  const intent = /(taking you|take you|i'?ll open|i'?ve opened|opening (up )?(the )?|let'?s (go|head)|head(ing)? (over )?to|bring(ing)? you (to|over)|pulling up|i'?ll pull up|i'?ll go ahead|let me (take|pull) you)/i.test(t);
+  if (!intent) return null;
+  if (/learn/.test(t)) return "/learn";
+  if (/doctor/.test(t)) return "/find-doctors";
+  if (/(compare|plans page|plan page)/.test(t)) return "/compare-plans";
+  if (/(home ?page|back home)/.test(t)) return "/";
+  return null;
+}
+
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
   deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
@@ -139,7 +177,13 @@ export function BottomVoiceBar() {
   const [cbPhone, setCbPhone] = useState("");
   const [cbSnapshot, setCbSnapshot] = useState<CallbackSnapshot | null>(null);
   const turnTranscriptRef = useRef<string>("");
+  const turnOutputTranscriptRef = useRef<string>("");
+  const turnNavFiredRef = useRef<boolean>(false);
   const turnFallbackFiredRef = useRef<Set<string>>(new Set());
+  // If a [CURRENT PAGE] push arrives while the model is mid-turn, queue it
+  // and send after turnComplete so we don't cut her off.
+  const pendingPageContextRef = useRef<string | null>(null);
+  const modelTurnActiveRef = useRef<boolean>(false);
 
 
   const openAgentCallback = useCallback(() => {
@@ -350,6 +394,7 @@ export function BottomVoiceBar() {
 
       try {
         if (fc.name === "navigate_to" && typeof fc.args?.page === "string") {
+          turnNavFiredRef.current = true;
           const raw = fc.args.page as string;
           let page = (raw === "/home" ? "/" : raw) as
             | "/" | "/learn" | "/find-doctors" | "/compare-plans" | "/my-plans" | "/login";
@@ -388,6 +433,7 @@ export function BottomVoiceBar() {
             dispatch({ type: "SET_HIGHLIGHT", section });
           }, 400);
         } else if (fc.name === "search_doctors") {
+          turnNavFiredRef.current = true;
           const raw = (fc.args ?? {}) as { specialty?: unknown; city?: unknown; name?: unknown };
           const args = {
             specialty: typeof raw.specialty === "string" ? raw.specialty : undefined,
@@ -415,6 +461,7 @@ export function BottomVoiceBar() {
             respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
           }
         } else if (fc.name === "filter_plans") {
+          turnNavFiredRef.current = true;
           const raw = (fc.args ?? {}) as {
             type?: unknown;
             maxPremium?: unknown;
@@ -448,6 +495,7 @@ export function BottomVoiceBar() {
             respond({ ok: false, error: e instanceof Error ? e.message : String(e) });
           }
         } else if (fc.name === "explain_term" && typeof fc.args?.term === "string") {
+          turnNavFiredRef.current = true;
           const term = fc.args.term as string;
           const section = `glossary-${term}`;
           lastSentPathRef.current = "/learn";
@@ -587,6 +635,7 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.modelTurn?.parts) {
+        modelTurnActiveRef.current = true;
         for (const part of msg.serverContent.modelTurn.parts) {
           if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
             playPcm(part.inlineData.data);
@@ -628,16 +677,53 @@ export function BottomVoiceBar() {
             }
           });
         }
+        // Deterministic page navigation when the user names a destination.
+        const navTarget = matchesNavIntent(transcript);
+        if (navTarget && navTarget !== curPath) {
+          fireOnce(`nav:${navTarget}`, () => {
+            turnNavFiredRef.current = true;
+            lastSentPathRef.current = navTarget;
+            dispatch({ type: "SET_HIGHLIGHT", section: null });
+            navigate({ to: navTarget });
+          });
+        }
       }
       if (msg.serverContent?.outputTranscription?.text) {
         const outputText = msg.serverContent.outputTranscription.text;
-        if (!isInternalControlText(outputText)) setLiveCaption(outputText);
+        if (!isInternalControlText(outputText)) {
+          turnOutputTranscriptRef.current += " " + outputText;
+          setLiveCaption(outputText);
+        }
       }
       if (msg.serverContent?.turnComplete) {
-        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Safety net: model narrated a navigation but never called the tool.
+        if (!turnNavFiredRef.current) {
+          const target = modelAnnouncedNav(turnOutputTranscriptRef.current);
+          if (target && target !== pathnameRef.current) {
+            console.warn(`[BottomVoiceBar] Fallback nav from model narration → ${target}`);
+            lastSentPathRef.current = target;
+            dispatch({ type: "SET_HIGHLIGHT", section: null });
+            navigate({ to: target });
+          }
+        }
+        modelTurnActiveRef.current = false;
+        turnNavFiredRef.current = false;
         turnTranscriptRef.current = "";
+        turnOutputTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
+        dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Flush any page context we held back while she was speaking.
+        const queued = pendingPageContextRef.current;
+        if (queued) {
+          pendingPageContextRef.current = null;
+          const sock = wsRef.current;
+          if (sock && sock.readyState === WebSocket.OPEN) {
+            sock.send(JSON.stringify({
+              clientContent: { turns: [{ role: "user", parts: [{ text: queued }] }], turnComplete: false },
+            }));
+          }
+        }
       }
 
       if (msg.serverContent?.interrupted) {
@@ -759,7 +845,10 @@ export function BottomVoiceBar() {
       }
       void playCtx.resume().catch(() => {});
       playHeadRef.current = 0;
-      lastSentPathRef.current = null;
+      // Mark the current pathname as already pushed — we include it in the
+      // greeting prompt below, so the page-context effect must NOT fire a
+      // separate [CURRENT PAGE] message that would interrupt the welcome.
+      lastSentPathRef.current = pathnameRef.current;
 
       // Send the greeting now — Gemini will respond with audio over the
       // already-open socket, so the user hears a real voice with no delay.
@@ -768,9 +857,12 @@ export function BottomVoiceBar() {
         const hasIntroduced =
           typeof sessionStorage !== "undefined" && sessionStorage.getItem("voiceIntroPlayed") === "1";
         if (typeof sessionStorage !== "undefined") sessionStorage.setItem("voiceIntroPlayed", "1");
+        const authTag = isAuthed() ? "[AUTH: signed-in]" : "[AUTH: signed-out]";
+        const pageTag = `[CURRENT PAGE: ${pathnameRef.current}] ${authTag}`;
         const greetingPrompt = hasIntroduced
-          ? "[SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. 'I'm here — how can I help?'), then wait silently for them to speak."
-          : "[SESSION_START] Greet the user in ONE short sentence as their Medicare Navigator and invite their question, then wait silently for them to speak. Do not end or close the session — keep listening.";
+          ? `${pageTag} [SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. "I'm here — how can I help?"), then wait silently for them to speak. Do NOT mention the current page.`
+          : `${pageTag} [SESSION_START] Greet the user in ONE short, complete sentence as their Medicare Navigator and invite their question. Then wait silently. Do NOT mention the current page. Do NOT call any tools. Do NOT end the session.`;
+        modelTurnActiveRef.current = true;
         ws.send(
           JSON.stringify({
             clientContent: {
@@ -780,6 +872,7 @@ export function BottomVoiceBar() {
           }),
         );
       }
+
 
       statusRef.current = "live";
       setStatus("live");
@@ -1093,6 +1186,14 @@ export function BottomVoiceBar() {
       ? `[CURRENT PAGE: ${pathname}] ${authTag} [SYSTEM] The user just signed in and landed on ${postLogin}. Welcome them back in ONE short sentence and tell them their saved plans are now on screen. Then stop.`
       : `[CURRENT PAGE: ${pathname}] ${authTag}`;
 
+    // If the model is currently mid-turn, queue the push so we don't cut her
+    // off. The turnComplete handler flushes it. postLogin pushes are the
+    // exception — they need turnComplete to actually trigger her reply.
+    if (modelTurnActiveRef.current && !postLogin) {
+      pendingPageContextRef.current = text;
+      return;
+    }
+
     ws.send(
       JSON.stringify({
         clientContent: {
@@ -1101,6 +1202,7 @@ export function BottomVoiceBar() {
         },
       }),
     );
+
   }, [pathname, status]);
 
   // Pre-warm the WebSocket on mount so it's ready when the user presses Start.
