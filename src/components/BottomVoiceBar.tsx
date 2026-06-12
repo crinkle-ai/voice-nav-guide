@@ -194,6 +194,10 @@ export function BottomVoiceBar() {
   // greeting, we suppress mic uploads entirely AND ignore `interrupted`
   // events. This guarantees the welcome plays to completion.
   const welcomeInProgressRef = useRef<boolean>(false);
+  // Watchdog: if turnComplete never arrives after the greeting (lost packet,
+  // network hiccup), force-clear the welcome guard so the mic can't stay
+  // muted forever on a session that looks "live" but is deaf.
+  const welcomeWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
   const openAgentCallback = useCallback(() => {
@@ -530,6 +534,13 @@ export function BottomVoiceBar() {
   const playPcm = useCallback((b64: string) => {
     const ctx = playCtxRef.current;
     if (!ctx) return;
+    // Browsers (especially iOS) can silently suspend the context mid-session;
+    // currentTime freezes and chunks pile up, then blast all at once. Resume
+    // and realign the play cursor so scheduling stays sane.
+    if (ctx.state === "suspended") {
+      void ctx.resume().catch(() => {});
+      playHeadRef.current = Math.max(playHeadRef.current, ctx.currentTime);
+    }
     const int16 = base64ToInt16(b64);
     const float32 = new Float32Array(int16.length);
     for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 0x8000;
@@ -592,6 +603,10 @@ export function BottomVoiceBar() {
     startingRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    if (welcomeWatchdogRef.current) {
+      clearTimeout(welcomeWatchdogRef.current);
+      welcomeWatchdogRef.current = null;
+    }
     welcomeInProgressRef.current = false;
     modelSpeakingRef.current = false;
     modelTurnActiveRef.current = false;
@@ -722,6 +737,10 @@ export function BottomVoiceBar() {
         }
         modelTurnActiveRef.current = false;
         welcomeInProgressRef.current = false;
+        if (welcomeWatchdogRef.current) {
+          clearTimeout(welcomeWatchdogRef.current);
+          welcomeWatchdogRef.current = null;
+        }
         turnNavFiredRef.current = false;
         turnTranscriptRef.current = "";
         turnOutputTranscriptRef.current = "";
@@ -833,6 +852,15 @@ export function BottomVoiceBar() {
       streamRef.current = stream;
       attachMicEndedHandlers(stream);
 
+      // Raise the welcome guard BEFORE wiring the mic pipeline so there is no
+      // window where mic audio uploads ahead of the greeting (a loud noise in
+      // that gap could trip VAD before the welcome even reaches the server).
+      if (!greetedRef.current) {
+        modelTurnActiveRef.current = true;
+        modelSpeakingRef.current = true;
+        welcomeInProgressRef.current = true;
+      }
+
       const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       // Reuse the context created synchronously in start() (iOS gesture requirement).
       let micCtx = micCtxRef.current;
@@ -895,9 +923,6 @@ export function BottomVoiceBar() {
         const greetingPrompt = hasIntroduced
           ? `${pageTag} [SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. "I'm here — how can I help?"), then wait silently for them to speak. Do NOT mention the current page.`
           : `${pageTag} [SESSION_START] Greet the user in ONE short, complete sentence as their Medicare Navigator and invite their question. Then wait silently. Do NOT mention the current page. Do NOT call any tools. Do NOT end the session.`;
-        modelTurnActiveRef.current = true;
-        modelSpeakingRef.current = true;
-        welcomeInProgressRef.current = true;
         ws.send(
           JSON.stringify({
             clientContent: {
@@ -906,6 +931,19 @@ export function BottomVoiceBar() {
             },
           }),
         );
+        // Watchdog: if turnComplete is lost (network hiccup mid-welcome), the
+        // guard would otherwise stay up forever and silence the mic on a
+        // session that still shows "Live". Force-clear after 12s.
+        if (welcomeWatchdogRef.current) clearTimeout(welcomeWatchdogRef.current);
+        welcomeWatchdogRef.current = setTimeout(() => {
+          if (welcomeInProgressRef.current) {
+            console.warn("[BottomVoiceBar] Welcome watchdog fired — force-clearing welcome guard");
+            welcomeInProgressRef.current = false;
+            modelSpeakingRef.current = false;
+            modelTurnActiveRef.current = false;
+          }
+          welcomeWatchdogRef.current = null;
+        }, 12_000);
       }
 
 
