@@ -184,6 +184,16 @@ export function BottomVoiceBar() {
   // and send after turnComplete so we don't cut her off.
   const pendingPageContextRef = useRef<string | null>(null);
   const modelTurnActiveRef = useRef<boolean>(false);
+  // True while the model is actively producing audio for a turn. We use this
+  // to mute the mic upload so the model's own voice (echoed back through the
+  // device speaker into the mic) can't trip Gemini's VAD and trigger a
+  // self-interruption that cuts the reply off mid-sentence. Cleared on
+  // turnComplete. Especially important for the opening welcome.
+  const modelSpeakingRef = useRef<boolean>(false);
+  // Welcome guard: extra-strict — until the first turnComplete after the
+  // greeting, we suppress mic uploads entirely AND ignore `interrupted`
+  // events. This guarantees the welcome plays to completion.
+  const welcomeInProgressRef = useRef<boolean>(false);
 
 
   const openAgentCallback = useCallback(() => {
@@ -582,6 +592,9 @@ export function BottomVoiceBar() {
     startingRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    welcomeInProgressRef.current = false;
+    modelSpeakingRef.current = false;
+    modelTurnActiveRef.current = false;
     statusRef.current = "idle";
     setStatus("idle");
     setCaption("");
@@ -638,6 +651,7 @@ export function BottomVoiceBar() {
         modelTurnActiveRef.current = true;
         for (const part of msg.serverContent.modelTurn.parts) {
           if (part.inlineData?.data && part.inlineData.mimeType?.includes("audio/pcm")) {
+            modelSpeakingRef.current = true;
             playPcm(part.inlineData.data);
             dispatch({ type: "SET_VOICE_STATE", voiceState: "speaking" });
           }
@@ -707,12 +721,20 @@ export function BottomVoiceBar() {
           }
         }
         modelTurnActiveRef.current = false;
+        welcomeInProgressRef.current = false;
         turnNavFiredRef.current = false;
         turnTranscriptRef.current = "";
         turnOutputTranscriptRef.current = "";
         turnFallbackFiredRef.current = new Set();
         clearIdleTimers();
         dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
+        // Keep the speaker flag on for a beat so the tail of the last audio
+        // buffer can play out without the mic immediately echoing it back.
+        const ctx = playCtxRef.current;
+        const tailMs = ctx
+          ? Math.max(150, Math.min(1500, (playHeadRef.current - ctx.currentTime) * 1000 + 250))
+          : 400;
+        setTimeout(() => { modelSpeakingRef.current = false; }, tailMs);
         // Flush any page context we held back while she was speaking.
         const queued = pendingPageContextRef.current;
         if (queued) {
@@ -727,8 +749,16 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.interrupted) {
-        stopAllAudio();
-        clearIdleTimers();
+        // Suppress self-interruptions: during the welcome, OR when no real
+        // user transcription has arrived this turn (echo/feedback only).
+        const hasRealUserSpeech = turnTranscriptRef.current.trim().length > 0;
+        if (welcomeInProgressRef.current || !hasRealUserSpeech) {
+          // Ignore — keep playing.
+        } else {
+          stopAllAudio();
+          modelSpeakingRef.current = false;
+          clearIdleTimers();
+        }
       }
       if (msg.toolCall?.functionCalls) {
         clearIdleTimers();
@@ -821,6 +851,10 @@ export function BottomVoiceBar() {
         lastAudioChunkRef.current = now;
         if (micCtx!.state === "suspended") { void micCtx!.resume().catch(() => {}); }
         if (mutedRef.current) return;
+        // Anti-feedback: don't ship mic audio while the model is mid-utterance
+        // or the welcome is still playing — prevents speaker→mic echo from
+        // triggering a self-interruption.
+        if (welcomeInProgressRef.current || modelSpeakingRef.current) return;
         const sock = wsRef.current;
         if (!sock || sock.readyState !== WebSocket.OPEN) return;
         const input = e.inputBuffer.getChannelData(0);
@@ -863,6 +897,8 @@ export function BottomVoiceBar() {
           ? `${pageTag} [SESSION_START] The user just returned. Greet them back in ONE short sentence (e.g. "I'm here — how can I help?"), then wait silently for them to speak. Do NOT mention the current page.`
           : `${pageTag} [SESSION_START] Greet the user in ONE short, complete sentence as their Medicare Navigator and invite their question. Then wait silently. Do NOT mention the current page. Do NOT call any tools. Do NOT end the session.`;
         modelTurnActiveRef.current = true;
+        modelSpeakingRef.current = true;
+        welcomeInProgressRef.current = true;
         ws.send(
           JSON.stringify({
             clientContent: {
@@ -996,6 +1032,7 @@ export function BottomVoiceBar() {
           lastAudioChunkRef.current = now;
           if (micCtx.state === "suspended") { void micCtx.resume().catch(() => {}); }
           if (mutedRef.current) return;
+          if (welcomeInProgressRef.current || modelSpeakingRef.current) return;
           const sock = wsRef.current;
           if (!sock || sock.readyState !== WebSocket.OPEN) return;
           const input = e.inputBuffer.getChannelData(0);
