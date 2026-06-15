@@ -389,6 +389,11 @@ export function BottomVoiceBar() {
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
   }, []);
 
+  const clearIdleTimers = useCallback(() => {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
+  }, []);
+
   const performDeterministicNav = useCallback((target: NavTarget | "/my-plans" | "/login", source: string) => {
     const now = Date.now();
     if (now - lastLocalCommandAtRef.current < 1500) return;
@@ -552,11 +557,6 @@ export function BottomVoiceBar() {
         rebuildMicPipelineRef.current?.();
       };
     });
-  }, []);
-
-  const clearIdleTimers = useCallback(() => {
-    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
   const stopAllAudio = useCallback(() => {
