@@ -98,6 +98,43 @@ function modelAnnouncedNav(text: string): NavTarget | null {
   return null;
 }
 
+function navTargetLabel(target: NavTarget | "/my-plans" | "/login") {
+  if (target === "/learn") return "the Learn page";
+  if (target === "/find-doctors") return "the doctor finder";
+  if (target === "/compare-plans") return "the plan comparison page";
+  if (target === "/my-plans") return "your saved plans";
+  if (target === "/login") return "sign in";
+  return "home";
+}
+
+type SpeechRecognitionEventLike = Event & {
+  resultIndex: number;
+  results: { length: number; [index: number]: { isFinal: boolean; 0?: { transcript?: string } } };
+};
+
+type BrowserSpeechRecognition = EventTarget & {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+
+function getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
+  const w = window as typeof window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
   deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
