@@ -375,6 +375,10 @@ export function BottomVoiceBar() {
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
   const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speechRecognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const speechRestartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localTranscriptRef = useRef("");
+  const lastLocalCommandAtRef = useRef(0);
 
 
 
