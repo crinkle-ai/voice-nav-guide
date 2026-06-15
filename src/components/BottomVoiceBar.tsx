@@ -389,6 +389,116 @@ export function BottomVoiceBar() {
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
   }, []);
 
+  const performDeterministicNav = useCallback((target: NavTarget | "/my-plans" | "/login", source: string) => {
+    const now = Date.now();
+    if (now - lastLocalCommandAtRef.current < 1500) return;
+    lastLocalCommandAtRef.current = now;
+
+    let page = target;
+    let search: { redirect?: string } | undefined;
+    if (page === "/my-plans" && !isAuthed()) {
+      page = "/login";
+      search = { redirect: "/my-plans" };
+      try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+    }
+    if (page === pathnameRef.current) return;
+
+    console.warn(`[VoiceAudit] local command fallback (${source}) → ${page}`);
+    turnNavFiredRef.current = true;
+    lastSentPathRef.current = page;
+    dispatch({ type: "SET_HIGHLIGHT", section: null });
+    setLiveCaption(`Taking you to ${navTargetLabel(page)}.`);
+    if (page === "/login") {
+      navigate({ to: "/login", search: search ?? { redirect: "/my-plans" } });
+    } else {
+      navigate({ to: page });
+    }
+  }, [dispatch, navigate, setLiveCaption]);
+
+  const handleLocalTranscript = useCallback((text: string) => {
+    const clean = text.replace(/\s+/g, " ").trim();
+    if (!clean || isInternalControlText(clean)) return;
+
+    console.log(`[VoiceAudit] local speech heard: "${clean}"`);
+    userSpeechSeenRef.current = true;
+    clearIdleTimers();
+    localTranscriptRef.current = `${localTranscriptRef.current} ${clean}`.replace(/\s+/g, " ").trim().slice(-600);
+    turnTranscriptRef.current = `${turnTranscriptRef.current} ${clean}`;
+
+    if (matchesAgentIntent(localTranscriptRef.current)) {
+      const now = Date.now();
+      if (now - lastLocalCommandAtRef.current < 1500) return;
+      lastLocalCommandAtRef.current = now;
+      console.warn("[VoiceAudit] local command fallback → agent callback");
+      openAgentCallback();
+      setLiveCaption("I pulled up the callback form.");
+      return;
+    }
+    if (matchesMyPlansIntent(localTranscriptRef.current)) {
+      performDeterministicNav("/my-plans", "my-plans intent");
+      return;
+    }
+    const navTarget = matchesNavIntent(localTranscriptRef.current);
+    if (navTarget) performDeterministicNav(navTarget, clean);
+  }, [clearIdleTimers, openAgentCallback, performDeterministicNav, setLiveCaption]);
+
+  const stopLocalRecognition = useCallback(() => {
+    if (speechRestartTimerRef.current) {
+      clearTimeout(speechRestartTimerRef.current);
+      speechRestartTimerRef.current = null;
+    }
+    const recognition = speechRecognitionRef.current;
+    speechRecognitionRef.current = null;
+    if (recognition) {
+      recognition.onend = null;
+      recognition.onresult = null;
+      recognition.onerror = null;
+      try { recognition.abort(); } catch { /* noop */ }
+    }
+  }, []);
+
+  const startLocalRecognition = useCallback(() => {
+    if (speechRecognitionRef.current || !streamRef.current) return;
+    const Recognition = getSpeechRecognitionCtor();
+    if (!Recognition) {
+      console.warn("[VoiceAudit] local speech fallback unavailable in this browser");
+      return;
+    }
+    try {
+      const recognition = new Recognition();
+      speechRecognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (event) => {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          text += ` ${event.results[i]?.[0]?.transcript ?? ""}`;
+        }
+        handleLocalTranscript(text);
+      };
+      recognition.onerror = (event) => {
+        if (event.error && !["no-speech", "aborted"].includes(event.error)) {
+          console.warn(`[VoiceAudit] local speech fallback error: ${event.error}`);
+        }
+      };
+      recognition.onend = () => {
+        speechRecognitionRef.current = null;
+        if (statusRef.current !== "live" || userStoppedRef.current) return;
+        speechRestartTimerRef.current = setTimeout(() => {
+          speechRestartTimerRef.current = null;
+          startLocalRecognition();
+        }, 250);
+      };
+      recognition.start();
+      console.log("[VoiceAudit] local speech fallback listening");
+    } catch (e) {
+      speechRecognitionRef.current = null;
+      console.warn("[VoiceAudit] local speech fallback failed to start", e);
+    }
+  }, [handleLocalTranscript]);
+
   const sendNoopTurn = useCallback(() => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
