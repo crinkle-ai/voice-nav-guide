@@ -1167,6 +1167,7 @@ export function BottomVoiceBar() {
       }
       void micCtxRef.current?.resume().catch(() => {});
       void playCtxRef.current?.resume().catch(() => {});
+      startLocalRecognition();
       reconnectAttemptsRef.current = 0;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
@@ -1181,7 +1182,7 @@ export function BottomVoiceBar() {
       }
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
-  }, [dispatch, attachMicEndedHandlers]);
+  }, [dispatch, attachMicEndedHandlers, startLocalRecognition]);
 
   // Reconnect the WebSocket while a live session is active. Keeps the mic
   // pipeline running; the open socket is replaced and setup is resent.
