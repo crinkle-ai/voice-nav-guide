@@ -98,6 +98,43 @@ function modelAnnouncedNav(text: string): NavTarget | null {
   return null;
 }
 
+function navTargetLabel(target: NavTarget | "/my-plans" | "/login") {
+  if (target === "/learn") return "the Learn page";
+  if (target === "/find-doctors") return "the doctor finder";
+  if (target === "/compare-plans") return "the plan comparison page";
+  if (target === "/my-plans") return "your saved plans";
+  if (target === "/login") return "sign in";
+  return "home";
+}
+
+type SpeechRecognitionEventLike = Event & {
+  resultIndex: number;
+  results: { length: number; [index: number]: { isFinal: boolean; 0?: { transcript?: string } } };
+};
+
+type BrowserSpeechRecognition = EventTarget & {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+
+function getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
+  const w = window as typeof window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
 const GLOSSARY: Record<string, string> = {
   premium: "The fixed monthly amount you pay for a plan, whether or not you use care.",
   deductible: "The amount you pay out of pocket each year before insurance starts covering costs.",
@@ -338,6 +375,10 @@ export function BottomVoiceBar() {
   const statusRef = useRef<Status>("idle");
   const keepaliveSilenceRef = useRef<string | null>(null);
   const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speechRecognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const speechRestartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localTranscriptRef = useRef("");
+  const lastLocalCommandAtRef = useRef(0);
 
 
 
@@ -347,6 +388,125 @@ export function BottomVoiceBar() {
     if (captionTimerRef.current) clearTimeout(captionTimerRef.current);
     captionTimerRef.current = setTimeout(() => setCaption(""), 6000);
   }, []);
+
+  const clearIdleTimers = useCallback(() => {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
+  }, []);
+
+  const performDeterministicNav = useCallback((target: NavTarget | "/my-plans" | "/login", source: string) => {
+    const now = Date.now();
+    if (now - lastLocalCommandAtRef.current < 1500) return;
+    lastLocalCommandAtRef.current = now;
+
+    let page = target;
+    let search: { redirect?: string } | undefined;
+    if (page === "/my-plans" && !isAuthed()) {
+      page = "/login";
+      search = { redirect: "/my-plans" };
+      try { sessionStorage.setItem(POST_LOGIN_VOICE_KEY, "/my-plans"); } catch { /* noop */ }
+    }
+    if (page === pathnameRef.current) return;
+
+    console.warn(`[VoiceAudit] local command fallback (${source}) → ${page}`);
+    turnNavFiredRef.current = true;
+    lastSentPathRef.current = page;
+    dispatch({ type: "SET_HIGHLIGHT", section: null });
+    setLiveCaption(`Taking you to ${navTargetLabel(page)}.`);
+    if (page === "/login") {
+      navigate({ to: "/login", search: search ?? { redirect: "/my-plans" } });
+    } else {
+      navigate({ to: page });
+    }
+  }, [dispatch, navigate, setLiveCaption]);
+
+  const handleLocalTranscript = useCallback((text: string) => {
+    const clean = text.replace(/\s+/g, " ").trim();
+    if (!clean || isInternalControlText(clean)) return;
+    if (welcomeInProgressRef.current || modelSpeakingRef.current) {
+      console.log(`[VoiceAudit] local speech ignored while guide is speaking: "${clean}"`);
+      return;
+    }
+
+    console.log(`[VoiceAudit] local speech heard: "${clean}"`);
+    userSpeechSeenRef.current = true;
+    clearIdleTimers();
+    localTranscriptRef.current = `${localTranscriptRef.current} ${clean}`.replace(/\s+/g, " ").trim().slice(-600);
+    turnTranscriptRef.current = `${turnTranscriptRef.current} ${clean}`;
+
+    if (matchesAgentIntent(localTranscriptRef.current)) {
+      const now = Date.now();
+      if (now - lastLocalCommandAtRef.current < 1500) return;
+      lastLocalCommandAtRef.current = now;
+      console.warn("[VoiceAudit] local command fallback → agent callback");
+      openAgentCallback();
+      setLiveCaption("I pulled up the callback form.");
+      return;
+    }
+    if (matchesMyPlansIntent(localTranscriptRef.current)) {
+      performDeterministicNav("/my-plans", "my-plans intent");
+      return;
+    }
+    const navTarget = matchesNavIntent(localTranscriptRef.current);
+    if (navTarget) performDeterministicNav(navTarget, clean);
+  }, [clearIdleTimers, openAgentCallback, performDeterministicNav, setLiveCaption]);
+
+  const stopLocalRecognition = useCallback(() => {
+    if (speechRestartTimerRef.current) {
+      clearTimeout(speechRestartTimerRef.current);
+      speechRestartTimerRef.current = null;
+    }
+    const recognition = speechRecognitionRef.current;
+    speechRecognitionRef.current = null;
+    if (recognition) {
+      recognition.onend = null;
+      recognition.onresult = null;
+      recognition.onerror = null;
+      try { recognition.abort(); } catch { /* noop */ }
+    }
+  }, []);
+
+  const startLocalRecognition = useCallback(() => {
+    if (speechRecognitionRef.current || !streamRef.current) return;
+    const Recognition = getSpeechRecognitionCtor();
+    if (!Recognition) {
+      console.warn("[VoiceAudit] local speech fallback unavailable in this browser");
+      return;
+    }
+    try {
+      const recognition = new Recognition();
+      speechRecognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (event) => {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          text += ` ${event.results[i]?.[0]?.transcript ?? ""}`;
+        }
+        handleLocalTranscript(text);
+      };
+      recognition.onerror = (event) => {
+        if (event.error && !["no-speech", "aborted"].includes(event.error)) {
+          console.warn(`[VoiceAudit] local speech fallback error: ${event.error}`);
+        }
+      };
+      recognition.onend = () => {
+        speechRecognitionRef.current = null;
+        if (statusRef.current !== "live" || userStoppedRef.current) return;
+        speechRestartTimerRef.current = setTimeout(() => {
+          speechRestartTimerRef.current = null;
+          startLocalRecognition();
+        }, 250);
+      };
+      recognition.start();
+      console.log("[VoiceAudit] local speech fallback listening");
+    } catch (e) {
+      speechRecognitionRef.current = null;
+      console.warn("[VoiceAudit] local speech fallback failed to start", e);
+    }
+  }, [handleLocalTranscript]);
 
   const sendNoopTurn = useCallback(() => {
     const ws = wsRef.current;
@@ -401,11 +561,6 @@ export function BottomVoiceBar() {
         rebuildMicPipelineRef.current?.();
       };
     });
-  }, []);
-
-  const clearIdleTimers = useCallback(() => {
-    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-    if (idleWarningRef.current) { clearTimeout(idleWarningRef.current); idleWarningRef.current = null; }
   }, []);
 
   const stopAllAudio = useCallback(() => {
@@ -612,6 +767,7 @@ export function BottomVoiceBar() {
 
   const stop = useCallback(() => {
     userStoppedRef.current = true;
+    stopLocalRecognition();
     clearIdleTimers();
     stopKeepalives();
     stopAllAudio();
@@ -653,6 +809,7 @@ export function BottomVoiceBar() {
     startingRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    localTranscriptRef.current = "";
     if (welcomeWatchdogRef.current) {
       clearTimeout(welcomeWatchdogRef.current);
       welcomeWatchdogRef.current = null;
@@ -664,7 +821,7 @@ export function BottomVoiceBar() {
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives]);
+  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives, stopLocalRecognition]);
 
   const failLiveConnection = useCallback(() => {
     stop();
@@ -820,18 +977,11 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.interrupted) {
-        // Suppress self-interruptions: during the welcome, OR when no real
-        // user transcription has arrived this turn (echo/feedback only).
-        const hasRealUserSpeech = turnTranscriptRef.current.trim().length > 0;
-        if (welcomeInProgressRef.current || !hasRealUserSpeech) {
-          console.log("[VoiceAudit] interrupted event IGNORED (welcome guard or no real user speech)");
-          // Ignore — keep playing.
-        } else {
-          console.log("[VoiceAudit] interrupted event HONORED — stopping audio");
-          stopAllAudio();
-          modelSpeakingRef.current = false;
-          clearIdleTimers();
-        }
+        // Demo stability > barge-in. Gemini's interruption signal is easily
+        // triggered by speaker echo in meeting rooms, and our prior client-side
+        // stopAllAudio() made replies cut off. Keep playback intact; local
+        // speech recognition below still catches critical navigation commands.
+        console.log("[VoiceAudit] interrupted event IGNORED (no client-side audio stop)");
       }
       if (msg.toolCall?.functionCalls) {
         console.log(`[VoiceAudit] tool call(s): ${msg.toolCall.functionCalls.map((fc: { name?: string }) => fc.name).join(", ")}`);
@@ -1014,6 +1164,7 @@ export function BottomVoiceBar() {
       }
       void micCtxRef.current?.resume().catch(() => {});
       void playCtxRef.current?.resume().catch(() => {});
+      startLocalRecognition();
       reconnectAttemptsRef.current = 0;
       dispatch({ type: "SET_VOICE_STATE", voiceState: "listening" });
     } catch (e) {
@@ -1028,7 +1179,7 @@ export function BottomVoiceBar() {
       }
       dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
     }
-  }, [dispatch, attachMicEndedHandlers]);
+  }, [dispatch, attachMicEndedHandlers, startLocalRecognition]);
 
   // Reconnect the WebSocket while a live session is active. Keeps the mic
   // pipeline running; the open socket is replaced and setup is resent.
