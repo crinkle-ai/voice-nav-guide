@@ -763,6 +763,7 @@ export function BottomVoiceBar() {
 
   const stop = useCallback(() => {
     userStoppedRef.current = true;
+    stopLocalRecognition();
     clearIdleTimers();
     stopKeepalives();
     stopAllAudio();
@@ -804,6 +805,7 @@ export function BottomVoiceBar() {
     startingRef.current = false;
     greetedRef.current = false;
     userSpeechSeenRef.current = false;
+    localTranscriptRef.current = "";
     if (welcomeWatchdogRef.current) {
       clearTimeout(welcomeWatchdogRef.current);
       welcomeWatchdogRef.current = null;
@@ -815,7 +817,7 @@ export function BottomVoiceBar() {
     setStatus("idle");
     setCaption("");
     dispatch({ type: "SET_VOICE_STATE", voiceState: "idle" });
-  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives]);
+  }, [dispatch, clearIdleTimers, stopAllAudio, stopKeepalives, stopLocalRecognition]);
 
   const failLiveConnection = useCallback(() => {
     stop();
