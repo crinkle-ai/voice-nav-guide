@@ -977,18 +977,11 @@ export function BottomVoiceBar() {
       }
 
       if (msg.serverContent?.interrupted) {
-        // Suppress self-interruptions: during the welcome, OR when no real
-        // user transcription has arrived this turn (echo/feedback only).
-        const hasRealUserSpeech = turnTranscriptRef.current.trim().length > 0;
-        if (welcomeInProgressRef.current || !hasRealUserSpeech) {
-          console.log("[VoiceAudit] interrupted event IGNORED (welcome guard or no real user speech)");
-          // Ignore — keep playing.
-        } else {
-          console.log("[VoiceAudit] interrupted event HONORED — stopping audio");
-          stopAllAudio();
-          modelSpeakingRef.current = false;
-          clearIdleTimers();
-        }
+        // Demo stability > barge-in. Gemini's interruption signal is easily
+        // triggered by speaker echo in meeting rooms, and our prior client-side
+        // stopAllAudio() made replies cut off. Keep playback intact; local
+        // speech recognition below still catches critical navigation commands.
+        console.log("[VoiceAudit] interrupted event IGNORED (no client-side audio stop)");
       }
       if (msg.toolCall?.functionCalls) {
         console.log(`[VoiceAudit] tool call(s): ${msg.toolCall.functionCalls.map((fc: { name?: string }) => fc.name).join(", ")}`);
