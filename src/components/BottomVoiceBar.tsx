@@ -423,6 +423,10 @@ export function BottomVoiceBar() {
   const handleLocalTranscript = useCallback((text: string) => {
     const clean = text.replace(/\s+/g, " ").trim();
     if (!clean || isInternalControlText(clean)) return;
+    if (welcomeInProgressRef.current || modelSpeakingRef.current) {
+      console.log(`[VoiceAudit] local speech ignored while guide is speaking: "${clean}"`);
+      return;
+    }
 
     console.log(`[VoiceAudit] local speech heard: "${clean}"`);
     userSpeechSeenRef.current = true;
