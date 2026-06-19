@@ -28,7 +28,7 @@ function PlansPage() {
       <div className="mx-auto max-w-2xl px-5 pb-20 pt-6">
         <div className="flex items-center justify-between">
           <Link
-            to="/understanding"
+            to="/workspace"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to what matters
@@ -64,7 +64,7 @@ function PlansPage() {
               Filtering by what matters to you
             </div>
             <Link
-              to="/understanding"
+              to="/workspace"
               className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
               <Sliders className="h-3.5 w-3.5" /> Refine what matters to me
