@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders } from "lucide-react";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders, Stethoscope } from "lucide-react";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
 import { persona } from "@/mock/personas";
 import { robertPlans } from "@/mock/plans";
