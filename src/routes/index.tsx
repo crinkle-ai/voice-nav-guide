@@ -78,12 +78,10 @@ function Home() {
           </div>
         </div>
 
-        {/* Quick eligibility card */}
-        <div id="zip-entry" className="rounded-2xl border bg-card p-5 sm:p-6 shadow-sm scroll-mt-24">
-          <div className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         {/* Find your plan — persona scenarios */}
         <div id="zip-entry" className="rounded-2xl border bg-card p-5 sm:p-6 shadow-sm scroll-mt-24">
           <div className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+
             Find your plan
           </div>
           <p className="mt-2 text-sm sm:text-base text-muted-foreground">
