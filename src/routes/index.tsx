@@ -3,6 +3,8 @@ import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
+import { personas } from "@/mock/personas";
+import { PersonaAvatar } from "@/components/workspace-card";
 import {
   BookOpen,
   Stethoscope,
@@ -16,6 +18,7 @@ import {
   Eye,
   Smile,
   CheckCircle2,
+  ArrowUpRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -78,28 +81,40 @@ function Home() {
         {/* Quick eligibility card */}
         <div id="zip-entry" className="rounded-2xl border bg-card p-5 sm:p-6 shadow-sm scroll-mt-24">
           <div className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {/* Find your plan — persona scenarios */}
+        <div id="zip-entry" className="rounded-2xl border bg-card p-5 sm:p-6 shadow-sm scroll-mt-24">
+          <div className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Find your plan
           </div>
           <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-            Most people qualify around age 65. See what's available in your area.
+            Tell us what's on your mind — no forms. Pick a scenario to start.
           </p>
-          <div className="mt-4 space-y-3">
-            <label className="block">
-              <span className="text-sm font-medium text-foreground">ZIP code</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="e.g. 78701"
-                className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-base text-foreground focus:border-primary focus:outline-none min-h-11"
-              />
-            </label>
-            <Button asChild size="lg" className="w-full h-12 text-base">
-              <Link to="/compare-plans">See plans in my area</Link>
-            </Button>
-          </div>
+          <ul className="mt-4 space-y-3">
+            {personas.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to="/ramble/$personaId"
+                  params={{ personaId: p.id }}
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition hover:border-primary/40 hover:shadow-sm"
+                >
+                  <PersonaAvatar name={p.name} hue={p.hue} size={44} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-semibold text-foreground">{p.name}</span>
+                      <span className="text-xs text-muted-foreground">· age {p.age}</span>
+                    </div>
+                    <p className="mt-0.5 line-clamp-2 text-xs sm:text-sm text-muted-foreground">
+                      {p.situationOneLiner}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
+                </Link>
+              </li>
+            ))}
+          </ul>
           <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>No obligation. We'll never sell your information.</span>
+            <span>Concept demo · mock personas. No information collected.</span>
           </div>
         </div>
       </section>
