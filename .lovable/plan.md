@@ -1,111 +1,50 @@
+
 ## Goal
 
-Turn the demo into a single, linear story: land on the homepage → talk/type your ramble → see the AI mirror it back → choose your next move (workspace or plans). One persona (Robert), no picker, no scenario chrome.
+Stop forcing folks through a separate "Understanding" page. After Ramble, drop them straight into their Workspace — which now also carries the "Here's what I'm hearing" summary, "What will shape your route," and "What to look for in a plan."
 
-## The flow
+This is a demo, no auth needed anywhere.
 
-```
-/  (homepage, ramble as hero)
-   │  "Here's what I'm hearing →"
-   ▼
-/understanding
-   │  Two equal CTAs:
-   │   ├─► /workspace   (hub: your personalized plan of attack)
-   │   └─► /plans       (jump straight to filtered plan results)
-   ▼
-/workspace ◄──────────────────┐
-   │  Cards link out to:      │
-   ├─► /plans  ──► /compare   │
-   ├─► /find-doctors          │
-   └─► /learn                 │
-        (back returns here) ──┘
+## New flow
+
+```text
+/  (Ramble hero)
+   └─► Generate ──► /workspace  (single hub for everything)
+                         │
+                         ├─► /workspace/activity/$id  (do a step)
+                         └─► /plans                   (when ready to shop)
 ```
 
-Workspace is home base after the ramble. Plans/Compare/Doctors are tools you visit *from* workspace. The bottom pill nav (Workspace / Plans / Shop My Way reset) ties the session together.
+## /workspace — new structure (top → bottom)
 
-## Homepage changes (`src/routes/index.tsx`)
+1. **Header** — "Medicare Workspace" kicker + persona name (unchanged).
+2. **Here's what I'm hearing** — moved from /understanding. Smaller than today: ~16–17px body text in a soft card with the sparkle chip, not the giant 26px display type. Sits right under the header so it grounds everything.
+3. **Your next step** card (unchanged).
+4. **Your route** list (unchanged) — replaces the old "What will shape your route" section since they're the same idea.
+5. **What matters to you** chips (unchanged — these double as "what to look for in a plan" at the human level).
+6. **Plan signals** — new section, moved from /understanding's "What to look for in a plan." Small filter-chip list ("In-network for Dr. Patel & Dr. Chen", etc.) with a "Show me plans that fit →" button underneath linking to `/plans`.
+7. **Your doctors** (unchanged).
+8. **Your medications** (unchanged).
+9. **Anything else we should know** — the `AboutMoreRamble` component moves down here so folks can add more context without leaving the workspace.
+10. **Open questions** (unchanged, if any).
 
-- Remove the "Find Your Plan" card (ZIP card was already replaced; now remove the persona picker card too).
-- New hero section: **"Shop My Way"** eyebrow, headline "Just tell us what's on your mind.", supporting line, and the ramble box itself — pre-loaded with Robert's seed text, Listening dot, animated waveform, mic button (visual-only).
-- Primary CTA below the box: **"Here's what I'm hearing →"** navigates to `/understanding`.
-- Tiny "Reset demo" link under the CTA resets the textarea to Robert's seed text.
-- Push the other homepage sections (TopNav nav targets, deck links, etc.) below the fold; ramble dominates above the fold.
+## Routing & nav changes
 
-## Route collapse — drop `$personaId` from URLs
+- **`/` Ramble "Generate" button** → navigates to `/workspace` (currently `/understanding`).
+- **Top nav "Shop My Way"** → points to `/workspace` (currently `/understanding`). Icon/label unchanged.
+- **`/understanding` route** → deleted. Any stragglers redirect to `/workspace`.
+- **Bottom nav** in `AppShell` updated so the "Shop My Way" tab's `match` is `/workspace` (it'll share active state with the Workspace tab — we'll drop the duplicate Workspace tab since they're now the same destination; nav becomes: **Shop My Way · Plans · Restart**).
 
-Robert is implicit everywhere. New routes:
+## Files touched
 
-- `/understanding`  (was `/understanding/$personaId`)
-- `/plans`           (was `/plans/$personaId` — note this replaces the persona version, not the existing `/my-plans`)
-- `/compare`         (was `/compare/$personaId` — separate from existing `/compare-plans`)
-- `/workspace`       (was `/workspace/$personaId`)
-- `/workspace/activity/$activityId`  (was `/workspace/$personaId/activity/$activityId`)
+- `src/routes/workspace.tsx` — add hearing summary, plan signals section, AboutMoreRamble at bottom.
+- `src/routes/understanding.tsx` — delete.
+- `src/routes/index.tsx` — Ramble navigate target → `/workspace`.
+- `src/components/app-shell.tsx` — collapse Workspace + Shop My Way into one tab pointing at `/workspace`; remove `/understanding` references.
+- `src/components/back-row.tsx` / any lingering links to `/understanding` — point to `/workspace`.
 
-Delete the persona-parameterized route files; create the new flat ones using the same components/content, hardcoded to Robert.
+## Out of scope (call out)
 
-Keep `/ramble/$personaId` deleted too — the homepage is the ramble now.
-
-## Understanding page CTAs
-
-Two equal-weight buttons (no primary/secondary):
-- "Open my workspace" → `/workspace`
-- "Show me plans that fit" → `/plans`
-
-Same visual weight (both outlined or both filled ink — pick one treatment, no hierarchy).
-
-## Persona data cleanup
-
-- `src/mock/personas.ts`: remove Linda and Susan entries entirely. Keep only Robert. Export `robert` directly alongside the existing `getPersona` (or rename to `getRobert()` / a single `persona` constant) — no lookups needed.
-- `src/state/usePersonaStore.ts`: simplify or remove. Since there's one persona, components can import Robert's data directly. Keep the store only if Understanding/Workspace mutate state during the session; otherwise delete.
-- `src/mock/plans.ts`: keep as-is (plan catalog isn't persona-specific).
-
-## Components to update
-
-- `src/components/back-row.tsx`: drop `personaId` prop, drop `/ramble/$personaId` from the `backTo` union. Back targets become `/`, `/understanding`, `/workspace`.
-- `src/components/app-shell.tsx`: pill nav links go to flat routes (`/workspace`, `/plans`, `/`).
-- `src/components/about-more-ramble.tsx`, `self-enroll-moment.tsx`, `workspace-card.tsx`: remove `personaId` props; hardcode to Robert where needed.
-
-## Files added
-
-- (none new — homepage absorbs the ramble inline)
-
-## Files modified
-
-- `src/routes/index.tsx` — replace card with ramble hero
-- `src/components/back-row.tsx` — simpler back targets
-- `src/components/app-shell.tsx` — flat nav links
-- `src/components/about-more-ramble.tsx`, `self-enroll-moment.tsx`, `workspace-card.tsx` — drop persona props
-- `src/mock/personas.ts` — keep Robert only
-- `src/state/usePersonaStore.ts` — simplify or remove
-
-## Files renamed/recreated (flat routes)
-
-- `src/routes/understanding.tsx`  (from `understanding.$personaId.tsx`)
-- `src/routes/plans.tsx`           (from `plans.$personaId.tsx`)
-- `src/routes/compare.tsx`         (from `compare.$personaId.tsx`)
-- `src/routes/workspace.tsx`        (from `workspace.$personaId.tsx`)
-- `src/routes/workspace.activity.$activityId.tsx`  (from `workspace.$personaId.activity.$activityId.tsx`)
-
-## Files deleted
-
-- `src/routes/ramble.$personaId.tsx`
-- `src/routes/understanding.$personaId.tsx`
-- `src/routes/plans.$personaId.tsx`
-- `src/routes/compare.$personaId.tsx`
-- `src/routes/workspace.$personaId.tsx`
-- `src/routes/workspace.$personaId.activity.$activityId.tsx`
-
-## Out of scope
-
-- Wiring the mic to real STT (still visual-only)
-- Touching `/my-plans`, `/compare-plans`, `/find-doctors`, `/learn`, `/deck`
-- Persisting ramble state to the backend
-- Voice navigator integration with the ramble
-
-## Verification
-
-- Homepage shows the ramble hero pre-filled with Robert's text; "Here's what I'm hearing →" goes to `/understanding`.
-- `/understanding` shows the mirror + two equal CTAs.
-- Both CTAs work; workspace is reachable; plans is reachable.
-- Bottom pill nav uses flat routes.
-- No `/ramble/...` or `/$personaId` URLs remain anywhere in the codebase.
+- No auth / login flows — demo stays fully open.
+- No changes to `/plans`, `/compare`, or activity pages.
+- No persona switching — Robert only (already done).
