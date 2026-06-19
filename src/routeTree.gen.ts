@@ -17,17 +17,11 @@ import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeckIndexRouteImport } from './routes/deck.index'
-import { Route as WorkspacePersonaIdRouteImport } from './routes/workspace.$personaId'
-import { Route as UnderstandingPersonaIdRouteImport } from './routes/understanding.$personaId'
-import { Route as RamblePersonaIdRouteImport } from './routes/ramble.$personaId'
-import { Route as PlansPersonaIdRouteImport } from './routes/plans.$personaId'
 import { Route as DeckLiveRouteImport } from './routes/deck.live'
 import { Route as DeckAiRouteImport } from './routes/deck.ai'
-import { Route as ComparePersonaIdRouteImport } from './routes/compare.$personaId'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as WorkspacePersonaIdActivityActivityIdRouteImport } from './routes/workspace.$personaId.activity.$activityId'
 
 const MyPlansRoute = MyPlansRouteImport.update({
   id: '/my-plans',
@@ -69,26 +63,6 @@ const DeckIndexRoute = DeckIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DeckRoute,
 } as any)
-const WorkspacePersonaIdRoute = WorkspacePersonaIdRouteImport.update({
-  id: '/workspace/$personaId',
-  path: '/workspace/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UnderstandingPersonaIdRoute = UnderstandingPersonaIdRouteImport.update({
-  id: '/understanding/$personaId',
-  path: '/understanding/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RamblePersonaIdRoute = RamblePersonaIdRouteImport.update({
-  id: '/ramble/$personaId',
-  path: '/ramble/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlansPersonaIdRoute = PlansPersonaIdRouteImport.update({
-  id: '/plans/$personaId',
-  path: '/plans/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DeckLiveRoute = DeckLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -98,11 +72,6 @@ const DeckAiRoute = DeckAiRouteImport.update({
   id: '/ai',
   path: '/ai',
   getParentRoute: () => DeckRoute,
-} as any)
-const ComparePersonaIdRoute = ComparePersonaIdRouteImport.update({
-  id: '/compare/$personaId',
-  path: '/compare/$personaId',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVoiceSessionRoute = ApiVoiceSessionRouteImport.update({
   id: '/api/voice-session',
@@ -119,12 +88,6 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkspacePersonaIdActivityActivityIdRoute =
-  WorkspacePersonaIdActivityActivityIdRouteImport.update({
-    id: '/activity/$activityId',
-    path: '/activity/$activityId',
-    getParentRoute: () => WorkspacePersonaIdRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,15 +100,9 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck/': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,15 +114,9 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,15 +130,9 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck/': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -202,15 +147,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck/'
-    | '/workspace/$personaId/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -222,15 +161,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck'
-    | '/workspace/$personaId/activity/$activityId'
   id:
     | '__root__'
     | '/'
@@ -243,15 +176,9 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck/'
-    | '/workspace/$personaId/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,11 +192,6 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
-  ComparePersonaIdRoute: typeof ComparePersonaIdRoute
-  PlansPersonaIdRoute: typeof PlansPersonaIdRoute
-  RamblePersonaIdRoute: typeof RamblePersonaIdRoute
-  UnderstandingPersonaIdRoute: typeof UnderstandingPersonaIdRoute
-  WorkspacePersonaIdRoute: typeof WorkspacePersonaIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -330,34 +252,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeckIndexRouteImport
       parentRoute: typeof DeckRoute
     }
-    '/workspace/$personaId': {
-      id: '/workspace/$personaId'
-      path: '/workspace/$personaId'
-      fullPath: '/workspace/$personaId'
-      preLoaderRoute: typeof WorkspacePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/understanding/$personaId': {
-      id: '/understanding/$personaId'
-      path: '/understanding/$personaId'
-      fullPath: '/understanding/$personaId'
-      preLoaderRoute: typeof UnderstandingPersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ramble/$personaId': {
-      id: '/ramble/$personaId'
-      path: '/ramble/$personaId'
-      fullPath: '/ramble/$personaId'
-      preLoaderRoute: typeof RamblePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plans/$personaId': {
-      id: '/plans/$personaId'
-      path: '/plans/$personaId'
-      fullPath: '/plans/$personaId'
-      preLoaderRoute: typeof PlansPersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/deck/live': {
       id: '/deck/live'
       path: '/live'
@@ -371,13 +265,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/deck/ai'
       preLoaderRoute: typeof DeckAiRouteImport
       parentRoute: typeof DeckRoute
-    }
-    '/compare/$personaId': {
-      id: '/compare/$personaId'
-      path: '/compare/$personaId'
-      fullPath: '/compare/$personaId'
-      preLoaderRoute: typeof ComparePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/voice-session': {
       id: '/api/voice-session'
@@ -400,13 +287,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/workspace/$personaId/activity/$activityId': {
-      id: '/workspace/$personaId/activity/$activityId'
-      path: '/activity/$activityId'
-      fullPath: '/workspace/$personaId/activity/$activityId'
-      preLoaderRoute: typeof WorkspacePersonaIdActivityActivityIdRouteImport
-      parentRoute: typeof WorkspacePersonaIdRoute
-    }
   }
 }
 
@@ -424,18 +304,6 @@ const DeckRouteChildren: DeckRouteChildren = {
 
 const DeckRouteWithChildren = DeckRoute._addFileChildren(DeckRouteChildren)
 
-interface WorkspacePersonaIdRouteChildren {
-  WorkspacePersonaIdActivityActivityIdRoute: typeof WorkspacePersonaIdActivityActivityIdRoute
-}
-
-const WorkspacePersonaIdRouteChildren: WorkspacePersonaIdRouteChildren = {
-  WorkspacePersonaIdActivityActivityIdRoute:
-    WorkspacePersonaIdActivityActivityIdRoute,
-}
-
-const WorkspacePersonaIdRouteWithChildren =
-  WorkspacePersonaIdRoute._addFileChildren(WorkspacePersonaIdRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComparePlansRoute: ComparePlansRoute,
@@ -447,11 +315,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
-  ComparePersonaIdRoute: ComparePersonaIdRoute,
-  PlansPersonaIdRoute: PlansPersonaIdRoute,
-  RamblePersonaIdRoute: RamblePersonaIdRoute,
-  UnderstandingPersonaIdRoute: UnderstandingPersonaIdRoute,
-  WorkspacePersonaIdRoute: WorkspacePersonaIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
