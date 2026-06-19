@@ -174,48 +174,6 @@ export function TopNav() {
           </SheetContent>
         </Sheet>
       </div>
-
-      {/* Journey progress */}
-      <div id="journey-strip" className="border-t bg-muted/40 scroll-mt-24">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 sm:px-6 py-3 text-sm overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <span className="font-semibold text-muted-foreground shrink-0">Your journey:</span>
-          <ol className="flex items-center gap-2">
-            {JOURNEY_STEPS.map((step, idx) => {
-              const visited = state.journey.visitedPages.includes(step.path);
-              const isCurrent = pathname === step.path;
-              return (
-                <li key={step.path} className="flex items-center gap-2 shrink-0">
-                  <div
-                    className={`flex items-center gap-2 rounded-full px-3 py-1 ${
-                      isCurrent
-                        ? "bg-primary text-primary-foreground"
-                        : visited
-                          ? "bg-accent text-accent-foreground"
-                          : "bg-background text-muted-foreground border"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold ${
-                        isCurrent
-                          ? "bg-primary-foreground text-primary"
-                          : visited
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {visited && !isCurrent ? <Check className="h-3 w-3" /> : idx + 1}
-                    </span>
-                    <span className="font-medium">{step.label}</span>
-                  </div>
-                  {idx < JOURNEY_STEPS.length - 1 && (
-                    <span className="text-muted-foreground">→</span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </div>
     </header>
   );
 }
