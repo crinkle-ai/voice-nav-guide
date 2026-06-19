@@ -98,49 +98,55 @@ function WorkspaceHome() {
         );
       })()}
 
-      <section className="mt-8">
+      <section className="mt-10">
         <div className="mb-2 flex items-baseline justify-between">
-          <h3 className="text-[13px] font-medium text-ink">Your route</h3>
-          <span className="text-[11px] text-muted-foreground">{completedCount} of {requiredSteps.length}</span>
+          <h3 className="font-display text-[22px] leading-tight text-ink">What will shape your route</h3>
+          <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{requiredSteps.length} steps</span>
         </div>
-        <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          A short, personal path we built from what you told us. Each step is one focused decision — tap any to see what it covers and why it matters.
+        <p className="mb-4 text-[13px] leading-relaxed text-muted-foreground">
+          Things to do — these become your personalized path.
         </p>
-        <ol className="space-y-2">
+        <ol className="space-y-3">
           {requiredSteps.map((s) => {
             const completed = s.status === "completed";
             const isCurrent = s.status === "current";
             const meta = activities[s.activity];
+            const Icon = iconForActivity(s.activity);
             return (
               <li key={s.id}>
                 <Link
                   to="/workspace/activity/$activityId"
                   params={{ activityId: s.activity }}
                   className={[
-                    "flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition",
-                    isCurrent ? "bg-primary-soft text-ink" : "hover:bg-muted/60",
+                    "group flex items-center gap-4 rounded-2xl border px-4 py-4 transition",
+                    isCurrent
+                      ? "border-primary/40 bg-primary-soft/50"
+                      : completed
+                        ? "border-border/70 bg-card"
+                        : "border-border bg-card hover:border-primary/30 hover:bg-primary-soft/30",
                   ].join(" ")}
                 >
                   <span className={[
-                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]",
-                    completed ? "bg-success text-white" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                    completed ? "bg-success-soft text-success" : "bg-primary-soft text-primary",
                   ].join(" ")}>
-                    {completed ? <Check className="h-3 w-3" /> : null}
+                    {completed ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" strokeWidth={1.75} />}
                   </span>
                   <span className="flex-1 min-w-0">
                     <span className={[
-                      "block",
+                      "block text-[15px] font-medium leading-tight",
                       completed ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-ink",
                     ].join(" ")}>
                       {s.label}
                     </span>
-                    {meta && !completed && (
-                      <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">
-                        {meta.objective}
-                      </span>
-                    )}
+                    <span className="mt-1 block text-[13px] leading-snug text-muted-foreground">
+                      {meta?.objective ?? "Open to see what this step covers."}
+                    </span>
                   </span>
-                  <span className="mt-0.5 text-[11px] text-muted-foreground">{s.estMinutes}m</span>
+                  <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    {s.estMinutes}m
+                  </span>
                 </Link>
               </li>
             );
