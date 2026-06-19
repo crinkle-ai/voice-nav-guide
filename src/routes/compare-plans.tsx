@@ -146,6 +146,14 @@ function ComparePlans() {
         </div>
       </section>
 
+      <DoctorNetworkMatrix
+        doctors={savedDoctors}
+        plans={selected.length > 0 ? selected.map((p) => ({ id: p.id, name: p.name, carrier: p.carrier })) : robertPlans.slice(0, 3).map((p) => ({ id: p.id, name: p.name, carrier: p.carrier ?? "" }))}
+        usingFallback={selected.length === 0}
+      />
+
+
+
       <div className="mt-10 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
