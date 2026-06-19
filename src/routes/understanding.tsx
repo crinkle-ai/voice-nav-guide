@@ -23,13 +23,13 @@ import {
   Filter,
   type LucideIcon,
 } from "lucide-react";
-import { getPersona, type RouteDriver } from "@/mock/personas";
+import { persona, type RouteDriver } from "@/mock/personas";
 import { PersonaAvatar } from "@/components/workspace-card";
 import { BackRow } from "@/components/back-row";
 import { AppShell } from "@/components/app-shell";
 import { AboutMoreRamble } from "@/components/about-more-ramble";
 
-export const Route = createFileRoute("/understanding/$personaId")({
+export const Route = createFileRoute("/understanding")({
   head: () => ({ meta: [{ title: "Here's what I'm hearing · Medicare Decision Companion" }] }),
   component: () => (
     <AppShell>
@@ -57,51 +57,15 @@ const iconMap: Record<RouteDriver["icon"], LucideIcon> = {
   "thumbs-up": ThumbsUp,
 };
 
-type CtaTarget =
-  | "/plans/$personaId"
-  | "/workspace/$personaId"
-  | "/compare/$personaId";
-
 function Understanding() {
-  const { personaId } = Route.useParams();
-  const persona = getPersona(personaId);
-
   const drivers = persona.routeDrivers;
   const filters = persona.planFilters;
   const filtersSparse = filters.length <= 2;
 
-  const cta: {
-    label: string;
-    to: CtaTarget;
-    secondary: { label: string; to: CtaTarget };
-  } = (() => {
-    switch (persona.id) {
-      case "robert":
-        return {
-          label: "Show me plans that fit",
-          to: "/plans/$personaId",
-          secondary: { label: "Open my workspace", to: "/workspace/$personaId" },
-        };
-      case "susan":
-        return {
-          label: "Compare my final options",
-          to: "/compare/$personaId",
-          secondary: { label: "Open my workspace", to: "/workspace/$personaId" },
-        };
-      case "linda":
-      default:
-        return {
-          label: "Open my workspace",
-          to: "/workspace/$personaId",
-          secondary: { label: "Browse plans anyway", to: "/plans/$personaId" },
-        };
-    }
-  })();
-
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-5 pb-16 pt-6">
-        <BackRow backTo="/ramble/$personaId" backLabel="Back to what you said" personaId={persona.id} />
+        <BackRow backTo="/" backLabel="Back to what you said" showHome={false} />
 
         <div className="mt-6 flex items-center gap-3">
           <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />
@@ -122,7 +86,6 @@ function Understanding() {
           </p>
         </motion.div>
 
-        {/* Bucket 1 — Route drivers */}
         <section className="mt-10">
           <div className="mb-1 flex items-baseline justify-between">
             <h2 className="font-display text-lg text-ink">What will shape your route</h2>
@@ -159,7 +122,6 @@ function Understanding() {
           </ul>
         </section>
 
-        {/* Bucket 2 — Plan filters */}
         <section className="mt-10">
           <div className="mb-1 flex items-baseline justify-between">
             <h2 className="font-display text-lg text-ink">What to look for in a plan</h2>
@@ -196,20 +158,24 @@ function Understanding() {
           )}
         </section>
 
-        <Link
-          to={cta.to} params={{ personaId: persona.id }}
-          className="mt-10 flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
-        >
-          {cta.label} <ArrowRight className="h-4 w-4" />
-        </Link>
-        <Link
-          to={cta.secondary.to} params={{ personaId: persona.id }}
-          className="mt-3 flex items-center justify-center text-sm text-muted-foreground hover:text-ink"
-        >
-          {cta.secondary.label}
-        </Link>
+        {/* Two equal-weight CTAs */}
+        <div className="mt-10 grid gap-3 sm:grid-cols-2">
+          <Link
+            to="/workspace"
+            className="flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
+          >
+            Open my workspace <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/plans"
+            className="flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
+          >
+            Show me plans that fit <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
         <div className="mt-10">
-          <AboutMoreRamble personaId={persona.id} />
+          <AboutMoreRamble />
         </div>
       </div>
     </div>

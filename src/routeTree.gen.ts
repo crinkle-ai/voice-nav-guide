@@ -9,26 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as UnderstandingRouteImport } from './routes/understanding'
+import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeckIndexRouteImport } from './routes/deck.index'
-import { Route as WorkspacePersonaIdRouteImport } from './routes/workspace.$personaId'
-import { Route as UnderstandingPersonaIdRouteImport } from './routes/understanding.$personaId'
-import { Route as RamblePersonaIdRouteImport } from './routes/ramble.$personaId'
-import { Route as PlansPersonaIdRouteImport } from './routes/plans.$personaId'
 import { Route as DeckLiveRouteImport } from './routes/deck.live'
 import { Route as DeckAiRouteImport } from './routes/deck.ai'
-import { Route as ComparePersonaIdRouteImport } from './routes/compare.$personaId'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as WorkspacePersonaIdActivityActivityIdRouteImport } from './routes/workspace.$personaId.activity.$activityId'
+import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/workspace.activity.$activityId'
 
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnderstandingRoute = UnderstandingRouteImport.update({
+  id: '/understanding',
+  path: '/understanding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyPlansRoute = MyPlansRouteImport.update({
   id: '/my-plans',
   path: '/my-plans',
@@ -59,6 +73,11 @@ const ComparePlansRoute = ComparePlansRouteImport.update({
   path: '/compare-plans',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -69,26 +88,6 @@ const DeckIndexRoute = DeckIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DeckRoute,
 } as any)
-const WorkspacePersonaIdRoute = WorkspacePersonaIdRouteImport.update({
-  id: '/workspace/$personaId',
-  path: '/workspace/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UnderstandingPersonaIdRoute = UnderstandingPersonaIdRouteImport.update({
-  id: '/understanding/$personaId',
-  path: '/understanding/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RamblePersonaIdRoute = RamblePersonaIdRouteImport.update({
-  id: '/ramble/$personaId',
-  path: '/ramble/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlansPersonaIdRoute = PlansPersonaIdRouteImport.update({
-  id: '/plans/$personaId',
-  path: '/plans/$personaId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DeckLiveRoute = DeckLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -98,11 +97,6 @@ const DeckAiRoute = DeckAiRouteImport.update({
   id: '/ai',
   path: '/ai',
   getParentRoute: () => DeckRoute,
-} as any)
-const ComparePersonaIdRoute = ComparePersonaIdRouteImport.update({
-  id: '/compare/$personaId',
-  path: '/compare/$personaId',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVoiceSessionRoute = ApiVoiceSessionRouteImport.update({
   id: '/api/voice-session',
@@ -119,161 +113,175 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkspacePersonaIdActivityActivityIdRoute =
-  WorkspacePersonaIdActivityActivityIdRouteImport.update({
+const WorkspaceActivityActivityIdRoute =
+  WorkspaceActivityActivityIdRouteImport.update({
     id: '/activity/$activityId',
     path: '/activity/$activityId',
-    getParentRoute: () => WorkspacePersonaIdRoute,
+    getParentRoute: () => WorkspaceRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck/': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
-  '/compare/$personaId': typeof ComparePersonaIdRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
-  '/plans/$personaId': typeof PlansPersonaIdRoute
-  '/ramble/$personaId': typeof RamblePersonaIdRoute
-  '/understanding/$personaId': typeof UnderstandingPersonaIdRoute
-  '/workspace/$personaId': typeof WorkspacePersonaIdRouteWithChildren
   '/deck/': typeof DeckIndexRoute
-  '/workspace/$personaId/activity/$activityId': typeof WorkspacePersonaIdActivityActivityIdRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/deck'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck/'
-    | '/workspace/$personaId/activity/$activityId'
+    | '/workspace/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck'
-    | '/workspace/$personaId/activity/$activityId'
+    | '/workspace/activity/$activityId'
   id:
     | '__root__'
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/deck'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
-    | '/compare/$personaId'
     | '/deck/ai'
     | '/deck/live'
-    | '/plans/$personaId'
-    | '/ramble/$personaId'
-    | '/understanding/$personaId'
-    | '/workspace/$personaId'
     | '/deck/'
-    | '/workspace/$personaId/activity/$activityId'
+    | '/workspace/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompareRoute: typeof CompareRoute
   ComparePlansRoute: typeof ComparePlansRoute
   DeckRoute: typeof DeckRouteWithChildren
   FindDoctorsRoute: typeof FindDoctorsRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   MyPlansRoute: typeof MyPlansRoute
+  PlansRoute: typeof PlansRoute
+  UnderstandingRoute: typeof UnderstandingRoute
+  WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
-  ComparePersonaIdRoute: typeof ComparePersonaIdRoute
-  PlansPersonaIdRoute: typeof PlansPersonaIdRoute
-  RamblePersonaIdRoute: typeof RamblePersonaIdRoute
-  UnderstandingPersonaIdRoute: typeof UnderstandingPersonaIdRoute
-  WorkspacePersonaIdRoute: typeof WorkspacePersonaIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/understanding': {
+      id: '/understanding'
+      path: '/understanding'
+      fullPath: '/understanding'
+      preLoaderRoute: typeof UnderstandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-plans': {
       id: '/my-plans'
       path: '/my-plans'
@@ -316,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComparePlansRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -330,34 +345,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeckIndexRouteImport
       parentRoute: typeof DeckRoute
     }
-    '/workspace/$personaId': {
-      id: '/workspace/$personaId'
-      path: '/workspace/$personaId'
-      fullPath: '/workspace/$personaId'
-      preLoaderRoute: typeof WorkspacePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/understanding/$personaId': {
-      id: '/understanding/$personaId'
-      path: '/understanding/$personaId'
-      fullPath: '/understanding/$personaId'
-      preLoaderRoute: typeof UnderstandingPersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ramble/$personaId': {
-      id: '/ramble/$personaId'
-      path: '/ramble/$personaId'
-      fullPath: '/ramble/$personaId'
-      preLoaderRoute: typeof RamblePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plans/$personaId': {
-      id: '/plans/$personaId'
-      path: '/plans/$personaId'
-      fullPath: '/plans/$personaId'
-      preLoaderRoute: typeof PlansPersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/deck/live': {
       id: '/deck/live'
       path: '/live'
@@ -371,13 +358,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/deck/ai'
       preLoaderRoute: typeof DeckAiRouteImport
       parentRoute: typeof DeckRoute
-    }
-    '/compare/$personaId': {
-      id: '/compare/$personaId'
-      path: '/compare/$personaId'
-      fullPath: '/compare/$personaId'
-      preLoaderRoute: typeof ComparePersonaIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/voice-session': {
       id: '/api/voice-session'
@@ -400,12 +380,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/workspace/$personaId/activity/$activityId': {
-      id: '/workspace/$personaId/activity/$activityId'
+    '/workspace/activity/$activityId': {
+      id: '/workspace/activity/$activityId'
       path: '/activity/$activityId'
-      fullPath: '/workspace/$personaId/activity/$activityId'
-      preLoaderRoute: typeof WorkspacePersonaIdActivityActivityIdRouteImport
-      parentRoute: typeof WorkspacePersonaIdRoute
+      fullPath: '/workspace/activity/$activityId'
+      preLoaderRoute: typeof WorkspaceActivityActivityIdRouteImport
+      parentRoute: typeof WorkspaceRoute
     }
   }
 }
@@ -424,34 +404,33 @@ const DeckRouteChildren: DeckRouteChildren = {
 
 const DeckRouteWithChildren = DeckRoute._addFileChildren(DeckRouteChildren)
 
-interface WorkspacePersonaIdRouteChildren {
-  WorkspacePersonaIdActivityActivityIdRoute: typeof WorkspacePersonaIdActivityActivityIdRoute
+interface WorkspaceRouteChildren {
+  WorkspaceActivityActivityIdRoute: typeof WorkspaceActivityActivityIdRoute
 }
 
-const WorkspacePersonaIdRouteChildren: WorkspacePersonaIdRouteChildren = {
-  WorkspacePersonaIdActivityActivityIdRoute:
-    WorkspacePersonaIdActivityActivityIdRoute,
+const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceActivityActivityIdRoute: WorkspaceActivityActivityIdRoute,
 }
 
-const WorkspacePersonaIdRouteWithChildren =
-  WorkspacePersonaIdRoute._addFileChildren(WorkspacePersonaIdRouteChildren)
+const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
+  WorkspaceRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompareRoute: CompareRoute,
   ComparePlansRoute: ComparePlansRoute,
   DeckRoute: DeckRouteWithChildren,
   FindDoctorsRoute: FindDoctorsRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   MyPlansRoute: MyPlansRoute,
+  PlansRoute: PlansRoute,
+  UnderstandingRoute: UnderstandingRoute,
+  WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
-  ComparePersonaIdRoute: ComparePersonaIdRoute,
-  PlansPersonaIdRoute: PlansPersonaIdRoute,
-  RamblePersonaIdRoute: RamblePersonaIdRoute,
-  UnderstandingPersonaIdRoute: UnderstandingPersonaIdRoute,
-  WorkspacePersonaIdRoute: WorkspacePersonaIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

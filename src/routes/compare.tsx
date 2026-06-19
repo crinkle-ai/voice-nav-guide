@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import { getPersona } from "@/mock/personas";
-import { plansByPersona } from "@/mock/plans";
+import { persona } from "@/mock/personas";
+import { robertPlans } from "@/mock/plans";
 import { PersonaAvatar } from "@/components/workspace-card";
 import { BackRow } from "@/components/back-row";
 import { AppShell } from "@/components/app-shell";
 
-export const Route = createFileRoute("/compare/$personaId")({
+export const Route = createFileRoute("/compare")({
   head: () => ({ meta: [{ title: "Compare my final options · Medicare Decision Companion" }] }),
   component: () => (
     <AppShell>
@@ -17,9 +17,7 @@ export const Route = createFileRoute("/compare/$personaId")({
 });
 
 function ComparePage() {
-  const { personaId } = Route.useParams();
-  const persona = getPersona(personaId);
-  const plans = plansByPersona[persona.id] ?? [];
+  const plans = robertPlans;
   const finalists = plans.filter((p) => p.finalist).slice(0, 2);
   const pair = finalists.length === 2 ? finalists : plans.slice(0, 2);
 
@@ -41,7 +39,7 @@ function ComparePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 pb-20 pt-6">
-        <BackRow backTo="/understanding/$personaId" backLabel="Back to what I'm hearing" personaId={persona.id} />
+        <BackRow backTo="/understanding" backLabel="Back to what I'm hearing" />
 
         <div className="mt-6 flex items-center gap-3">
           <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />
@@ -55,13 +53,13 @@ function ComparePage() {
           className="mt-4"
         >
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-accent-foreground">
-            <Sparkles className="h-3 w-3" /> Your two finalists
+            <Sparkles className="h-3 w-3" /> Your top matches
           </div>
           <h1 className="mt-4 font-display text-3xl leading-tight text-ink">
             Side-by-side, just the differences that matter.
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            You already did the narrowing — this is the clean comparison so you can name the tradeoff.
+            Two of your strongest matches, lined up so you can name the tradeoff.
           </p>
         </motion.div>
 
@@ -118,7 +116,7 @@ function ComparePage() {
         </div>
 
         <Link
-          to="/workspace/$personaId" params={{ personaId: persona.id }}
+          to="/workspace"
           className="mt-10 flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
         >
           Take this to my workspace <ArrowRight className="h-4 w-4" />

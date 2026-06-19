@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sliders, Sparkles } from "lucide-react";
-import { getPersona } from "@/mock/personas";
-import { plansByPersona, type Plan } from "@/mock/plans";
+import { persona } from "@/mock/personas";
+import { robertPlans, type Plan } from "@/mock/plans";
 import { PersonaAvatar } from "@/components/workspace-card";
 import { AppShell } from "@/components/app-shell";
 
-export const Route = createFileRoute("/plans/$personaId")({
+export const Route = createFileRoute("/plans")({
   head: () => ({ meta: [{ title: "Plans that fit · Medicare Decision Companion" }] }),
   component: () => (
     <AppShell>
@@ -16,9 +16,7 @@ export const Route = createFileRoute("/plans/$personaId")({
 });
 
 function PlansPage() {
-  const { personaId } = Route.useParams();
-  const persona = getPersona(personaId);
-  const plans = plansByPersona[persona.id];
+  const plans = robertPlans;
   const needs = persona.needs;
   const totalNeeds = needs.length;
 
@@ -30,12 +28,12 @@ function PlansPage() {
       <div className="mx-auto max-w-2xl px-5 pb-20 pt-6">
         <div className="flex items-center justify-between">
           <Link
-            to="/understanding/$personaId" params={{ personaId: persona.id }}
+            to="/understanding"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to what matters
           </Link>
-          <Link to="/" className="text-xs text-muted-foreground hover:text-ink">Change scenario</Link>
+          <Link to="/" className="text-xs text-muted-foreground hover:text-ink">Start over</Link>
         </div>
 
         <div className="mt-6 flex items-center gap-3">
@@ -60,14 +58,13 @@ function PlansPage() {
           </p>
         </motion.div>
 
-        {/* Needs summary header */}
         <div className="mt-6 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
               Filtering by what matters to you
             </div>
             <Link
-              to="/understanding/$personaId" params={{ personaId: persona.id }}
+              to="/understanding"
               className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
               <Sliders className="h-3.5 w-3.5" /> Refine what matters to me
@@ -82,12 +79,16 @@ function PlansPage() {
           </ul>
         </div>
 
-        {/* Susan's finalists side-by-side */}
-        {finalists.length === 2 && (
+        {finalists.length >= 2 && (
           <div className="mt-8">
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="font-display text-lg text-ink">Your two finalists</h2>
-              <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Side by side</span>
+              <h2 className="font-display text-lg text-ink">Top matches</h2>
+              <Link
+                to="/compare"
+                className="text-[12px] font-medium text-primary hover:underline"
+              >
+                Compare side-by-side →
+              </Link>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {finalists.map((p, i) => (
@@ -97,16 +98,15 @@ function PlansPage() {
           </div>
         )}
 
-        {/* Main list */}
         <div className="mt-8">
-          {finalists.length === 2 && (
+          {finalists.length >= 2 && (
             <div className="mb-3 flex items-baseline justify-between">
               <h2 className="font-display text-lg text-ink">Other options to consider</h2>
               <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{rest.length} more</span>
             </div>
           )}
           <ul className="space-y-3">
-            {(finalists.length === 2 ? rest : plans).map((p, i) => (
+            {(finalists.length >= 2 ? rest : plans).map((p, i) => (
               <li key={p.id}>
                 <PlanCard plan={p} needs={needs} totalNeeds={totalNeeds} index={i} />
               </li>
@@ -115,7 +115,7 @@ function PlansPage() {
         </div>
 
         <Link
-          to="/workspace/$personaId" params={{ personaId: persona.id }}
+          to="/workspace"
           className="mt-10 flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
         >
           Open my workspace <ArrowRight className="h-4 w-4" />
@@ -163,7 +163,6 @@ function PlanCard({
         <p className="mt-3 text-sm text-muted-foreground">{plan.blurb}</p>
       )}
 
-      {/* Match score */}
       <div className="mt-4 flex items-center gap-2">
         <div
           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium ${
@@ -180,7 +179,6 @@ function PlanCard({
         </div>
       </div>
 
-      {/* Fits your needs */}
       <div className="mt-4">
         <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Fits your needs</div>
         <ul className="mt-2 space-y-1.5">
@@ -208,7 +206,6 @@ function PlanCard({
         </ul>
       </div>
 
-      {/* CTAs */}
       <div className="mt-5 flex items-center gap-2">
         <button
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition ${

@@ -1,13 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Plus, Sparkles, Check } from "lucide-react";
-import { getPersona } from "@/mock/personas";
+import { persona } from "@/mock/personas";
 import { usePersonaStore } from "@/state/usePersonaStore";
 
-type Props = { personaId: string };
-
-export function AboutMoreRamble({ personaId }: Props) {
-  const persona = getPersona(personaId);
+export function AboutMoreRamble() {
   const extra = persona.extraRamble;
   const applied = usePersonaStore((s) => s.extraRambleApplied);
   const applyExtraRamble = usePersonaStore((s) => s.applyExtraRamble);

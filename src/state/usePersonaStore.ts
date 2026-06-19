@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { personas, type ActivityId, type Persona, type RouteStep } from "@/mock/personas";
+import { persona, type ActivityId, type RouteStep } from "@/mock/personas";
 
 type PersonaState = {
-  personaId: Persona["id"];
   confidence: number;
   progressPct: number;
   route: RouteStep[];
@@ -14,7 +13,7 @@ type PersonaState = {
   selfEnrollUnlocked: boolean;
   enrollMomentSeen: boolean;
   extraRambleApplied: boolean;
-  hydrate: (id: Persona["id"]) => void;
+  reset: () => void;
   completeActivity: (activityId: ActivityId) => { toast?: string; addedStepId?: string };
   clearToast: () => void;
   dismissEnrollMoment: () => void;
@@ -23,44 +22,38 @@ type PersonaState = {
 
 export const SELF_ENROLL_CONFIDENCE_THRESHOLD = 7;
 
-const seedFrom = (id: Persona["id"]) => {
-  const p = personas.find((x) => x.id === id)!;
-  const startingConfidence = p.understanding.confidence;
+const seed = () => {
+  const startingConfidence = persona.understanding.confidence;
   return {
-    personaId: p.id,
     confidence: startingConfidence,
-    progressPct: p.progressPct,
-    route: p.route.map((s) => ({ ...s })),
-    concerns: [...p.understanding.concerns],
-    priorities: [...p.understanding.priorities],
-    questions: p.questions.map((q) => ({ ...q })),
+    progressPct: persona.progressPct,
+    route: persona.route.map((s) => ({ ...s })),
+    concerns: [...persona.understanding.concerns],
+    priorities: [...persona.understanding.priorities],
+    questions: persona.questions.map((q) => ({ ...q })),
     adaptiveTriggered: false,
     lastToast: null,
     selfEnrollUnlocked: startingConfidence >= SELF_ENROLL_CONFIDENCE_THRESHOLD,
-    // If they already start above threshold, don't pop the celebratory moment retroactively.
     enrollMomentSeen: startingConfidence >= SELF_ENROLL_CONFIDENCE_THRESHOLD,
     extraRambleApplied: false,
   };
 };
 
 export const usePersonaStore = create<PersonaState>()((set, get) => ({
-  ...seedFrom("linda"),
-  hydrate: (id) => set(seedFrom(id)),
+  ...seed(),
+  reset: () => set(seed()),
   clearToast: () => set({ lastToast: null }),
   dismissEnrollMoment: () => set({ enrollMomentSeen: true }),
   applyExtraRamble: () => {
     const state = get();
     if (state.extraRambleApplied) return {};
-    const persona = personas.find((p) => p.id === state.personaId)!;
     const extra = persona.extraRamble;
     if (!extra) return {};
 
     const route = state.route.map((s) => ({ ...s }));
-    // Demote any current step to upcoming so the inserted step becomes the focus.
     for (let i = 0; i < route.length; i++) {
       if (route[i].status === "current") route[i] = { ...route[i], status: "upcoming" };
     }
-    // Insert right after the last completed step (or at the top if none completed).
     let insertAt = 0;
     for (let i = route.length - 1; i >= 0; i--) {
       if (route[i].status === "completed") { insertAt = i + 1; break; }
@@ -104,7 +97,6 @@ export const usePersonaStore = create<PersonaState>()((set, get) => ({
   },
   completeActivity: (activityId) => {
     const state = get();
-    const persona = personas.find((p) => p.id === state.personaId)!;
     const route = state.route.map((s) => ({ ...s }));
     const idx = route.findIndex((s) => s.activity === activityId);
     if (idx === -1) return {};
@@ -141,7 +133,6 @@ export const usePersonaStore = create<PersonaState>()((set, get) => ({
 
     set({ route, confidence: newConfidence, progressPct: newProgress, concerns, adaptiveTriggered, lastToast: toast ?? null });
 
-    // Unlock the self-enroll moment when confidence first crosses the threshold.
     if (!get().selfEnrollUnlocked && newConfidence >= SELF_ENROLL_CONFIDENCE_THRESHOLD) {
       set({ selfEnrollUnlocked: true, enrollMomentSeen: false });
     }

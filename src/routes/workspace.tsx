@@ -1,23 +1,16 @@
 import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { usePersonaStore } from "@/state/usePersonaStore";
-import { getPersona } from "@/mock/personas";
+import { persona } from "@/mock/personas";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, Sparkles, X } from "lucide-react";
 
-export const Route = createFileRoute("/workspace/$personaId")({
+export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "My Medicare Workspace" }] }),
   component: WorkspaceLayout,
 });
 
 function WorkspaceLayout() {
-  const { personaId } = Route.useParams();
-  const persona = getPersona(personaId);
-  const hydrate = usePersonaStore((s) => s.hydrate);
-  const storeId = usePersonaStore((s) => s.personaId);
-  useEffect(() => { if (storeId !== persona.id) hydrate(persona.id); }, [persona.id, storeId, hydrate]);
-
   const matches = useMatches();
   const onChild = matches.some((m) => m.routeId.includes("activity"));
 
@@ -29,8 +22,6 @@ function WorkspaceLayout() {
 }
 
 function WorkspaceHome() {
-  const { personaId } = Route.useParams();
-  const persona = getPersona(personaId);
   const steps = usePersonaStore((s) => s.route);
   const questions = usePersonaStore((s) => s.questions);
   const lastToast = usePersonaStore((s) => s.lastToast);
@@ -44,7 +35,6 @@ function WorkspaceHome() {
 
   return (
     <div className="mx-auto max-w-xl px-5 pb-12 pt-8">
-      {/* Toast */}
       <AnimatePresence>
         {lastToast && (
           <motion.div
@@ -61,13 +51,11 @@ function WorkspaceHome() {
         )}
       </AnimatePresence>
 
-      {/* Simple header */}
       <header>
         <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Medicare Workspace</div>
         <h1 className="mt-1 font-display text-2xl text-ink">{persona.name}</h1>
       </header>
 
-      {/* Next Step hero */}
       {current && (
         <motion.section
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
@@ -77,8 +65,8 @@ function WorkspaceHome() {
           <h2 className="mt-2 font-display text-[26px] leading-tight text-ink">{current.label}</h2>
           <div className="mt-1 text-sm text-muted-foreground">About {current.estMinutes} min</div>
           <Link
-            to="/workspace/$personaId/activity/$activityId"
-            params={{ personaId: persona.id, activityId: current.activity }}
+            to="/workspace/activity/$activityId"
+            params={{ activityId: current.activity }}
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
           >
             Start <ArrowRight className="h-4 w-4" />
@@ -86,7 +74,6 @@ function WorkspaceHome() {
         </motion.section>
       )}
 
-      {/* Route progress */}
       <section className="mt-8">
         <div className="mb-3 flex items-baseline justify-between">
           <h3 className="text-[13px] font-medium text-ink">Your route</h3>
@@ -99,8 +86,8 @@ function WorkspaceHome() {
             return (
               <li key={s.id}>
                 <Link
-                  to="/workspace/$personaId/activity/$activityId"
-                  params={{ personaId: persona.id, activityId: s.activity }}
+                  to="/workspace/activity/$activityId"
+                  params={{ activityId: s.activity }}
                   className={[
                     "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
                     isCurrent ? "bg-primary-soft text-ink" : "hover:bg-muted/60",
@@ -126,7 +113,6 @@ function WorkspaceHome() {
         </ol>
       </section>
 
-      {/* What matters to you */}
       {persona.needs.length > 0 && (
         <section className="mt-8">
           <h3 className="mb-3 text-[13px] font-medium text-ink">What matters to you</h3>
@@ -140,7 +126,6 @@ function WorkspaceHome() {
         </section>
       )}
 
-      {/* Saved information */}
       {persona.doctors.length > 0 && (
         <section className="mt-8">
           <h3 className="mb-3 text-[13px] font-medium text-ink">Your doctors</h3>
@@ -175,7 +160,6 @@ function WorkspaceHome() {
         </section>
       )}
 
-      {/* Open questions */}
       {questions.length > 0 && (
         <section className="mt-8">
           <h3 className="mb-3 text-[13px] font-medium text-ink">Open questions</h3>
@@ -186,7 +170,6 @@ function WorkspaceHome() {
           </ul>
         </section>
       )}
-
     </div>
   );
 }

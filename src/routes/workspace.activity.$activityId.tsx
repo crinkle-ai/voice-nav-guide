@@ -1,17 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Clock, TrendingUp } from "lucide-react";
-import { activities, getPersona } from "@/mock/personas";
+import { activities, persona } from "@/mock/personas";
 import { usePersonaStore } from "@/state/usePersonaStore";
 
-export const Route = createFileRoute("/workspace/$personaId/activity/$activityId")({
+export const Route = createFileRoute("/workspace/activity/$activityId")({
   head: ({ params }) => ({ meta: [{ title: `${activities[params.activityId as keyof typeof activities]?.title ?? "Activity"} · Workspace` }] }),
   component: ActivityDetail,
 });
 
 function ActivityDetail() {
-  const { personaId, activityId } = Route.useParams();
-  const persona = getPersona(personaId);
+  const { activityId } = Route.useParams();
   const activity = activities[activityId as keyof typeof activities];
   const navigate = useNavigate();
   const complete = usePersonaStore((s) => s.completeActivity);
@@ -21,14 +20,14 @@ function ActivityDetail() {
 
   const onComplete = () => {
     complete(activity.id);
-    navigate({ to: "/workspace/$personaId", params: { personaId: persona.id } });
+    navigate({ to: "/workspace" });
   };
 
   const isCompleted = step?.status === "completed";
 
   return (
     <div className="mx-auto max-w-xl px-5 pb-8 pt-6">
-      <Link to="/workspace/$personaId" params={{ personaId: persona.id }} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink">
+      <Link to="/workspace" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to workspace
       </Link>
 
@@ -49,14 +48,14 @@ function ActivityDetail() {
         <p className="mt-2 text-[15px] leading-relaxed text-warm-foreground">{activity.whyItMatters}</p>
       </motion.section>
 
-      <ActivityBody kind={activity.kind} personaId={personaId} />
+      <ActivityBody kind={activity.kind} />
 
       {!isCompleted ? (
         <button onClick={onComplete} className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90">
           <Check className="h-4 w-4" /> Mark complete and continue
         </button>
       ) : (
-        <Link to="/workspace/$personaId" params={{ personaId: persona.id }} className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 font-medium text-ink hover:border-primary/40">
+        <Link to="/workspace" className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 font-medium text-ink hover:border-primary/40">
           Back to workspace
         </Link>
       )}
@@ -68,8 +67,7 @@ function Chip({ icon, children }: { icon: React.ReactNode; children: React.React
   return <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs text-ink-soft">{icon}{children}</span>;
 }
 
-function ActivityBody({ kind, personaId }: { kind: string; personaId: string }) {
-  const persona = getPersona(personaId);
+function ActivityBody({ kind }: { kind: string }) {
   if (kind === "lesson") {
     return (
       <div className="mt-5 space-y-3">

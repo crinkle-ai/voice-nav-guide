@@ -3,13 +3,12 @@ import { motion } from "framer-motion";
 import { PartyPopper, ArrowRight, Phone, X } from "lucide-react";
 
 type Props = {
-  personaId: string;
   personaName: string;
   confidence: number;
   onDismiss: () => void;
 };
 
-export function SelfEnrollMoment({ personaId, personaName, confidence, onDismiss }: Props) {
+export function SelfEnrollMoment({ personaName, confidence, onDismiss }: Props) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 px-4 pb-6 pt-12 sm:items-center sm:pb-12"
@@ -24,7 +23,6 @@ export function SelfEnrollMoment({ personaId, personaName, confidence, onDismiss
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-[0_30px_80px_-20px_rgb(0_0_0/0.35)]"
       >
-        {/* Confetti-ish ambient blobs */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-success/20 blur-3xl" aria-hidden />
         <div className="pointer-events-none absolute -left-8 top-24 h-32 w-32 rounded-full bg-warm/30 blur-3xl" aria-hidden />
 
@@ -57,8 +55,8 @@ export function SelfEnrollMoment({ personaId, personaName, confidence, onDismiss
 
           <div className="mt-6 space-y-2">
             <Link
-              to="/workspace/$personaId/activity/$activityId"
-              params={{ personaId, activityId: "enroll" }}
+              to="/workspace/activity/$activityId"
+              params={{ activityId: "enroll" }}
               onClick={onDismiss}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background transition hover:bg-ink/90"
             >
