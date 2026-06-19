@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Home } from "lucide-react";
 
 type Props = {
-  backTo: "/" | "/understanding" | "/workspace";
+  backTo: "/" | "/workspace";
   backLabel: string;
   showHome?: boolean;
 };

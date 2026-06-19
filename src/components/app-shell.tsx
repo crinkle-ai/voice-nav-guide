@@ -1,14 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutGrid, UserCog, RefreshCw, FileText } from "lucide-react";
+import { UserCog, RefreshCw, FileText } from "lucide-react";
 import { type ReactNode } from "react";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const tabs = [
-    { to: "/workspace" as const, label: "Workspace", icon: LayoutGrid, match: "/workspace" },
+    { to: "/workspace" as const, label: "Shop My Way", icon: UserCog, match: "/workspace" },
     { to: "/plans" as const, label: "Plans", icon: FileText, match: "/plans" },
-    { to: "/understanding" as const, label: "Shop My Way", icon: UserCog, match: "/understanding" },
   ];
 
   return (

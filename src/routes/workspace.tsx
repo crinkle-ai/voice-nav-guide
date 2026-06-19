@@ -3,7 +3,8 @@ import { AppShell } from "@/components/app-shell";
 import { usePersonaStore } from "@/state/usePersonaStore";
 import { persona } from "@/mock/personas";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Sparkles, X, Filter } from "lucide-react";
+import { AboutMoreRamble } from "@/components/about-more-ramble";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "My Medicare Workspace" }] }),
@@ -55,6 +56,18 @@ function WorkspaceHome() {
         <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Medicare Workspace</div>
         <h1 className="mt-1 font-display text-2xl text-ink">{persona.name}</h1>
       </header>
+
+      <motion.section
+        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        className="mt-6 rounded-3xl border border-border bg-primary-soft/40 p-5"
+      >
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
+          <Sparkles className="h-3 w-3" /> Here's what I'm hearing
+        </div>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink">
+          {persona.narrativeMirror}
+        </p>
+      </motion.section>
 
       {current && (
         <motion.section
@@ -126,6 +139,35 @@ function WorkspaceHome() {
         </section>
       )}
 
+      {persona.planFilters.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="text-[13px] font-medium text-ink">Plan signals</h3>
+            <span className="text-[11px] text-muted-foreground">{persona.planFilters.length} signal{persona.planFilters.length === 1 ? "" : "s"}</span>
+          </div>
+          <p className="mb-3 text-[12.5px] text-muted-foreground">
+            We'll use these to filter plans when you're ready to shop.
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {persona.planFilters.map((f) => (
+              <li key={f.id} className="rounded-2xl border border-border bg-card px-3 py-2">
+                <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-ink">
+                  <Filter className="h-3 w-3 text-accent-foreground" />
+                  {f.label}
+                </div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">{f.hint}</div>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/plans"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-background hover:bg-ink/90"
+          >
+            Show me plans that fit <ArrowRight className="h-4 w-4" />
+          </Link>
+        </section>
+      )}
+
       {persona.doctors.length > 0 && (
         <section className="mt-8">
           <h3 className="mb-3 text-[13px] font-medium text-ink">Your doctors</h3>
@@ -170,6 +212,10 @@ function WorkspaceHome() {
           </ul>
         </section>
       )}
+
+      <section className="mt-10">
+        <AboutMoreRamble />
+      </section>
     </div>
   );
 }

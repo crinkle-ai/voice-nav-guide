@@ -39,7 +39,7 @@ function ComparePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 pb-20 pt-6">
-        <BackRow backTo="/understanding" backLabel="Back to what I'm hearing" />
+        <BackRow backTo="/workspace" backLabel="Back to my workspace" />
 
         <div className="mt-6 flex items-center gap-3">
           <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />

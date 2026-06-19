@@ -166,7 +166,7 @@ function RambleHero() {
 
   const onGenerate = () => {
     setGenerating(true);
-    setTimeout(() => navigate({ to: "/understanding" }), 700);
+    setTimeout(() => navigate({ to: "/workspace" }), 700);
   };
 
   const onReset = () => setText(persona.ramble);
