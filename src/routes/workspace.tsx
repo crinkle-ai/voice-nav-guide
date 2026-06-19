@@ -3,7 +3,8 @@ import { AppShell } from "@/components/app-shell";
 import { usePersonaStore } from "@/state/usePersonaStore";
 import { persona } from "@/mock/personas";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Sparkles, X, Filter } from "lucide-react";
+import { AboutMoreRamble } from "@/components/about-more-ramble";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "My Medicare Workspace" }] }),
