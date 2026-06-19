@@ -1,50 +1,37 @@
+What I found:
+- The route/button code itself is wired, but the preview is still reporting `Failed to fetch dynamically imported module: /@id/virtual:tanstack-start-client-entry`.
+- That means the app is server-rendering HTML, but the client JavaScript hydration is failing. When hydration fails, React event handlers never attach, so both buttons look clickable but do nothing.
+- This is consistent with the user-visible behavior: `Here's what I'm hearing` and `Reset demo` do not respond.
+- Web research shows this exact TanStack Start/Vite virtual client entry failure can happen behind dev/reverse-proxy environments, and the practical workaround is to provide a local `src/client.tsx` entry instead of relying on the framework package’s default virtual entry path.
 
-## Goal
+Plan:
+1. Add a local TanStack Start client entry file.
+   - Create `src/client.tsx` with the standard React 19 hydration boot code.
+   - Configure `vite.config.ts` so TanStack Start uses this explicit local client entry while keeping the existing custom server entry.
 
-Stop forcing folks through a separate "Understanding" page. After Ramble, drop them straight into their Workspace — which now also carries the "Here's what I'm hearing" summary, "What will shape your route," and "What to look for in a plan."
+2. Make the hero actions less fragile.
+   - Replace the delayed `setTimeout(() => navigate(...), 700)` navigation with an immediate client navigation so the button has an observable action right away.
+   - Keep the loading label only if it does not block navigation.
+   - Make `Reset demo` visibly reset even when the textarea already matches the demo text, so the user can tell it responded.
 
-This is a demo, no auth needed anywhere.
+3. Leave route architecture intact.
+   - Do not manually edit `src/routeTree.gen.ts`.
+   - Keep `/understanding` as a redirect to `/workspace` unless we decide to roll back the redirect entirely.
 
-## New flow
+4. Verify the actual failure mode.
+   - Check that `/@id/virtual:tanstack-start-client-entry` no longer fails in the preview path.
+   - Use a fresh Playwright browser run to click both buttons and confirm:
+     - `Reset demo` changes/restores textarea state.
+     - `Here's what I'm hearing` navigates to `/workspace`.
+     - No dynamic-import runtime error appears.
 
-```text
-/  (Ramble hero)
-   └─► Generate ──► /workspace  (single hub for everything)
-                         │
-                         ├─► /workspace/activity/$id  (do a step)
-                         └─► /plans                   (when ready to shop)
-```
+Fallback if this still fails:
+- Revert the previous redirect-related route changes by removing `/understanding` from the user flow and returning the home button to whatever route worked before, then verify from that known-good state.
 
-## /workspace — new structure (top → bottom)
+<presentation-actions>
+  <presentation-open-history>View History</presentation-open-history>
+</presentation-actions>
 
-1. **Header** — "Medicare Workspace" kicker + persona name (unchanged).
-2. **Here's what I'm hearing** — moved from /understanding. Smaller than today: ~16–17px body text in a soft card with the sparkle chip, not the giant 26px display type. Sits right under the header so it grounds everything.
-3. **Your next step** card (unchanged).
-4. **Your route** list (unchanged) — replaces the old "What will shape your route" section since they're the same idea.
-5. **What matters to you** chips (unchanged — these double as "what to look for in a plan" at the human level).
-6. **Plan signals** — new section, moved from /understanding's "What to look for in a plan." Small filter-chip list ("In-network for Dr. Patel & Dr. Chen", etc.) with a "Show me plans that fit →" button underneath linking to `/plans`.
-7. **Your doctors** (unchanged).
-8. **Your medications** (unchanged).
-9. **Anything else we should know** — the `AboutMoreRamble` component moves down here so folks can add more context without leaving the workspace.
-10. **Open questions** (unchanged, if any).
-
-## Routing & nav changes
-
-- **`/` Ramble "Generate" button** → navigates to `/workspace` (currently `/understanding`).
-- **Top nav "Shop My Way"** → points to `/workspace` (currently `/understanding`). Icon/label unchanged.
-- **`/understanding` route** → deleted. Any stragglers redirect to `/workspace`.
-- **Bottom nav** in `AppShell` updated so the "Shop My Way" tab's `match` is `/workspace` (it'll share active state with the Workspace tab — we'll drop the duplicate Workspace tab since they're now the same destination; nav becomes: **Shop My Way · Plans · Restart**).
-
-## Files touched
-
-- `src/routes/workspace.tsx` — add hearing summary, plan signals section, AboutMoreRamble at bottom.
-- `src/routes/understanding.tsx` — delete.
-- `src/routes/index.tsx` — Ramble navigate target → `/workspace`.
-- `src/components/app-shell.tsx` — collapse Workspace + Shop My Way into one tab pointing at `/workspace`; remove `/understanding` references.
-- `src/components/back-row.tsx` / any lingering links to `/understanding` — point to `/workspace`.
-
-## Out of scope (call out)
-
-- No auth / login flows — demo stays fully open.
-- No changes to `/plans`, `/compare`, or activity pages.
-- No persona switching — Robert only (already done).
+<presentation-actions>
+<presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
+</presentation-actions>

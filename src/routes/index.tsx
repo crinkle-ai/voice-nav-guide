@@ -166,10 +166,14 @@ function RambleHero() {
 
   const onGenerate = () => {
     setGenerating(true);
-    setTimeout(() => navigate({ to: "/workspace" }), 700);
+    navigate({ to: "/workspace" });
   };
 
-  const onReset = () => setText(persona.ramble);
+  const onReset = () => {
+    setText("");
+    setTimeout(() => setText(persona.ramble), 0);
+  };
+
 
   return (
     <section id="hero" className="mx-auto max-w-3xl">
