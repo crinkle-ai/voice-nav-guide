@@ -79,12 +79,67 @@ function ComparePlans() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12 pb-32">
-      <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl">Compare Medicare plans</h1>
+      <div className="flex items-center gap-3">
+        <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />
+        <div className="text-xs text-muted-foreground">
+          For <span className="text-ink">{persona.name}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-accent-foreground">
+        <Sparkles className="h-3 w-3" /> Plans that fit
+      </div>
+      <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+        Plans built around what matters to you
+      </h1>
       <p className="mt-4 text-xl text-muted-foreground">
-        Use the filters to narrow things down. Pick up to 3 plans to compare side-by-side.
+        Start with the matches to your needs, then filter the full list and pick up to 3 to compare side-by-side.
       </p>
 
-      <div className="mt-6 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-8 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            What matters to you
+          </div>
+          <Link to="/workspace" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <Sliders className="h-3.5 w-3.5" /> Refine what matters to me
+          </Link>
+        </div>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {persona.needs.map((n) => (
+            <li key={n.id} className="rounded-full bg-primary-soft px-3 py-1 text-[12px] text-accent-foreground">
+              {n.label}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="font-display text-lg text-ink">Top matches for you</h2>
+          <a href="#plan-results" className="text-[12px] font-medium text-primary hover:underline">
+            Or browse all plans ↓
+          </a>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {robertPlans.map((p, i) => (
+            <PlanCard
+              key={p.id}
+              plan={p}
+              needs={persona.needs}
+              totalNeeds={persona.needs.length}
+              index={i}
+              compact
+              ctaLabel="See in compare table"
+              onAdd={() => {
+                document.getElementById("plan-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-10 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
             <Video className="h-5 w-5" />
