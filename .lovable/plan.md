@@ -1,37 +1,44 @@
-What I found:
-- The route/button code itself is wired, but the preview is still reporting `Failed to fetch dynamically imported module: /@id/virtual:tanstack-start-client-entry`.
-- That means the app is server-rendering HTML, but the client JavaScript hydration is failing. When hydration fails, React event handlers never attach, so both buttons look clickable but do nothing.
-- This is consistent with the user-visible behavior: `Here's what I'm hearing` and `Reset demo` do not respond.
-- Web research shows this exact TanStack Start/Vite virtual client entry failure can happen behind dev/reverse-proxy environments, and the practical workaround is to provide a local `src/client.tsx` entry instead of relying on the framework package’s default virtual entry path.
+## Goal
+Unify `/plans` (persona-driven "matches what matters to you") and `/compare-plans` (filter table + voice/agent + enroll) into a single route so the "show my way" demo flows from needs → matches → side‑by‑side → enroll without route hops.
 
-Plan:
-1. Add a local TanStack Start client entry file.
-   - Create `src/client.tsx` with the standard React 19 hydration boot code.
-   - Configure `vite.config.ts` so TanStack Start uses this explicit local client entry while keeping the existing custom server entry.
+## Target route
+Keep `/compare-plans` as the canonical URL (it owns voice filter wiring, AppContext compare state, and enrollment). Redirect `/plans` → `/compare-plans` so existing links keep working.
 
-2. Make the hero actions less fragile.
-   - Replace the delayed `setTimeout(() => navigate(...), 700)` navigation with an immediate client navigation so the button has an observable action right away.
-   - Keep the loading label only if it does not block navigation.
-   - Make `Reset demo` visibly reset even when the textarea already matches the demo text, so the user can tell it responded.
+## New page structure (single scroll)
+```text
+┌─ Header: "For Robert" + persona avatar
+├─ 1. What matters to you  (from /plans)
+│     - chips of persona.needs
+│     - "Refine what matters" → /workspace
+├─ 2. Plans that fit your needs  (from /plans, persona-matched)
+│     - Top matches (finalists) as PlanCards w/ proof bullets
+│     - "Add to compare" button on each card (writes comparePlanIds)
+├─ 3. Or filter all plans  (from /compare-plans)
+│     - Plan type, max premium, drug/dental/vision toggles
+│     - Voice agent pre-fill (planVoiceFilters) preserved
+│     - Filterable table; "Pick" checkbox feeds same compare tray
+├─ 4. Side-by-side compare
+│     - When 2-3 selected, render a comparison panel inline
+│       (replaces today's fixed bottom tray-only UX)
+├─ 5. Talk to an agent banner  (unchanged)
+└─ 6. Enroll now CTA  (unchanged)
+```
 
-3. Leave route architecture intact.
-   - Do not manually edit `src/routeTree.gen.ts`.
-   - Keep `/understanding` as a redirect to `/workspace` unless we decide to roll back the redirect entirely.
+## Show-my-way demo path
+1. Land → see the user's needs chips + matched plans (persona narrative).
+2. Click "Add to compare" on 2 finalists → side-by-side panel appears.
+3. Voice/filter tweak narrows the table → pick a third plan.
+4. Hit "Start Enrollment".
 
-4. Verify the actual failure mode.
-   - Check that `/@id/virtual:tanstack-start-client-entry` no longer fails in the preview path.
-   - Use a fresh Playwright browser run to click both buttons and confirm:
-     - `Reset demo` changes/restores textarea state.
-     - `Here's what I'm hearing` navigates to `/workspace`.
-     - No dynamic-import runtime error appears.
+## Changes
+- `src/routes/compare-plans.tsx`: prepend persona header + needs chips + matched `PlanCard` grid lifted from `plans.tsx`. Wire each card's primary button to `dispatch({ type: "TOGGLE_COMPARE_PLAN", id })` instead of "Add to workspace". Add an inline side-by-side compare panel above the enroll section that renders when `selected.length >= 2`.
+- `src/routes/plans.tsx`: replace component with a `<Navigate to="/compare-plans" replace />` redirect (keep route file so existing `<Link to="/plans">` typechecks, or update links — see Decisions).
+- Keep `PlanCard` either inlined in `compare-plans.tsx` or extracted to `src/components/plan-card.tsx` (preferred for reuse).
+- Nav: no change required (TopNav doesn't list `/plans`); verify any `<Link to="/plans">` callers and either leave (redirects) or repoint to `/compare-plans`.
 
-Fallback if this still fails:
-- Revert the previous redirect-related route changes by removing `/understanding` from the user flow and returning the home button to whatever route worked before, then verify from that known-good state.
+## Out of scope
+- Reconciling the two plan data sources (`@/mock/plans` `robertPlans` vs server `listPlans`). For the demo, the matched-plans section keeps using `robertPlans`; the filter table keeps using `listPlans`. A later pass can unify.
 
-<presentation-actions>
-  <presentation-open-history>View History</presentation-open-history>
-</presentation-actions>
-
-<presentation-actions>
-<presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
-</presentation-actions>
+## Decisions to confirm
+1. Keep `/plans` as a redirect, or delete the file and repoint links to `/compare-plans`?
+2. Match the matched-plan cards to rows in the filter table by id so "Add to compare" from a card also checks the table row? (Requires id alignment between `robertPlans` and `listPlans` — currently unknown.)
