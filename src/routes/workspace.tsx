@@ -57,6 +57,18 @@ function WorkspaceHome() {
         <h1 className="mt-1 font-display text-2xl text-ink">{persona.name}</h1>
       </header>
 
+      <motion.section
+        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        className="mt-6 rounded-3xl border border-border bg-primary-soft/40 p-5"
+      >
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
+          <Sparkles className="h-3 w-3" /> Here's what I'm hearing
+        </div>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink">
+          {persona.narrativeMirror}
+        </p>
+      </motion.section>
+
       {current && (
         <motion.section
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
