@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,14 +12,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video } from "lucide-react";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders } from "lucide-react";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
+import { persona } from "@/mock/personas";
+import { robertPlans } from "@/mock/plans";
+import { PersonaAvatar } from "@/components/workspace-card";
+import { PlanCard } from "@/components/plan-card";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
     meta: [
-      { title: "Compare Medicare Plans — Side by side" },
-      { name: "description", content: "Filter and compare Medicare plans by premium, deductible, drug, dental, vision and hearing coverage." },
+      { title: "Plans that fit — Compare Medicare Plans" },
+      { name: "description", content: "See plans matched to what matters to you, then filter and compare side-by-side." },
     ],
   }),
   component: ComparePlans,
