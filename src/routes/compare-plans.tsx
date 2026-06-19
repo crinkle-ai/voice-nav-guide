@@ -36,6 +36,13 @@ function ComparePlans() {
   useHighlightConsumer();
   const { state, dispatch } = useApp();
   const fetchPlans = useServerFn(listPlans);
+  const fetchDoctors = useServerFn(searchDoctors);
+
+  const { data: doctorData } = useQuery({
+    queryKey: ["saved-doctors-all"],
+    queryFn: () => fetchDoctors({ data: {} }),
+  });
+  const savedDoctors = (doctorData?.doctors ?? []).filter((d: { id: string }) => state.savedDoctorIds.includes(d.id));
 
   const [type, setType] = useState("All");
   const [maxPremium, setMaxPremium] = useState(300);
