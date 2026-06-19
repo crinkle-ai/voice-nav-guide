@@ -3,7 +3,9 @@ import { AppShell } from "@/components/app-shell";
 import { usePersonaStore } from "@/state/usePersonaStore";
 import { persona, activities } from "@/mock/personas";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Sparkles, X, Filter } from "lucide-react";
+import { ArrowRight, Check, Sparkles, X, Filter, Clock, Stethoscope, Pill, GitCompare, Clipboard, Plane, Scale, BookOpen, Users, ClipboardCheck, ThumbsUp, ListChecks, FileSearch, CheckCircle2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { ActivityId } from "@/mock/personas";
 import { AboutMoreRamble } from "@/components/about-more-ramble";
 
 export const Route = createFileRoute("/workspace")({
