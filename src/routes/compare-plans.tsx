@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,14 +12,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video } from "lucide-react";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders } from "lucide-react";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
+import { persona } from "@/mock/personas";
+import { robertPlans } from "@/mock/plans";
+import { PersonaAvatar } from "@/components/workspace-card";
+import { PlanCard } from "@/components/plan-card";
 
 export const Route = createFileRoute("/compare-plans")({
   head: () => ({
     meta: [
-      { title: "Compare Medicare Plans — Side by side" },
-      { name: "description", content: "Filter and compare Medicare plans by premium, deductible, drug, dental, vision and hearing coverage." },
+      { title: "Plans that fit — Compare Medicare Plans" },
+      { name: "description", content: "See plans matched to what matters to you, then filter and compare side-by-side." },
     ],
   }),
   component: ComparePlans,
@@ -75,12 +79,67 @@ function ComparePlans() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12 pb-32">
-      <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl">Compare Medicare plans</h1>
+      <div className="flex items-center gap-3">
+        <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />
+        <div className="text-xs text-muted-foreground">
+          For <span className="text-ink">{persona.name}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-accent-foreground">
+        <Sparkles className="h-3 w-3" /> Plans that fit
+      </div>
+      <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+        Plans built around what matters to you
+      </h1>
       <p className="mt-4 text-xl text-muted-foreground">
-        Use the filters to narrow things down. Pick up to 3 plans to compare side-by-side.
+        Start with the matches to your needs, then filter the full list and pick up to 3 to compare side-by-side.
       </p>
 
-      <div className="mt-6 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-8 rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            What matters to you
+          </div>
+          <Link to="/workspace" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <Sliders className="h-3.5 w-3.5" /> Refine what matters to me
+          </Link>
+        </div>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {persona.needs.map((n) => (
+            <li key={n.id} className="rounded-full bg-primary-soft px-3 py-1 text-[12px] text-accent-foreground">
+              {n.label}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="font-display text-lg text-ink">Top matches for you</h2>
+          <a href="#plan-results" className="text-[12px] font-medium text-primary hover:underline">
+            Or browse all plans ↓
+          </a>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {robertPlans.map((p, i) => (
+            <PlanCard
+              key={p.id}
+              plan={p}
+              needs={persona.needs}
+              totalNeeds={persona.needs.length}
+              index={i}
+              compact
+              ctaLabel="See in compare table"
+              onAdd={() => {
+                document.getElementById("plan-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-10 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
             <Video className="h-5 w-5" />
@@ -158,6 +217,50 @@ function ComparePlans() {
           </Table>
         )}
       </section>
+
+      {selected.length >= 2 && (
+        <section id="side-by-side" className="mt-8 overflow-hidden rounded-2xl border bg-card scroll-mt-24">
+          <div className="border-b bg-muted/40 px-5 py-3">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Side-by-side</div>
+            <h2 className="mt-1 font-display text-lg text-ink">
+              Comparing {selected.length} plan{selected.length === 1 ? "" : "s"}
+            </h2>
+          </div>
+          <div className="grid gap-px bg-border md:grid-cols-3">
+            {selected.map((p) => (
+              <div key={p.id} className="flex flex-col gap-3 bg-card p-5">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{p.carrier}</div>
+                  <div className="mt-1 font-display text-lg text-ink">{p.name}</div>
+                  <Badge variant="outline" className="mt-2">{p.type}</Badge>
+                </div>
+                <dl className="mt-2 grid grid-cols-2 gap-y-2 text-sm">
+                  <dt className="text-muted-foreground">Premium</dt>
+                  <dd className="text-right tabular-nums text-ink">${Number(p.monthly_premium).toFixed(2)}/mo</dd>
+                  <dt className="text-muted-foreground">Deductible</dt>
+                  <dd className="text-right tabular-nums text-ink">${Number(p.annual_deductible).toFixed(0)}</dd>
+                  <dt className="text-muted-foreground">Drug</dt>
+                  <dd className="text-right">{p.drug_coverage ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Dental</dt>
+                  <dd className="text-right">{p.dental ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Vision</dt>
+                  <dd className="text-right">{p.vision ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Stars</dt>
+                  <dd className="text-right tabular-nums text-ink">{p.star_rating ?? "—"}</dd>
+                </dl>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-auto"
+                  onClick={() => dispatch({ type: "TOGGLE_COMPARE_PLAN", id: p.id })}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section
         id="enroll-now"
