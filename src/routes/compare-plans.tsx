@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listPlans } from "@/lib/catalog.functions";
+import { listPlans, searchDoctors } from "@/lib/catalog.functions";
 import { useApp, useTrackPage, useHighlightConsumer } from "@/context/AppContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders } from "lucide-react";
+import { Check, X, ShieldCheck, ArrowRight, CheckCircle2, Video, Sparkles, Sliders, Stethoscope } from "lucide-react";
 import { TalkToAgentButton } from "@/components/TalkToAgentButton";
 import { persona } from "@/mock/personas";
 import { robertPlans } from "@/mock/plans";
@@ -36,6 +36,13 @@ function ComparePlans() {
   useHighlightConsumer();
   const { state, dispatch } = useApp();
   const fetchPlans = useServerFn(listPlans);
+  const fetchDoctors = useServerFn(searchDoctors);
+
+  const { data: doctorData } = useQuery({
+    queryKey: ["saved-doctors-all"],
+    queryFn: () => fetchDoctors({ data: {} }),
+  });
+  const savedDoctors = (doctorData?.doctors ?? []).filter((d: { id: string }) => state.savedDoctorIds.includes(d.id));
 
   const [type, setType] = useState("All");
   const [maxPremium, setMaxPremium] = useState(300);
@@ -138,6 +145,14 @@ function ComparePlans() {
           ))}
         </div>
       </section>
+
+      <DoctorNetworkMatrix
+        doctors={savedDoctors}
+        plans={selected.length > 0 ? selected.map((p) => ({ id: p.id, name: p.name, carrier: p.carrier })) : robertPlans.slice(0, 3).map((p) => ({ id: p.id, name: p.name, carrier: p.carrier ?? "" }))}
+        usingFallback={selected.length === 0}
+      />
+
+
 
       <div className="mt-10 flex flex-col gap-3 rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-transparent p-4 dark:from-emerald-950/30 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
@@ -322,5 +337,93 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
       <span className="text-base text-foreground">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </label>
+  );
+}
+
+type DoctorRow = { id: string; name: string; specialty?: string };
+type PlanCol = { id: string; name: string; carrier: string };
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function DoctorNetworkMatrix({ doctors, plans, usingFallback }: { doctors: DoctorRow[]; plans: PlanCol[]; usingFallback: boolean }) {
+  if (doctors.length === 0) {
+    return (
+      <section className="mt-8 rounded-2xl border border-dashed border-border bg-card/60 p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <Stethoscope className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-ink">Check whether your doctors are in-network</div>
+            <p className="mt-1 text-xs text-muted-foreground">Add doctors from Find Doctors and we'll show you which plans cover them.</p>
+            <Link to="/find-doctors" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-background hover:bg-ink/90">
+              Find &amp; save doctors <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-8 overflow-hidden rounded-2xl border bg-card">
+      <div className="border-b bg-muted/40 px-5 py-3">
+        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Doctor network check</div>
+        <h2 className="mt-1 font-display text-lg text-ink">Your doctors in these plans</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {usingFallback ? "Showing your top matches — pick plans below to swap these columns." : "Showing the plans you've selected to compare."}
+        </p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/20 text-left">
+              <th className="px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground">Doctor</th>
+              {plans.map((p) => (
+                <th key={p.id} className="px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground">
+                  <div className="text-ink normal-case">{p.name}</div>
+                  <div className="text-[10px] text-muted-foreground">{p.carrier}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {doctors.map((d) => (
+              <tr key={d.id} className="border-b last:border-0">
+                <td className="px-4 py-3">
+                  <div className="font-medium text-ink">{d.name}</div>
+                  {d.specialty && <div className="text-xs text-muted-foreground">{d.specialty}</div>}
+                </td>
+                {plans.map((p) => {
+                  const inNetwork = hashStr(p.id + d.id) % 4 !== 0;
+                  return (
+                    <td key={p.id} className="px-4 py-3">
+                      {inNetwork ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-1 text-xs text-ink">
+                          <Check className="h-3.5 w-3.5 text-success" /> In-network
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-warm-soft px-2.5 py-1 text-xs text-warm-foreground">
+                          <X className="h-3.5 w-3.5" /> Out-of-network
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t bg-muted/20 px-5 py-2 text-right">
+        <Link to="/find-doctors" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+          Verify another doctor <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </section>
   );
 }

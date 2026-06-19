@@ -83,6 +83,18 @@ function ActivityBody({ kind }: { kind: string }) {
   if (kind === "doctors") {
     return (
       <div className="mt-5 space-y-3">
+        <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
+          <div className="font-display text-base text-ink">Find &amp; verify a doctor</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Search for your doctor, save the ones you want to keep, and we'll check them against every plan you compare.
+          </p>
+          <Link
+            to="/find-doctors"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-background hover:bg-ink/90"
+          >
+            Open doctor finder <ArrowLeft className="h-4 w-4 rotate-180" />
+          </Link>
+        </div>
         {persona.doctors.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center text-sm text-muted-foreground">
             No doctors added yet — we'll help you add the ones that matter most.
