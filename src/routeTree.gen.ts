@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as UnderstandingRouteImport } from './routes/understanding'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
 import { Route as LoginRouteImport } from './routes/login'
@@ -30,6 +31,11 @@ import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/worksp
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnderstandingRoute = UnderstandingRouteImport.update({
+  id: '/understanding',
+  path: '/understanding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlansRoute = PlansRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-plans'
     | '/plans'
+    | '/understanding'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-plans'
     | '/plans'
+    | '/understanding'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-plans'
     | '/plans'
+    | '/understanding'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -240,6 +252,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MyPlansRoute: typeof MyPlansRoute
   PlansRoute: typeof PlansRoute
+  UnderstandingRoute: typeof UnderstandingRoute
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/understanding': {
+      id: '/understanding'
+      path: '/understanding'
+      fullPath: '/understanding'
+      preLoaderRoute: typeof UnderstandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plans': {
@@ -406,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MyPlansRoute: MyPlansRoute,
   PlansRoute: PlansRoute,
+  UnderstandingRoute: UnderstandingRoute,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
@@ -414,13 +435,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
