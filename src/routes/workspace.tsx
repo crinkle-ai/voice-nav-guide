@@ -69,23 +69,32 @@ function WorkspaceHome() {
         </p>
       </motion.section>
 
-      {current && (
-        <motion.section
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="mt-8 rounded-3xl border border-border bg-card p-6"
-        >
-          <div className="text-[11px] uppercase tracking-[0.2em] text-primary">Your next step</div>
-          <h2 className="mt-2 font-display text-[26px] leading-tight text-ink">{current.label}</h2>
-          <div className="mt-1 text-sm text-muted-foreground">About {current.estMinutes} min</div>
-          <Link
-            to="/workspace/activity/$activityId"
-            params={{ activityId: current.activity }}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+      {current && (() => {
+        const meta = activities[current.activity];
+        return (
+          <motion.section
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            className="mt-8 rounded-3xl border border-border bg-card p-6"
           >
-            Start <ArrowRight className="h-4 w-4" />
-          </Link>
-        </motion.section>
-      )}
+            <div className="text-[11px] uppercase tracking-[0.2em] text-primary">Your next step</div>
+            <h2 className="mt-2 font-display text-[26px] leading-tight text-ink">{current.label}</h2>
+            <div className="mt-1 text-sm text-muted-foreground">About {current.estMinutes} min</div>
+            {meta && (
+              <div className="mt-4 space-y-2">
+                <p className="text-[14px] leading-relaxed text-ink-soft">{meta.objective}</p>
+                <p className="text-[13px] leading-relaxed text-muted-foreground"><span className="font-medium text-ink-soft">Why it matters: </span>{meta.whyItMatters}</p>
+              </div>
+            )}
+            <Link
+              to="/workspace/activity/$activityId"
+              params={{ activityId: current.activity }}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+            >
+              Start <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.section>
+        );
+      })()}
 
       <section className="mt-8">
         <div className="mb-3 flex items-baseline justify-between">
