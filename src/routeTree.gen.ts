@@ -9,12 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as UnderstandingRouteImport } from './routes/understanding'
+import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeckIndexRouteImport } from './routes/deck.index'
 import { Route as DeckLiveRouteImport } from './routes/deck.live'
@@ -22,7 +26,23 @@ import { Route as DeckAiRouteImport } from './routes/deck.ai'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/workspace.activity.$activityId'
 
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnderstandingRoute = UnderstandingRouteImport.update({
+  id: '/understanding',
+  path: '/understanding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyPlansRoute = MyPlansRouteImport.update({
   id: '/my-plans',
   path: '/my-plans',
@@ -51,6 +71,11 @@ const DeckRoute = DeckRouteImport.update({
 const ComparePlansRoute = ComparePlansRouteImport.update({
   id: '/compare-plans',
   path: '/compare-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -88,107 +113,147 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspaceActivityActivityIdRoute =
+  WorkspaceActivityActivityIdRouteImport.update({
+    id: '/activity/$activityId',
+    path: '/activity/$activityId',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
   '/deck/': typeof DeckIndexRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
   '/deck': typeof DeckIndexRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/compare-plans': typeof ComparePlansRoute
   '/deck': typeof DeckRouteWithChildren
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
   '/my-plans': typeof MyPlansRoute
+  '/plans': typeof PlansRoute
+  '/understanding': typeof UnderstandingRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
   '/deck/': typeof DeckIndexRoute
+  '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/deck'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
     | '/deck/'
+    | '/workspace/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
     | '/deck'
+    | '/workspace/activity/$activityId'
   id:
     | '__root__'
     | '/'
+    | '/compare'
     | '/compare-plans'
     | '/deck'
     | '/find-doctors'
     | '/learn'
     | '/login'
     | '/my-plans'
+    | '/plans'
+    | '/understanding'
+    | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
     | '/deck/'
+    | '/workspace/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompareRoute: typeof CompareRoute
   ComparePlansRoute: typeof ComparePlansRoute
   DeckRoute: typeof DeckRouteWithChildren
   FindDoctorsRoute: typeof FindDoctorsRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
   MyPlansRoute: typeof MyPlansRoute
+  PlansRoute: typeof PlansRoute
+  UnderstandingRoute: typeof UnderstandingRoute
+  WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
@@ -196,6 +261,27 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/understanding': {
+      id: '/understanding'
+      path: '/understanding'
+      fullPath: '/understanding'
+      preLoaderRoute: typeof UnderstandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-plans': {
       id: '/my-plans'
       path: '/my-plans'
@@ -236,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/compare-plans'
       fullPath: '/compare-plans'
       preLoaderRoute: typeof ComparePlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -287,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workspace/activity/$activityId': {
+      id: '/workspace/activity/$activityId'
+      path: '/activity/$activityId'
+      fullPath: '/workspace/activity/$activityId'
+      preLoaderRoute: typeof WorkspaceActivityActivityIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
   }
 }
 
@@ -304,14 +404,30 @@ const DeckRouteChildren: DeckRouteChildren = {
 
 const DeckRouteWithChildren = DeckRoute._addFileChildren(DeckRouteChildren)
 
+interface WorkspaceRouteChildren {
+  WorkspaceActivityActivityIdRoute: typeof WorkspaceActivityActivityIdRoute
+}
+
+const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceActivityActivityIdRoute: WorkspaceActivityActivityIdRoute,
+}
+
+const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
+  WorkspaceRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompareRoute: CompareRoute,
   ComparePlansRoute: ComparePlansRoute,
   DeckRoute: DeckRouteWithChildren,
   FindDoctorsRoute: FindDoctorsRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
   MyPlansRoute: MyPlansRoute,
+  PlansRoute: PlansRoute,
+  UnderstandingRoute: UnderstandingRoute,
+  WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
