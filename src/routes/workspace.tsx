@@ -97,37 +97,48 @@ function WorkspaceHome() {
       })()}
 
       <section className="mt-8">
-        <div className="mb-3 flex items-baseline justify-between">
+        <div className="mb-2 flex items-baseline justify-between">
           <h3 className="text-[13px] font-medium text-ink">Your route</h3>
           <span className="text-[11px] text-muted-foreground">{completedCount} of {requiredSteps.length}</span>
         </div>
-        <ol className="space-y-1.5">
+        <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          A short, personal path we built from what you told us. Each step is one focused decision — tap any to see what it covers and why it matters.
+        </p>
+        <ol className="space-y-2">
           {requiredSteps.map((s) => {
             const completed = s.status === "completed";
             const isCurrent = s.status === "current";
+            const meta = activities[s.activity];
             return (
               <li key={s.id}>
                 <Link
                   to="/workspace/activity/$activityId"
                   params={{ activityId: s.activity }}
                   className={[
-                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                    "flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition",
                     isCurrent ? "bg-primary-soft text-ink" : "hover:bg-muted/60",
                   ].join(" ")}
                 >
                   <span className={[
-                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]",
+                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]",
                     completed ? "bg-success text-white" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                   ].join(" ")}>
                     {completed ? <Check className="h-3 w-3" /> : null}
                   </span>
-                  <span className={[
-                    "flex-1",
-                    completed ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-ink",
-                  ].join(" ")}>
-                    {s.label}
+                  <span className="flex-1 min-w-0">
+                    <span className={[
+                      "block",
+                      completed ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-ink",
+                    ].join(" ")}>
+                      {s.label}
+                    </span>
+                    {meta && !completed && (
+                      <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">
+                        {meta.objective}
+                      </span>
+                    )}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">{s.estMinutes}m</span>
+                  <span className="mt-0.5 text-[11px] text-muted-foreground">{s.estMinutes}m</span>
                 </Link>
               </li>
             );
