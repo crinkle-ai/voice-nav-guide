@@ -161,12 +161,12 @@ function WorkspaceHome() {
 
       {persona.planFilters.length > 0 && (
         <section className="mt-8">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="text-[13px] font-medium text-ink">Plan signals</h3>
+          <div className="mb-2 flex items-baseline justify-between">
+            <h3 className="text-[13px] font-medium text-ink">What to look for in a plan</h3>
             <span className="text-[11px] text-muted-foreground">{persona.planFilters.length} signal{persona.planFilters.length === 1 ? "" : "s"}</span>
           </div>
-          <p className="mb-3 text-[12.5px] text-muted-foreground">
-            We'll use these to filter plans when you're ready to shop.
+          <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            Based on what you've shared, these are the things that should make or break a plan for you. We'll use them to filter the noise when you're ready to shop — so the first plans you see are already the ones that fit.
           </p>
           <ul className="flex flex-wrap gap-2">
             {persona.planFilters.map((f) => (
