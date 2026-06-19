@@ -218,6 +218,50 @@ function ComparePlans() {
         )}
       </section>
 
+      {selected.length >= 2 && (
+        <section id="side-by-side" className="mt-8 overflow-hidden rounded-2xl border bg-card scroll-mt-24">
+          <div className="border-b bg-muted/40 px-5 py-3">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Side-by-side</div>
+            <h2 className="mt-1 font-display text-lg text-ink">
+              Comparing {selected.length} plan{selected.length === 1 ? "" : "s"}
+            </h2>
+          </div>
+          <div className="grid gap-px bg-border md:grid-cols-3">
+            {selected.map((p) => (
+              <div key={p.id} className="flex flex-col gap-3 bg-card p-5">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{p.carrier}</div>
+                  <div className="mt-1 font-display text-lg text-ink">{p.name}</div>
+                  <Badge variant="outline" className="mt-2">{p.type}</Badge>
+                </div>
+                <dl className="mt-2 grid grid-cols-2 gap-y-2 text-sm">
+                  <dt className="text-muted-foreground">Premium</dt>
+                  <dd className="text-right tabular-nums text-ink">${Number(p.monthly_premium).toFixed(2)}/mo</dd>
+                  <dt className="text-muted-foreground">Deductible</dt>
+                  <dd className="text-right tabular-nums text-ink">${Number(p.annual_deductible).toFixed(0)}</dd>
+                  <dt className="text-muted-foreground">Drug</dt>
+                  <dd className="text-right">{p.drug_coverage ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Dental</dt>
+                  <dd className="text-right">{p.dental ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Vision</dt>
+                  <dd className="text-right">{p.vision ? <Check className="ml-auto h-4 w-4 text-primary" /> : <X className="ml-auto h-4 w-4 text-muted-foreground" />}</dd>
+                  <dt className="text-muted-foreground">Stars</dt>
+                  <dd className="text-right tabular-nums text-ink">{p.star_rating ?? "—"}</dd>
+                </dl>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-auto"
+                  onClick={() => dispatch({ type: "TOGGLE_COMPARE_PLAN", id: p.id })}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section
         id="enroll-now"
         className="mt-8 overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 shadow-sm scroll-mt-24 md:p-8"
