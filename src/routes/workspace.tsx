@@ -188,7 +188,7 @@ function WorkspaceHome() {
             ))}
           </ul>
           <Link
-            to="/plans"
+            to="/compare-plans"
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-background hover:bg-ink/90"
           >
             Show me plans that fit <ArrowRight className="h-4 w-4" />
