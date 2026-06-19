@@ -168,28 +168,28 @@ function WorkspaceHome() {
       )}
 
       {persona.planFilters.length > 0 && (
-        <section className="mt-8">
+        <section className="mt-10">
           <div className="mb-2 flex items-baseline justify-between">
-            <h3 className="text-[13px] font-medium text-ink">What to look for in a plan</h3>
-            <span className="text-[11px] text-muted-foreground">{persona.planFilters.length} signal{persona.planFilters.length === 1 ? "" : "s"}</span>
+            <h3 className="font-display text-[22px] leading-tight text-ink">What to look for in a plan</h3>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{persona.planFilters.length} signals</span>
           </div>
-          <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
-            Based on what you've shared, these are the things that should make or break a plan for you. We'll use them to filter the noise when you're ready to shop — so the first plans you see are already the ones that fit.
+          <p className="mb-4 text-[13px] leading-relaxed text-muted-foreground">
+            Signals we'll use to filter plan results when you're ready to shop.
           </p>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {persona.planFilters.map((f) => (
-              <li key={f.id} className="rounded-2xl border border-border bg-card px-3 py-2">
-                <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-ink">
-                  <Filter className="h-3 w-3 text-accent-foreground" />
+              <li key={f.id} className="rounded-2xl border border-border bg-card px-4 py-3">
+                <div className="flex items-center gap-2 text-[14px] font-medium text-ink">
+                  <Filter className="h-3.5 w-3.5 text-primary" />
                   {f.label}
                 </div>
-                <div className="mt-0.5 text-[11px] text-muted-foreground">{f.hint}</div>
+                <div className="mt-1 text-[12.5px] leading-snug text-muted-foreground">{f.hint}</div>
               </li>
             ))}
           </ul>
           <Link
             to="/plans"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-background hover:bg-ink/90"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-background hover:bg-ink/90"
           >
             Show me plans that fit <ArrowRight className="h-4 w-4" />
           </Link>
