@@ -212,6 +212,10 @@ function WorkspaceHome() {
           </ul>
         </section>
       )}
+
+      <section className="mt-10">
+        <AboutMoreRamble />
+      </section>
     </div>
   );
 }
