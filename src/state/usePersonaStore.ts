@@ -43,7 +43,7 @@ const seedFrom = (id: Persona["id"]) => {
   };
 };
 
-export const usePersonaStore = create<PersonaState>((set, get) => ({
+export const usePersonaStore = create<PersonaState>()((set, get) => ({
   ...seedFrom("linda"),
   hydrate: (id) => set(seedFrom(id)),
   clearToast: () => set({ lastToast: null }),
