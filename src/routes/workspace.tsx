@@ -258,3 +258,29 @@ function StatusPill({ status }: { status: string }) {
   const label = status.replace("-", " ");
   return <span className={["rounded-full px-2 py-0.5 text-[10px] uppercase tracking-widest", map[status] ?? ""].join(" ")}>{label}</span>;
 }
+
+const ACTIVITY_ICONS: Partial<Record<ActivityId, LucideIcon>> = {
+  "verify-doctors": Stethoscope,
+  "review-prescriptions": Pill,
+  "compare-plans": GitCompare,
+  "compare-final-plans": GitCompare,
+  "compare-coverage-models": GitCompare,
+  enroll: Clipboard,
+  "enrollment-review": Clipboard,
+  "enrollment-readiness": ClipboardCheck,
+  "evaluate-travel": Plane,
+  "review-costs": Scale,
+  "evaluate-tradeoffs": Scale,
+  "medicare-basics": BookOpen,
+  "learn-plan-types": BookOpen,
+  "dental-vision": BookOpen,
+  "speak-expert": Users,
+  "expert-review": Users,
+  "spousal-coordination": Users,
+  "spouse-future-enrollment": ListChecks,
+  "confidence-review": ThumbsUp,
+};
+
+function iconForActivity(id: ActivityId): LucideIcon {
+  return ACTIVITY_ICONS[id] ?? FileSearch;
+}
