@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { usePersonaStore } from "@/state/usePersonaStore";
-import { persona } from "@/mock/personas";
+import { persona, activities } from "@/mock/personas";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, Sparkles, X, Filter } from "lucide-react";
 import { AboutMoreRamble } from "@/components/about-more-ramble";
@@ -69,56 +69,76 @@ function WorkspaceHome() {
         </p>
       </motion.section>
 
-      {current && (
-        <motion.section
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="mt-8 rounded-3xl border border-border bg-card p-6"
-        >
-          <div className="text-[11px] uppercase tracking-[0.2em] text-primary">Your next step</div>
-          <h2 className="mt-2 font-display text-[26px] leading-tight text-ink">{current.label}</h2>
-          <div className="mt-1 text-sm text-muted-foreground">About {current.estMinutes} min</div>
-          <Link
-            to="/workspace/activity/$activityId"
-            params={{ activityId: current.activity }}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+      {current && (() => {
+        const meta = activities[current.activity];
+        return (
+          <motion.section
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            className="mt-8 rounded-3xl border border-border bg-card p-6"
           >
-            Start <ArrowRight className="h-4 w-4" />
-          </Link>
-        </motion.section>
-      )}
+            <div className="text-[11px] uppercase tracking-[0.2em] text-primary">Your next step</div>
+            <h2 className="mt-2 font-display text-[26px] leading-tight text-ink">{current.label}</h2>
+            <div className="mt-1 text-sm text-muted-foreground">About {current.estMinutes} min</div>
+            {meta && (
+              <div className="mt-4 space-y-2">
+                <p className="text-[14px] leading-relaxed text-ink-soft">{meta.objective}</p>
+                <p className="text-[13px] leading-relaxed text-muted-foreground"><span className="font-medium text-ink-soft">Why it matters: </span>{meta.whyItMatters}</p>
+              </div>
+            )}
+            <Link
+              to="/workspace/activity/$activityId"
+              params={{ activityId: current.activity }}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+            >
+              Start <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.section>
+        );
+      })()}
 
       <section className="mt-8">
-        <div className="mb-3 flex items-baseline justify-between">
+        <div className="mb-2 flex items-baseline justify-between">
           <h3 className="text-[13px] font-medium text-ink">Your route</h3>
           <span className="text-[11px] text-muted-foreground">{completedCount} of {requiredSteps.length}</span>
         </div>
-        <ol className="space-y-1.5">
+        <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          A short, personal path we built from what you told us. Each step is one focused decision — tap any to see what it covers and why it matters.
+        </p>
+        <ol className="space-y-2">
           {requiredSteps.map((s) => {
             const completed = s.status === "completed";
             const isCurrent = s.status === "current";
+            const meta = activities[s.activity];
             return (
               <li key={s.id}>
                 <Link
                   to="/workspace/activity/$activityId"
                   params={{ activityId: s.activity }}
                   className={[
-                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                    "flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition",
                     isCurrent ? "bg-primary-soft text-ink" : "hover:bg-muted/60",
                   ].join(" ")}
                 >
                   <span className={[
-                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]",
+                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]",
                     completed ? "bg-success text-white" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                   ].join(" ")}>
                     {completed ? <Check className="h-3 w-3" /> : null}
                   </span>
-                  <span className={[
-                    "flex-1",
-                    completed ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-ink",
-                  ].join(" ")}>
-                    {s.label}
+                  <span className="flex-1 min-w-0">
+                    <span className={[
+                      "block",
+                      completed ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-ink",
+                    ].join(" ")}>
+                      {s.label}
+                    </span>
+                    {meta && !completed && (
+                      <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">
+                        {meta.objective}
+                      </span>
+                    )}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">{s.estMinutes}m</span>
+                  <span className="mt-0.5 text-[11px] text-muted-foreground">{s.estMinutes}m</span>
                 </Link>
               </li>
             );
@@ -141,12 +161,12 @@ function WorkspaceHome() {
 
       {persona.planFilters.length > 0 && (
         <section className="mt-8">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="text-[13px] font-medium text-ink">Plan signals</h3>
+          <div className="mb-2 flex items-baseline justify-between">
+            <h3 className="text-[13px] font-medium text-ink">What to look for in a plan</h3>
             <span className="text-[11px] text-muted-foreground">{persona.planFilters.length} signal{persona.planFilters.length === 1 ? "" : "s"}</span>
           </div>
-          <p className="mb-3 text-[12.5px] text-muted-foreground">
-            We'll use these to filter plans when you're ready to shop.
+          <p className="mb-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            Based on what you've shared, these are the things that should make or break a plan for you. We'll use them to filter the noise when you're ready to shop — so the first plans you see are already the ones that fit.
           </p>
           <ul className="flex flex-wrap gap-2">
             {persona.planFilters.map((f) => (
