@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { useState } from "react";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
-import { personas } from "@/mock/personas";
-import { PersonaAvatar } from "@/components/workspace-card";
+import { persona } from "@/mock/personas";
 import {
   BookOpen,
   Stethoscope,
@@ -18,7 +19,9 @@ import {
   Eye,
   Smile,
   CheckCircle2,
-  ArrowUpRight,
+  Mic,
+  Sparkles,
+  RotateCcw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -28,13 +31,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Explore Medicare Advantage, Supplement, and Part D plans from Crinkle Health. Coverage built for the way you live — with doctors, prescriptions, and extras you can count on.",
+          "Shop Medicare your way. Talk or type what's on your mind — we'll build a personalized plan to find the right coverage.",
       },
       { property: "og:title", content: "Medicare Coverage & Plans | Crinkle Health" },
       {
         property: "og:description",
         content:
-          "Medicare Advantage, Medigap, and Part D plans designed around real life. Compare benefits, check your doctors, and enroll with confidence.",
+          "Shop Medicare your way. Talk or type what's on your mind — we'll build a personalized plan to find the right coverage.",
       },
     ],
   }),
@@ -46,79 +49,11 @@ function Home() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
-      {/* Hero */}
-      <section id="hero" className="grid gap-6 sm:gap-8 md:gap-10 md:grid-cols-[1.3fr_1fr] md:items-center">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs sm:text-sm font-medium text-accent-foreground">
-            <ShieldCheck className="h-4 w-4 shrink-0" /> Medicare Open Enrollment is here
-          </div>
-          <h1 className="mt-4 sm:mt-5 text-[1.75rem] leading-[1.15] sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground">
-            Medicare coverage built around your life.
-          </h1>
-          <p className="mt-3 sm:mt-5 text-base sm:text-xl text-muted-foreground">
-            Crinkle Health offers Medicare Advantage, Medigap, and Part D plans with the doctors you trust, the prescriptions you take, and the extras that make every day a little easier.
-          </p>
-          <div className="mt-5 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
-            <Button asChild size="lg" className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg w-full sm:w-auto">
-              <Link to="/compare-plans">
-                <ClipboardList className="h-5 w-5" /> Shop Medicare plans
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg w-full sm:w-auto">
-              <Link to="/learn">Medicare basics →</Link>
-            </Button>
-          </div>
-          <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-2">
-              <Phone className="h-4 w-4 shrink-0" /> 1-800-555-0143 (TTY 711)
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Calendar className="h-4 w-4 shrink-0" /> Mon–Fri, 8am–8pm local time
-            </span>
-          </div>
-        </div>
-
-        {/* Find your plan — persona scenarios */}
-        <div id="zip-entry" className="rounded-2xl border bg-card p-5 sm:p-6 shadow-sm scroll-mt-24">
-          <div className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-
-            Find your plan
-          </div>
-          <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-            Tell us what's on your mind — no forms. Pick a scenario to start.
-          </p>
-          <ul className="mt-4 space-y-3">
-            {personas.map((p) => (
-              <li key={p.id}>
-                <Link
-                  to="/ramble/$personaId"
-                  params={{ personaId: p.id }}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition hover:border-primary/40 hover:shadow-sm"
-                >
-                  <PersonaAvatar name={p.name} hue={p.hue} size={44} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-semibold text-foreground">{p.name}</span>
-                      <span className="text-xs text-muted-foreground">· age {p.age}</span>
-                    </div>
-                    <p className="mt-0.5 line-clamp-2 text-xs sm:text-sm text-muted-foreground">
-                      {p.situationOneLiner}
-                    </p>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Concept demo · mock personas. No information collected.</span>
-          </div>
-        </div>
-      </section>
+      {/* Ramble Hero */}
+      <RambleHero />
 
       {/* Demo videos */}
-      <section id="demo" className="mt-10 sm:mt-16">
+      <section id="demo" className="mt-16 sm:mt-24">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">See how it works</h2>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground">
           Talk to your AI Medicare guide — it drives the site for you, from learning the basics to comparing plans.
@@ -132,7 +67,6 @@ function Home() {
           />
         </div>
       </section>
-
 
       {/* Plan types */}
       <section id="plans" className="mt-12 sm:mt-20">
@@ -221,8 +155,106 @@ function Home() {
         <TrustItem icon={<Heart className="h-5 w-5" />} title="4.5 ★ average plan rating" desc="Across our Medicare Advantage plans (CMS, 2025)." />
         <TrustItem icon={<Phone className="h-5 w-5" />} title="Licensed agents, no pressure" desc="Talk to a real person who only recommends what fits." />
       </section>
-
     </main>
+  );
+}
+
+function RambleHero() {
+  const navigate = useNavigate();
+  const [text, setText] = useState(persona.ramble);
+  const [generating, setGenerating] = useState(false);
+
+  const onGenerate = () => {
+    setGenerating(true);
+    setTimeout(() => navigate({ to: "/understanding" }), 700);
+  };
+
+  const onReset = () => setText(persona.ramble);
+
+  return (
+    <section id="hero" className="mx-auto max-w-3xl">
+      <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs sm:text-sm font-medium text-accent-foreground">
+        <Sparkles className="h-4 w-4 shrink-0" /> Shop My Way
+      </div>
+      <h1 className="mt-4 text-[2rem] leading-[1.1] sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground">
+        Just tell us what's on your mind.
+      </h1>
+      <p className="mt-3 sm:mt-5 text-base sm:text-xl text-muted-foreground max-w-2xl">
+        No forms. Talk or type the way you'd explain it to a friend — worries, what you know, what you're hoping for.
+        We'll build a plan from there.
+      </p>
+
+      <div className="mt-6 sm:mt-8 rounded-3xl border border-border bg-card p-4 sm:p-5 shadow-sm">
+        <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+          </span>
+          Listening
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={6}
+          className="mt-3 w-full resize-none border-0 bg-transparent p-0 text-[15px] sm:text-base leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+          placeholder="Tell us what's on your mind…"
+        />
+
+        <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
+          <button
+            type="button"
+            aria-label="Voice input (demo)"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+          >
+            <Mic className="h-5 w-5" />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-end gap-0.5">
+              {Array.from({ length: 24 }).map((_, i) => (
+                <motion.span key={i}
+                  className="w-1 rounded-full bg-primary/50"
+                  animate={{ height: [6, 14 + (i % 5) * 3, 8] }}
+                  transition={{ duration: 0.6 + (i % 4) * 0.1, repeat: Infinity, delay: i * 0.04 }}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="text-[11px] text-muted-foreground hidden sm:block">or type</div>
+        </div>
+      </div>
+
+      <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <Button
+          size="lg"
+          onClick={onGenerate}
+          disabled={generating || text.trim().length === 0}
+          className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg w-full sm:w-auto"
+        >
+          <Sparkles className="h-4 w-4" />
+          {generating ? "Listening…" : "Here's what I'm hearing →"}
+        </Button>
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground self-start sm:self-auto"
+        >
+          <RotateCcw className="h-3 w-3" />
+          Reset demo
+        </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 shrink-0" /> Concept demo · no information collected
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Phone className="h-4 w-4 shrink-0" /> 1-800-555-0143 (TTY 711)
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Calendar className="h-4 w-4 shrink-0" /> Mon–Fri, 8am–8pm
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -248,9 +280,6 @@ function DemoVideoCard({ kicker, title, desc, src }: { kicker: string; title: st
     </div>
   );
 }
-
-
-
 
 function PlanCard({ badge, title, desc, bullets }: { badge?: string; title: string; desc: string; bullets: string[] }) {
   return (
