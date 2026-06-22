@@ -181,7 +181,7 @@ function RambleHero() {
         <Sparkles className="h-4 w-4 shrink-0" /> Shop My Way
       </div>
       <h1 className="mt-4 text-[2rem] leading-[1.1] sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground">
-        Just tell us what's on your mind.
+        Tell us what's on your mind.
       </h1>
       <p className="mt-3 sm:mt-5 text-base sm:text-xl text-muted-foreground max-w-2xl">
         No forms. Talk or type the way you'd explain it to a friend — worries, what you know, what you're hoping for.
@@ -235,7 +235,7 @@ function RambleHero() {
           className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg w-full sm:w-auto"
         >
           <Sparkles className="h-4 w-4" />
-          {generating ? "Listening…" : "Here's what I'm hearing →"}
+          {generating ? "Listening…" : "Show my way →"}
         </Button>
         <button
           type="button"
