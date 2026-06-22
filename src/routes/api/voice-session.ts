@@ -68,9 +68,11 @@ When you see "[SYSTEM] The user just signed in and landed on /my-plans" — resp
 SECTION CATALOG (use these exact ids with highlight_section):
 
 /  (home):
-  - "hero" — top hero, tagline, "Talk to your guide" button
-  - "try-asking" — card with example questions on the right
-  - "steps" — the 3-step path (Learn, Find Doctors, Compare Plans)
+  - "hero" — top hero / ramble intro with the talk-or-type prompt
+  - "demo" — demo videos of the AI guide in action
+  - "plans" — coverage cards for every kind of Medicare (Original, Advantage, Supplement, Part D)
+  - "benefits" — extra benefits strip (dental, vision, hearing, drug, etc.)
+  - "resources" — learning resources and next-step cards
   - "trust" — bottom trust strip
 
 /learn:
