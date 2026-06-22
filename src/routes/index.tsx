@@ -235,7 +235,7 @@ function RambleHero() {
           className="h-12 sm:h-14 px-5 sm:px-7 text-base sm:text-lg w-full sm:w-auto"
         >
           <Sparkles className="h-4 w-4" />
-          {generating ? "Listening…" : "Show my way →"}
+          {generating ? "Listening…" : "Show my path →"}
         </Button>
         <button
           type="button"
