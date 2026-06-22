@@ -87,13 +87,22 @@ function WorkspaceHome() {
                 <p className="text-[13px] leading-relaxed text-muted-foreground"><span className="font-medium text-ink-soft">Why it matters: </span>{meta.whyItMatters}</p>
               </div>
             )}
-            <Link
-              to="/workspace/activity/$activityId"
-              params={{ activityId: current.activity }}
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
-            >
-              Start <ArrowRight className="h-4 w-4" />
-            </Link>
+            {current.activity === "compare-plans" ? (
+              <Link
+                to="/compare-plans"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+              >
+                Start <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link
+                to="/workspace/activity/$activityId"
+                params={{ activityId: current.activity }}
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-background hover:bg-ink/90"
+              >
+                Start <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </motion.section>
         );
       })()}
