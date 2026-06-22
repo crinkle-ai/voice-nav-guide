@@ -124,8 +124,8 @@ function WorkspaceHome() {
             return (
               <li key={s.id}>
                 <Link
-                  to="/workspace/activity/$activityId"
-                  params={{ activityId: s.activity }}
+                  to={s.activity === "compare-plans" ? "/compare-plans" : "/workspace/activity/$activityId"}
+                  params={s.activity === "compare-plans" ? undefined : { activityId: s.activity }}
                   className={[
                     "group flex items-center gap-4 rounded-2xl border px-4 py-4 transition",
                     isCurrent
