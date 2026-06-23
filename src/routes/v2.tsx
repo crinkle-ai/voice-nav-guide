@@ -257,7 +257,7 @@ function V2Page() {
         />
       )}
 
-      {assistant === "minimized" && (
+      {assistant === "minimized" && workspace !== "expanded" && (
         <button
           onClick={() => setAssistant("docked")}
           className="fixed top-20 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-2 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
@@ -287,10 +287,11 @@ function V2Page() {
         />
       )}
 
-      {workspace === "minimized" && (
+      {workspace === "minimized" && assistant !== "expanded" && (
         <button
           onClick={() => setWorkspace("docked")}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          className="fixed right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          style={{ top: assistant === "minimized" ? "5.75rem" : "5rem" }}
         >
           <Bookmark className="h-4 w-4" style={{ color: UHC_BLUE }} />
           <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
