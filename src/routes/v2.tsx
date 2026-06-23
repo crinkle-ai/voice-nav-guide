@@ -261,13 +261,15 @@ function V2Page() {
       {assistant === "minimized" && workspace !== "expanded" && (
         <button
           onClick={() => setAssistant("docked")}
-          className="fixed top-20 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-2 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          className="fixed top-20 right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
         >
-          <img src={assistantAsset.url} alt="Assistant" className="h-9 w-9 rounded-full object-cover" />
-          <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
-            Your Guide
-          </span>
-          <MessageCircle className="h-4 w-4" style={{ color: UHC_BLUE }} />
+          <div className="flex items-center gap-3">
+            <img src={assistantAsset.url} alt="Assistant" className="h-9 w-9 rounded-full object-cover" />
+            <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
+              Your Guide
+            </span>
+          </div>
+          <MessageCircle className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
         </button>
       )}
 
@@ -291,13 +293,22 @@ function V2Page() {
       {workspace === "minimized" && assistant !== "expanded" && (
         <button
           onClick={() => setWorkspace("docked")}
-          className="fixed right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
-          style={{ top: assistant === "minimized" ? "8.25rem" : "5rem" }}
+          className={`fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition ${
+            assistant === "minimized" ? "top-36" : "top-20"
+          }`}
         >
-          <Bookmark className="h-4 w-4" style={{ color: UHC_BLUE }} />
-          <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
-            My Workspace
-          </span>
+          <div className="flex items-center gap-3">
+            <div
+              className="h-9 w-9 rounded-full grid place-items-center"
+              style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+            >
+              <Bookmark className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
+            </div>
+            <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
+              My Workspace
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
         </button>
       )}
     </div>
