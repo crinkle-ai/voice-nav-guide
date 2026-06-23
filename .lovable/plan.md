@@ -1,34 +1,44 @@
 ## Goal
 
-When the user lands on **Find Doctors** from her workspace, the page should immediately reflect *her* situation (the persona's "Shop my way" needs), not look like a generic provider directory. Right now it's a blank search form with no context tying it to the rest of her journey.
+Make `/learn` feel like it was written for *her* — pulling the persona's priorities and concerns to the top instead of dumping a generic Medicare 101 page. Same pattern as Find Doctors: a "Here's what you told us" panel + signposting that ties each Medicare topic back to a specific need she expressed.
 
 ## What to add
 
-A new summary panel at the top of `/find-doctors` (above the search form) that mirrors the workspace persona — Robert's case: keep Dr. Patel and Dr. Chen, multi-state coverage (MN ↔ AZ), and the specialties he already needs covered.
+### 1. Personalized header panel (top of page, above the existing Parts accordion)
 
-### Panel contents
+- Eyebrow: "Here's what you told us"
+- One-sentence narrative tuned to learning (e.g. *"Since keeping Dr. Patel and Dr. Chen and traveling between MN and AZ are what matter, here's what to focus on first."*)
+- Chips for `persona.understanding.priorities` and `persona.understanding.concerns` (visual only).
 
-1. **Heading line** — small "Here's what you told us" eyebrow + one-sentence narrative pulled from `persona.narrativeMirror` (trimmed to the doctor-relevant bits, or a doctor-focused variant like *"You want to keep Dr. Patel and Dr. Chen, and you need coverage that follows you between Minnesota and Arizona."*).
+### 2. "Start here for you" reading list
 
-2. **The doctors she wants to keep** — a row of small cards built from `persona.doctors`, each showing name, specialty, current city, and an "in-network / verifying" status pill. Each card has a "Find this doctor" button that pre-fills the search (name + specialty) and runs it.
+A small ordered list above the full Parts accordion with 2–3 picks chosen from the persona's priorities. Each item links to the matching accordion section (sets `openId` and scrolls). Mapping:
 
-3. **Need chips** — the doctor-relevant items from `persona.needs` and `persona.planFilters` rendered as chips (e.g. "Keep my doctors", "Multi-state PPO coverage", "Accepting new patients"). Visual only — no filter wiring yet.
+- *Keep doctors / Provider networks* → **Part C — Medicare Advantage** + **Medigap** (network vs. no-network framing)
+- *Prescription coverage* → **Part D — Prescription Drugs**
+- *Travel flexibility / Multi-state* → **Medigap** (and a note about PPO Advantage)
 
-4. **Quick-search shortcuts** — 2–3 buttons derived from her specialties ("Primary Care in Minneapolis", "Cardiology in Minneapolis", "Primary Care in Phoenix") that set the form filters and search in one click.
+Each item shows: the topic title, a one-line "why this matters to you" pulled/derived from the persona need, and a "Read this section" button.
 
-The existing search form, filter row, and result list stay as-is below the panel.
+### 3. "Why this matters to you" callout inside each accordion item
+
+When an accordion item maps to one of her priorities, render a small inline callout under the body text: *"Matters to you because: keeping Dr. Patel and Dr. Chen depends on this plan's network."* For non-matching items, nothing changes.
+
+### 4. Personalized glossary ordering (light touch)
+
+Surface 3 glossary terms first as "Words you'll hit first" based on her priorities — Network, Formulary, Out-of-pocket max — then render the rest of the glossary unchanged below. No new terms, just reordering + a small header.
 
 ## Files to touch
 
-- `src/routes/find-doctors.tsx` — add the summary panel above the `<form>`. Import `persona` from `@/mock/personas`. Reuse `setName/setSpecialty/setCity` + `setFilters` to wire the "Find this doctor" and quick-search buttons.
-- No changes to `AppContext`, server functions, or routing.
+- `src/routes/learn.tsx` — add the header panel, reading list, per-item callouts, and the glossary "first" subsection. Import `persona` from `@/mock/personas`.
 
 ## Out of scope
 
-- No changes to the search backend or the doctor schema.
-- No new persona fields. We render what's already in `persona.doctors`, `persona.needs`, `persona.planFilters`, and `persona.narrativeMirror`.
-- The workspace "Verify Doctors" activity link is not changed in this pass.
+- No new persona fields. We use `persona.understanding.priorities`, `persona.understanding.concerns`, `persona.doctors`, and `persona.narrativeMirror`.
+- No changes to the read-aloud behavior, accordion mechanics, or routing.
+- No new copy for Medicare parts themselves — bodies stay as-is.
+- No changes to nav or workspace links.
 
 ## Open question
 
-Should the panel be **collapsible** (so repeat visits aren't noisy) or **always-visible** (so the context is unmissable)? Default is always-visible unless you say otherwise.
+Should the header panel also have a "Skip ahead to what matters" button that auto-opens the most relevant accordion section on load? Default: no, the reading list already handles that — but easy to add if you want it pre-opened.
