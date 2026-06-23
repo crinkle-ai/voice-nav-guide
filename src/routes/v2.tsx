@@ -398,7 +398,8 @@ function ExpandedModal({
 }
 
 function DockedAssistant({
-  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize, stackedWithWorkspace,
+  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize,
+  workspaceDocked, workspaceMinimized,
 }: {
   messages: Msg[];
   draft: string;
@@ -407,15 +408,21 @@ function DockedAssistant({
   onSuggestion: (s: string) => void;
   onExpand: () => void;
   onMinimize: () => void;
-  stackedWithWorkspace: boolean;
+  workspaceDocked: boolean;
+  workspaceMinimized: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // When stacked, assistant takes upper half; when alone, takes full height
-  const bottom = stackedWithWorkspace ? "calc(50vh + 8px)" : "1.5rem";
+  // When workspace is docked, split the right column in half.
+  // When workspace is minimized, raise the chat so the pill sits below it.
+  const bottom = workspaceDocked
+    ? "calc(50vh + 8px)"
+    : workspaceMinimized
+    ? "6rem"
+    : "1.5rem";
 
   return (
     <aside
