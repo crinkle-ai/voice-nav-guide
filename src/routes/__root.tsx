@@ -153,20 +153,22 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouter().state.location.pathname;
   const hideVoiceBar = pathname.startsWith("/deck");
+  const isAltView = pathname === "/v2" || pathname.startsWith("/v2/");
+  const hideChrome = hideVoiceBar || isAltView;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <LiveAdviseProvider>
-          <div className={`min-h-screen bg-background text-foreground ${hideVoiceBar ? "" : "pb-40 sm:pb-36 [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]"}`}>
-            <TopNav />
+          <div className={`min-h-screen bg-background text-foreground ${hideChrome ? "" : "pb-40 sm:pb-36 [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]"}`}>
+            {!isAltView && <TopNav />}
             <Outlet />
-            {!hideVoiceBar && <BottomVoiceBar />}
-            <AgentHighlightOverlay />
-            <PushedComparisonDrawer />
-            <LiveAdvisePanel />
-            <GuidanceToast />
-            {!hideVoiceBar && <WorkspaceDrawer />}
+            {!hideChrome && <BottomVoiceBar />}
+            {!isAltView && <AgentHighlightOverlay />}
+            {!isAltView && <PushedComparisonDrawer />}
+            {!isAltView && <LiveAdvisePanel />}
+            {!isAltView && <GuidanceToast />}
+            {!hideChrome && <WorkspaceDrawer />}
           </div>
         </LiveAdviseProvider>
       </AppProvider>
