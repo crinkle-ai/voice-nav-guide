@@ -6,6 +6,7 @@ import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { persona } from "@/mock/personas";
+import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
 import {
   BookOpen,
   Stethoscope,
