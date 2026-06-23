@@ -6,7 +6,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const tabs = [
-    { to: "/workspace" as const, label: "Shop My Way", icon: UserCog, match: "/workspace" },
+    { to: "/" as const, label: "Home", icon: UserCog, match: "/" },
     { to: "/plans" as const, label: "Plans", icon: FileText, match: "/plans" },
   ];
 

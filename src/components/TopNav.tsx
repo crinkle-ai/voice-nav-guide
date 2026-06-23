@@ -8,7 +8,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 const NAV_ITEMS = [
   { to: "/", label: "Home" },
-  { to: "/workspace", label: "Workspace" },
   { to: "/learn", label: "Learn" },
   { to: "/find-doctors", label: "Find Doctors" },
   { to: "/compare-plans", label: "Compare Plans" },
