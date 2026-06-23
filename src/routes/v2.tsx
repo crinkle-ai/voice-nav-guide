@@ -65,7 +65,7 @@ type WorkspaceItem = { id: string; label: string; meta?: string };
 type WorkspaceSection = {
   key: string;
   title: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   items: WorkspaceItem[];
 };
 
