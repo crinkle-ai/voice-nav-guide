@@ -1,44 +1,37 @@
 ## Goal
 
-Make `/learn` feel like it was written for *her* — pulling the persona's priorities and concerns to the top instead of dumping a generic Medicare 101 page. Same pattern as Find Doctors: a "Here's what you told us" panel + signposting that ties each Medicare topic back to a specific need she expressed.
+Let the voice navigator point at the new personalization regions on `/find-doctors` and `/learn` by registering ids in `src/lib/nav-map.ts` and adding matching `id="…"` props in the route files.
 
-## What to add
+## Changes
 
-### 1. Personalized header panel (top of page, above the existing Parts accordion)
+### 1. `src/lib/nav-map.ts` — register new sections
 
-- Eyebrow: "Here's what you told us"
-- One-sentence narrative tuned to learning (e.g. *"Since keeping Dr. Patel and Dr. Chen and traveling between MN and AZ are what matter, here's what to focus on first."*)
-- Chips for `persona.understanding.priorities` and `persona.understanding.concerns` (visual only).
+Add to the `/learn` entry:
+- `your-priorities` — "Personalized 'Here's what you told us' panel". When to use: user asks "where do I start" / "what should I read first" / wants the personalized intro.
+- `start-here` — "Start here for you reading list". When to use: user wants the recommended order tailored to their priorities.
+- `priority-glossary` — "Words you'll hit first". When to use: user asks for the most important terms for their situation.
 
-### 2. "Start here for you" reading list
+Add to the `/find-doctors` entry:
+- `your-needs-summary` — "Personalized 'Here's what you told us' panel". When to use: user asks what we're optimizing for / wants the recap.
+- `doctors-to-keep` — "Doctors you want to keep cards". When to use: user mentions Dr. Patel, Dr. Chen, or "my current doctors".
+- `quick-searches` — "Quick search shortcuts". When to use: user wants suggested searches by specialty/city without typing.
 
-A small ordered list above the full Parts accordion with 2–3 picks chosen from the persona's priorities. Each item links to the matching accordion section (sets `openId` and scrolls). Mapping:
+(Existing ids stay unchanged.)
 
-- *Keep doctors / Provider networks* → **Part C — Medicare Advantage** + **Medigap** (network vs. no-network framing)
-- *Prescription coverage* → **Part D — Prescription Drugs**
-- *Travel flexibility / Multi-state* → **Medigap** (and a note about PPO Advantage)
+### 2. `src/routes/learn.tsx` — add `id` props
 
-Each item shows: the topic title, a one-line "why this matters to you" pulled/derived from the persona need, and a "Read this section" button.
+- Wrap the top personalized panel with `id="your-priorities"`.
+- The "Start here for you" `<ol>`/wrapper `div` gets `id="start-here"`.
+- The "Words you'll hit first" wrapper `div` gets `id="priority-glossary"`.
 
-### 3. "Why this matters to you" callout inside each accordion item
+### 3. `src/routes/find-doctors.tsx` — add `id` props
 
-When an accordion item maps to one of her priorities, render a small inline callout under the body text: *"Matters to you because: keeping Dr. Patel and Dr. Chen depends on this plan's network."* For non-matching items, nothing changes.
-
-### 4. Personalized glossary ordering (light touch)
-
-Surface 3 glossary terms first as "Words you'll hit first" based on her priorities — Network, Formulary, Out-of-pocket max — then render the rest of the glossary unchanged below. No new terms, just reordering + a small header.
-
-## Files to touch
-
-- `src/routes/learn.tsx` — add the header panel, reading list, per-item callouts, and the glossary "first" subsection. Import `persona` from `@/mock/personas`.
+- The summary `<section>` gets `id="your-needs-summary"`.
+- The "Doctors you want to keep" `<div>` gets `id="doctors-to-keep"`.
+- The "Quick searches" `<div>` gets `id="quick-searches"`.
 
 ## Out of scope
 
-- No new persona fields. We use `persona.understanding.priorities`, `persona.understanding.concerns`, `persona.doctors`, and `persona.narrativeMirror`.
-- No changes to the read-aloud behavior, accordion mechanics, or routing.
-- No new copy for Medicare parts themselves — bodies stay as-is.
-- No changes to nav or workspace links.
-
-## Open question
-
-Should the header panel also have a "Skip ahead to what matters" button that auto-opens the most relevant accordion section on load? Default: no, the reading list already handles that — but easy to add if you want it pre-opened.
+- No changes to AI system prompt assembly — `buildNavMapPrompt()` already serializes `NAV_MAP`, so the new ids flow into the voice session prompt automatically.
+- No new tools, no new dynamic id patterns, no changes to `search_doctors` / `recommend_plans`.
+- No changes to highlight visuals — existing `useHighlightConsumer` ring/scroll behavior covers them.

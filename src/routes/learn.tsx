@@ -134,7 +134,7 @@ function Learn() {
         Each part of Medicare does something different. Tap any section to expand it — or press "Read aloud" to hear it.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6">
+      <section id="your-priorities" className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6 scroll-mt-24">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
           <Sparkles className="h-3 w-3" /> Here's what you told us
         </div>
@@ -157,7 +157,8 @@ function Learn() {
           </div>
         )}
 
-        <div className="mt-6">
+        <div id="start-here" className="mt-6 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Start here for you</div>
           <ol className="space-y-2">
             {READING_PICKS.map((pick, idx) => {
@@ -208,7 +209,8 @@ function Learn() {
         <h2 className="text-3xl font-bold text-foreground">Glossary</h2>
         <p className="mt-2 text-muted-foreground">The words that come up over and over.</p>
 
-        <div className="mt-6">
+        <div id="priority-glossary" className="mt-6 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Words you'll hit first</div>
           <dl className="grid gap-4 sm:grid-cols-2">
             {priorityGlossary.map(([term, def]) => (

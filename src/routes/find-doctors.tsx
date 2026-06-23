@@ -95,7 +95,7 @@ function FindDoctors() {
         Search by name, specialty, or city. We'll show who's accepting new patients and who accepts Medicare assignment.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6">
+      <section id="your-needs-summary" className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6 scroll-mt-24">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
           <Sparkles className="h-3 w-3" /> Here's what you told us
         </div>
@@ -104,7 +104,8 @@ function FindDoctors() {
         </p>
 
         {persona.doctors.length > 0 && (
-          <div className="mt-5">
+          <div id="doctors-to-keep" className="mt-5 scroll-mt-24">
+
             <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Doctors you want to keep</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {persona.doctors.map((d) => (
@@ -158,7 +159,8 @@ function FindDoctors() {
           </div>
         )}
 
-        <div className="mt-5">
+        <div id="quick-searches" className="mt-5 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Quick searches</div>
           <div className="flex flex-wrap gap-2">
             {quickSearches.map((q) => (

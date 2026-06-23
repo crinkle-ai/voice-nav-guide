@@ -38,12 +38,15 @@ export const NAV_MAP: NavPageEntry[] = [
     label: "Learn",
     whenToUse: "Plain-language explanations of Medicare Parts A, B, C, D, Medigap, and glossary.",
     sections: [
+      { id: "your-priorities", label: "Personalized 'Here's what you told us' panel", whenToUse: "User asks 'where do I start', 'what should I read first', or wants the personalized intro for them." },
+      { id: "start-here", label: "'Start here for you' reading list", whenToUse: "User wants the recommended reading order tailored to their priorities." },
       { id: "part-a", label: "Part A — Hospital", whenToUse: "User asks about hospital coverage." },
       { id: "part-b", label: "Part B — Medical", whenToUse: "User asks about doctor visits / outpatient." },
       { id: "part-c", label: "Part C — Medicare Advantage", whenToUse: "User asks about Advantage / MA / all-in-one plans." },
       { id: "part-d", label: "Part D — Prescription Drugs", whenToUse: "User asks about drug coverage." },
       { id: "medigap", label: "Medigap (Supplement)", whenToUse: "User asks about supplement plans." },
       { id: "glossary", label: "Glossary of terms", whenToUse: "User asks what a term means (premium, deductible, network…)." },
+      { id: "priority-glossary", label: "'Words you'll hit first' — priority glossary", whenToUse: "User asks which terms matter most for their situation, or wants the short list before the full glossary." },
     ],
   },
   {
@@ -51,6 +54,9 @@ export const NAV_MAP: NavPageEntry[] = [
     label: "Find Doctors",
     whenToUse: "Search for in-network providers.",
     sections: [
+      { id: "your-needs-summary", label: "Personalized 'Here's what you told us' panel", whenToUse: "User asks what we're optimizing for, wants the recap of their doctor needs, or asks 'what are you looking for for me?'" },
+      { id: "doctors-to-keep", label: "'Doctors you want to keep' cards", whenToUse: "User mentions Dr. Patel, Dr. Chen, 'my doctors', or 'the doctors I already see'." },
+      { id: "quick-searches", label: "Quick search shortcuts", whenToUse: "User wants suggested searches by specialty/city without typing (e.g. 'show me primary care in Phoenix')." },
       { id: "doctor-search", label: "Doctor search form", whenToUse: "User wants to look up a doctor or specialty." },
       { id: "doctor-results", label: "Doctor search results", whenToUse: "Show the matches that came back." },
     ],
