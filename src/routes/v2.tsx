@@ -137,14 +137,14 @@ function V2Page() {
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
 
-  // Mutual-exclusion: only one panel expanded at a time
+  // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
     setAssistant("expanded");
-    setWorkspace((w) => (w === "expanded" ? "minimized" : w));
+    setWorkspace("minimized");
   };
   const expandWorkspace = () => {
     setWorkspace("expanded");
-    setAssistant((a) => (a === "expanded" ? "minimized" : a));
+    setAssistant("minimized");
   };
 
   const respondTo = (text: string) => {
