@@ -20,15 +20,15 @@ function ActivityDetail() {
 
   const onComplete = () => {
     complete(activity.id);
-    navigate({ to: "/workspace" });
+    navigate({ to: "/" });
   };
 
   const isCompleted = step?.status === "completed";
 
   return (
     <div className="mx-auto max-w-xl px-5 pb-8 pt-6">
-      <Link to="/workspace" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to workspace
+      <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-ink">
+        <ArrowLeft className="h-3.5 w-3.5" /> Back home
       </Link>
 
       <div className="mt-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-primary">
@@ -55,8 +55,8 @@ function ActivityDetail() {
           <Check className="h-4 w-4" /> Mark complete and continue
         </button>
       ) : (
-        <Link to="/workspace" className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 font-medium text-ink hover:border-primary/40">
-          Back to workspace
+        <Link to="/" className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 font-medium text-ink hover:border-primary/40">
+          Back home
         </Link>
       )}
     </div>

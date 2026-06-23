@@ -39,7 +39,7 @@ function ComparePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 pb-20 pt-6">
-        <BackRow backTo="/" backLabel="Back home" />}
+        <BackRow backTo="/" backLabel="Back home" />
 
         <div className="mt-6 flex items-center gap-3">
           <PersonaAvatar name={persona.name} hue={persona.hue} size={36} />
@@ -116,10 +116,10 @@ function ComparePage() {
         </div>
 
         <Link
-          to="/workspace"
+          to="/"
           className="mt-10 flex items-center justify-center gap-2 rounded-full bg-ink py-4 font-medium text-background hover:bg-ink/90"
         >
-          Take this to my workspace <ArrowRight className="h-4 w-4" />
+          Done — back home <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </div>
