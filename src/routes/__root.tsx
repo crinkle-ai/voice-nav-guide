@@ -166,7 +166,7 @@ function RootComponent() {
             <PushedComparisonDrawer />
             <LiveAdvisePanel />
             <GuidanceToast />
-            {!hideVoiceBar && <AboutYouDrawer />}
+            {!hideVoiceBar && <WorkspaceDrawer />}
           </div>
         </LiveAdviseProvider>
       </AppProvider>
