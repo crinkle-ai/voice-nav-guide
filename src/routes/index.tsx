@@ -166,7 +166,7 @@ function RambleHero() {
 
   const onGenerate = () => {
     setGenerating(true);
-    navigate({ to: "/workspace" });
+    navigate({ to: "/" });
   };
 
   const onReset = () => {

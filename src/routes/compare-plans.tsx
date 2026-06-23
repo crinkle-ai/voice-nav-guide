@@ -108,9 +108,9 @@ function ComparePlans() {
           <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
             What matters to you
           </div>
-          <Link to="/workspace" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-            <Sliders className="h-3.5 w-3.5" /> Refine what matters to me
-          </Link>
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Sliders className="h-3.5 w-3.5" /> Open the About you panel to refine
+          </span>
         </div>
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {persona.needs.map((n) => (
