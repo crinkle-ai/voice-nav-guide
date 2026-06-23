@@ -586,8 +586,9 @@ function DockedWorkspace({
   onExpand: () => void;
   onMinimize: () => void;
 }) {
-  // When assistant is docked above, sit below the midpoint; otherwise span full right column
-  const top = assistantDocked ? "calc(50vh + 8px)" : "5rem";
+  // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
+  const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
+
   return (
     <aside
       className="fixed right-6 bottom-6 w-[360px] rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden z-40"
