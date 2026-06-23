@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as V2RouteImport } from './routes/v2'
 import { Route as UnderstandingRouteImport } from './routes/understanding'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
@@ -31,6 +32,11 @@ import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/worksp
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const V2Route = V2RouteImport.update({
+  id: '/v2',
+  path: '/v2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UnderstandingRoute = UnderstandingRouteImport.update({
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v2': typeof V2Route
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v2': typeof V2Route
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v2': typeof V2Route
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v2'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v2'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v2'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
@@ -253,6 +265,7 @@ export interface RootRouteChildren {
   MyPlansRoute: typeof MyPlansRoute
   PlansRoute: typeof PlansRoute
   UnderstandingRoute: typeof UnderstandingRoute
+  V2Route: typeof V2Route
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v2': {
+      id: '/v2'
+      path: '/v2'
+      fullPath: '/v2'
+      preLoaderRoute: typeof V2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/understanding': {
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyPlansRoute: MyPlansRoute,
   PlansRoute: PlansRoute,
   UnderstandingRoute: UnderstandingRoute,
+  V2Route: V2Route,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
