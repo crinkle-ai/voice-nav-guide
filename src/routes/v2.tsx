@@ -178,23 +178,31 @@ function V2Page() {
 }
 
 function ExpandedModal({
-  messages, draft, setDraft, onSend, onMinimize,
+  messages, draft, setDraft, onSend, onMinimize, placeholder,
 }: {
   messages: Msg[];
   draft: string;
   setDraft: (s: string) => void;
   onSend: (s: string) => void;
   onMinimize: () => void;
+  placeholder: string;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   const latest = messages[messages.length - 1];
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-6 py-24">
-      <div className="relative w-full max-w-[880px] rounded-3xl bg-white shadow-2xl px-10 sm:px-16 py-14">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-16">
+      <h1
+        className="mb-8 text-center text-white text-4xl sm:text-5xl lg:text-6xl font-normal leading-tight"
+        style={SERIF}
+      >
+        Welcome to Medicare by Unified Health.
+      </h1>
+
+      <div className="relative w-full max-w-[680px] rounded-3xl bg-white shadow-2xl px-8 sm:px-12 py-10">
         <button
           onClick={onMinimize}
-          className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 transition"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 transition"
           aria-label="Minimize"
         >
           <Minus className="h-5 w-5" style={{ color: UHC_BLUE }} />
@@ -204,12 +212,12 @@ function ExpandedModal({
           <img
             src={assistantAsset.url}
             alt="Your Unified Health Medicare guide"
-            className="h-40 w-40 rounded-full object-cover"
+            className="h-28 w-28 rounded-full object-cover"
           />
         </div>
 
         <div
-          className="mt-10 text-center whitespace-pre-line text-[28px] sm:text-[32px] leading-[1.35] font-normal"
+          className="mt-8 text-center whitespace-pre-line text-xl sm:text-2xl leading-relaxed font-normal"
           style={{ ...SERIF, color: UHC_BLUE }}
         >
           {latest.role === "assistant" ? latest.text : "Thank you. One moment…"}
@@ -217,7 +225,7 @@ function ExpandedModal({
 
         <form
           onSubmit={(e) => { e.preventDefault(); onSend(draft); }}
-          className="mt-10 relative"
+          className="mt-8 relative"
         >
           <textarea
             ref={inputRef}
@@ -227,14 +235,14 @@ function ExpandedModal({
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(draft); }
             }}
             rows={1}
-            placeholder="Type your response here..."
-            className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-6 py-5 pr-16 text-lg outline-none focus:border-transparent focus:ring-2 transition"
+            placeholder={placeholder}
+            className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-6 py-4 pr-16 text-base outline-none focus:border-transparent focus:ring-2 transition"
             style={{ color: UHC_BLUE, ['--tw-ring-color' as never]: UHC_BLUE }}
           />
           <button
             type="submit"
             aria-label="Send"
-            className="absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full flex items-center justify-center transition hover:opacity-90"
+            className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full flex items-center justify-center transition hover:opacity-90"
             style={{ backgroundColor: UHC_BLUE }}
           >
             <ArrowUp className="h-5 w-5 text-white" />
