@@ -160,13 +160,14 @@ function Home() {
 }
 
 function RambleHero() {
-  const navigate = useNavigate();
+  const openWorkspace = useWorkspaceDrawerStore((s) => s.openWorkspace);
   const [text, setText] = useState(persona.ramble);
   const [generating, setGenerating] = useState(false);
 
   const onGenerate = () => {
     setGenerating(true);
-    navigate({ to: "/" });
+    openWorkspace();
+    setTimeout(() => setGenerating(false), 900);
   };
 
   const onReset = () => {
