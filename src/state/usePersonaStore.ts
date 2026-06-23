@@ -40,8 +40,10 @@ const seed = () => {
   };
 };
 
-export const usePersonaStore = create<PersonaState>()((set, get) => ({
-  ...seed(),
+export const usePersonaStore = create<PersonaState>()(
+  persist(
+    (set, get) => ({
+      ...seed(),
   reset: () => set(seed()),
   clearToast: () => set({ lastToast: null }),
   dismissEnrollMoment: () => set({ enrollMomentSeen: true }),
