@@ -53,8 +53,7 @@ function V2Page() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      text:
-        "Welcome to Medicare by Unified Health.\n\nMy job is to help you along the way.\n\nFirst, let's start with your name.",
+      text: "My job is to help you along the way.",
     },
   ]);
   const [draft, setDraft] = useState("");
