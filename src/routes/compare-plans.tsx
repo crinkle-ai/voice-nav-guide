@@ -109,7 +109,7 @@ function ComparePlans() {
             What matters to you
           </div>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <Sliders className="h-3.5 w-3.5" /> Open the About you panel to refine
+            <Sliders className="h-3.5 w-3.5" /> Open your Workspace to refine
           </span>
         </div>
         <ul className="mt-3 flex flex-wrap gap-1.5">
