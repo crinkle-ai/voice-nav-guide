@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,18 +13,20 @@ import { AboutMoreRamble } from "@/components/about-more-ramble";
 import { persona, activities } from "@/mock/personas";
 import type { ActivityId } from "@/mock/personas";
 import { usePersonaStore } from "@/state/usePersonaStore";
+import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
 
-export function AboutYouDrawer() {
-  const [open, setOpen] = useState(false);
+export function WorkspaceDrawer() {
+  const open = useWorkspaceDrawerStore((s) => s.open);
+  const setOpen = useWorkspaceDrawerStore((s) => s.setOpen);
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const seen = sessionStorage.getItem("about-you-drawer-hint");
+      const seen = sessionStorage.getItem("workspace-drawer-hint");
       if (!seen) {
         setPulse(true);
-        sessionStorage.setItem("about-you-drawer-hint", "1");
+        sessionStorage.setItem("workspace-drawer-hint", "1");
         const t = setTimeout(() => setPulse(false), 4200);
         return () => clearTimeout(t);
       }
@@ -40,7 +42,7 @@ export function AboutYouDrawer() {
       <button
         type="button"
         onClick={() => { setPulse(false); setOpen(true); }}
-        aria-label="Open About you"
+        aria-label="Open Workspace"
         className={[
           "fixed right-0 top-1/2 z-40 -translate-y-1/2",
           "flex items-center gap-1.5 rounded-l-2xl border border-r-0 border-border bg-card/95 backdrop-blur",
@@ -52,7 +54,7 @@ export function AboutYouDrawer() {
         <ChevronLeft className="h-4 w-4 text-primary" />
         <span className="[writing-mode:vertical-rl] rotate-180">
           <span className="inline-flex items-center gap-1">
-            <Sparkles className="h-3 w-3" /> About you
+            <Sparkles className="h-3 w-3" /> Workspace
           </span>
         </span>
       </button>
@@ -64,7 +66,7 @@ export function AboutYouDrawer() {
         >
           <SheetHeader className="border-b border-border px-5 py-5">
             <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
-              <Sparkles className="h-3 w-3" /> About you
+              <Sparkles className="h-3 w-3" /> Workspace
             </div>
             <SheetTitle className="font-display text-2xl text-ink">{persona.name}</SheetTitle>
             <SheetDescription>
@@ -90,7 +92,6 @@ export function AboutYouDrawer() {
               title="What will shape your route"
               count={`${requiredSteps.length} steps`}
               defaultOpen
-              onNavigate={() => setOpen(false)}
             >
               {requiredSteps.length === 0 ? (
                 <Empty text="No steps yet — share a bit about you above." />
@@ -271,7 +272,6 @@ function Section({
   title: string;
   count?: string;
   defaultOpen?: boolean;
-  onNavigate?: () => void;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
