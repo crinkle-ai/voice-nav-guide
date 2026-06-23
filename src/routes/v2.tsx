@@ -336,9 +336,9 @@ function DockedAssistant({
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(draft); }
           }}
-          rows={1}
-          placeholder="Type your response here..."
-          className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-4 py-3 pr-12 text-sm outline-none focus:ring-2"
+            rows={1}
+            placeholder="Type your response here"
+            className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-4 py-3 pr-12 text-sm outline-none focus:ring-2"
           style={{ color: UHC_BLUE, ['--tw-ring-color' as never]: UHC_BLUE }}
         />
         <button
