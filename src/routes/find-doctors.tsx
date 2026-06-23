@@ -95,7 +95,7 @@ function FindDoctors() {
         Search by name, specialty, or city. We'll show who's accepting new patients and who accepts Medicare assignment.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6">
+      <section id="your-needs-summary" className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6 scroll-mt-24">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
           <Sparkles className="h-3 w-3" /> Here's what you told us
         </div>
