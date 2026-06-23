@@ -159,7 +159,8 @@ function FindDoctors() {
           </div>
         )}
 
-        <div className="mt-5">
+        <div id="quick-searches" className="mt-5 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Quick searches</div>
           <div className="flex flex-wrap gap-2">
             {quickSearches.map((q) => (
