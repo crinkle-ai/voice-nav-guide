@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
@@ -6,6 +6,7 @@ import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { persona } from "@/mock/personas";
+import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
 import {
   BookOpen,
   Stethoscope,
@@ -160,13 +161,14 @@ function Home() {
 }
 
 function RambleHero() {
-  const navigate = useNavigate();
+  const openWorkspace = useWorkspaceDrawerStore((s) => s.openWorkspace);
   const [text, setText] = useState(persona.ramble);
   const [generating, setGenerating] = useState(false);
 
   const onGenerate = () => {
     setGenerating(true);
-    navigate({ to: "/" });
+    openWorkspace();
+    setTimeout(() => setGenerating(false), 900);
   };
 
   const onReset = () => {

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/workspace")({
 });
 
 function WorkspaceLayout() {
-  // Pass-through layout — workspace landing now lives in the global "About you" drawer.
+  // Pass-through layout — workspace landing now lives in the global Workspace drawer.
   // Sub-routes like /workspace/activity/$activityId still render through this Outlet.
   useMatches();
   return <Outlet />;
