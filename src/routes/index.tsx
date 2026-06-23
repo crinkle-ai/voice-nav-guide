@@ -50,6 +50,15 @@ function Home() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
+      <div className="mb-4 flex justify-end">
+        <Link
+          to="/v2"
+          className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          View alternate design →
+        </Link>
+      </div>
+
       {/* Ramble Hero */}
       <RambleHero />
 
