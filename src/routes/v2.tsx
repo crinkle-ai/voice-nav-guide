@@ -293,9 +293,14 @@ function V2Page() {
       {workspace === "minimized" && assistant !== "expanded" && (
         <button
           onClick={() => setWorkspace("docked")}
-          className={`fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition ${
-            assistant === "minimized" ? "top-36" : "top-20"
-          }`}
+          className="fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
+          style={
+            assistant === "docked"
+              ? { bottom: "1.5rem" }
+              : assistant === "minimized"
+              ? { top: "9rem" }
+              : { top: "5rem" }
+          }
         >
           <div className="flex items-center gap-3">
             <div
@@ -581,8 +586,9 @@ function DockedWorkspace({
   onExpand: () => void;
   onMinimize: () => void;
 }) {
-  // When assistant is docked above, sit below the midpoint; otherwise span full right column
-  const top = assistantDocked ? "calc(50vh + 8px)" : "5rem";
+  // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
+  const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
+
   return (
     <aside
       className="fixed right-6 bottom-6 w-[360px] rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden z-40"
