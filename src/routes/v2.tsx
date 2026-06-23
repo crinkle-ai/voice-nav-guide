@@ -129,7 +129,7 @@ const WORKSPACE: WorkspaceSection[] = [
 
 function V2Page() {
   const [assistant, setAssistant] = useState<PanelState>("expanded");
-  const [workspace, setWorkspace] = useState<PanelState>("docked");
+  const [workspace, setWorkspace] = useState<PanelState>("minimized");
 
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", text: "My job is to help you along the way." },
@@ -254,7 +254,8 @@ function V2Page() {
           onSuggestion={onSuggestion}
           onExpand={expandAssistant}
           onMinimize={() => setAssistant("minimized")}
-          stackedWithWorkspace={workspace === "docked"}
+          workspaceDocked={workspace === "docked"}
+          workspaceMinimized={workspace === "minimized"}
         />
       )}
 
@@ -273,48 +274,50 @@ function V2Page() {
         </button>
       )}
 
-      {/* Workspace panel */}
-      {workspace === "expanded" && (
-        <WorkspaceExpanded
-          name={name}
-          onMinimize={() => setWorkspace("docked")}
-        />
-      )}
+      {/* Workspace panel — hidden when assistant is expanded */}
+      {assistant !== "expanded" && (
+        <>
+          {workspace === "expanded" && (
+            <WorkspaceExpanded
+              name={name}
+              onMinimize={() => setWorkspace("docked")}
+            />
+          )}
 
-      {workspace === "docked" && (
-        <DockedWorkspace
-          name={name}
-          assistantDocked={assistant === "docked"}
-          onExpand={expandWorkspace}
-          onMinimize={() => setWorkspace("minimized")}
-        />
-      )}
+          {workspace === "docked" && (
+            <DockedWorkspace
+              name={name}
+              assistantDocked={assistant === "docked"}
+              onExpand={expandWorkspace}
+              onMinimize={() => setWorkspace("minimized")}
+            />
+          )}
 
-      {workspace === "minimized" && assistant !== "expanded" && (
-        <button
-          onClick={() => setWorkspace("docked")}
-          className="fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
-          style={
-            assistant === "docked"
-              ? { bottom: "1.5rem" }
-              : assistant === "minimized"
-              ? { top: "9rem" }
-              : { top: "5rem" }
-          }
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="h-9 w-9 rounded-full grid place-items-center"
-              style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+          {workspace === "minimized" && (
+            <button
+              onClick={() => setWorkspace("docked")}
+              className="fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
+              style={
+                assistant === "docked"
+                  ? { bottom: "1.5rem" }
+                  : { top: "9rem" }
+              }
             >
-              <Bookmark className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
-            </div>
-            <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
-              My Workspace
-            </span>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
-        </button>
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-9 w-9 rounded-full grid place-items-center"
+                  style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+                >
+                  <Bookmark className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
+                </div>
+                <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
+                  My Workspace
+                </span>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
+            </button>
+          )}
+        </>
       )}
     </div>
   );
@@ -397,7 +400,8 @@ function ExpandedModal({
 }
 
 function DockedAssistant({
-  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize, stackedWithWorkspace,
+  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize,
+  workspaceDocked, workspaceMinimized,
 }: {
   messages: Msg[];
   draft: string;
@@ -406,15 +410,21 @@ function DockedAssistant({
   onSuggestion: (s: string) => void;
   onExpand: () => void;
   onMinimize: () => void;
-  stackedWithWorkspace: boolean;
+  workspaceDocked: boolean;
+  workspaceMinimized: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // When stacked, assistant takes upper half; when alone, takes full height
-  const bottom = stackedWithWorkspace ? "calc(50vh + 8px)" : "1.5rem";
+  // When workspace is docked, split the right column in half.
+  // When workspace is minimized, raise the chat so the pill sits below it.
+  const bottom = workspaceDocked
+    ? "calc(50vh + 8px)"
+    : workspaceMinimized
+    ? "6rem"
+    : "1.5rem";
 
   return (
     <aside
