@@ -157,7 +157,8 @@ function Learn() {
           </div>
         )}
 
-        <div className="mt-6">
+        <div id="start-here" className="mt-6 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Start here for you</div>
           <ol className="space-y-2">
             {READING_PICKS.map((pick, idx) => {
