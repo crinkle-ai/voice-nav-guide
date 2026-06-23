@@ -12,6 +12,7 @@ import {
   Calendar,
   FileCheck2,
   StickyNote,
+  ChevronRight,
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo.png.asset.json";
