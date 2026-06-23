@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Minus, Maximize2, X, MessageCircle, Play } from "lucide-react";
+import {
+  ArrowUp,
+  Minus,
+  Maximize2,
+  MessageCircle,
+  Play,
+  Bookmark,
+  Stethoscope,
+  Pill,
+  Calendar,
+  FileCheck2,
+  StickyNote,
+} from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo.png.asset.json";
 
@@ -17,7 +29,7 @@ export const Route = createFileRoute("/v2")({
 const UHC_BLUE = "#002678";
 
 type Msg = { role: "assistant" | "user"; text: string };
-type DockState = "expanded" | "docked" | "minimized";
+type PanelState = "expanded" | "docked" | "minimized";
 type ContentView =
   | { kind: "home" }
   | { kind: "education"; topic: string };
@@ -48,17 +60,92 @@ function detectEducationIntent(s: string) {
   return EDUCATION_INTENT.some((k) => t.includes(k));
 }
 
+// ----- Workspace mock data -----
+type WorkspaceItem = { id: string; label: string; meta?: string };
+type WorkspaceSection = {
+  key: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: WorkspaceItem[];
+};
+
+const WORKSPACE: WorkspaceSection[] = [
+  {
+    key: "plans",
+    title: "Saved Plans",
+    icon: Bookmark,
+    items: [
+      { id: "p1", label: "Unified Health Advantage Plus", meta: "$0/mo · PPO" },
+      { id: "p2", label: "Unified Health Secure HMO", meta: "$24/mo · HMO" },
+    ],
+  },
+  {
+    key: "doctors",
+    title: "My Doctors",
+    icon: Stethoscope,
+    items: [
+      { id: "d1", label: "Dr. Patel — Primary Care", meta: "In network" },
+      { id: "d2", label: "Dr. Nguyen — Cardiology", meta: "In network" },
+    ],
+  },
+  {
+    key: "meds",
+    title: "My Medications",
+    icon: Pill,
+    items: [
+      { id: "m1", label: "Atorvastatin 20mg", meta: "Tier 1" },
+      { id: "m2", label: "Lisinopril 10mg", meta: "Tier 1" },
+    ],
+  },
+  {
+    key: "dates",
+    title: "Important Dates",
+    icon: Calendar,
+    items: [
+      { id: "k1", label: "Initial Enrollment opens", meta: "Mar 1" },
+      { id: "k2", label: "Birthday — turning 65", meta: "Jun 12" },
+    ],
+  },
+  {
+    key: "progress",
+    title: "Enrollment Progress",
+    icon: FileCheck2,
+    items: [
+      { id: "e1", label: "Learn the basics", meta: "Complete" },
+      { id: "e2", label: "Compare plans", meta: "In progress" },
+      { id: "e3", label: "Enroll", meta: "Not started" },
+    ],
+  },
+  {
+    key: "notes",
+    title: "Notes",
+    icon: StickyNote,
+    items: [
+      { id: "n1", label: "Ask about dental coverage on Advantage Plus" },
+    ],
+  },
+];
+
 function V2Page() {
-  const [dock, setDock] = useState<DockState>("expanded");
+  const [assistant, setAssistant] = useState<PanelState>("expanded");
+  const [workspace, setWorkspace] = useState<PanelState>("docked");
+
   const [messages, setMessages] = useState<Msg[]>([
-    {
-      role: "assistant",
-      text: "My job is to help you along the way.",
-    },
+    { role: "assistant", text: "My job is to help you along the way." },
   ]);
   const [draft, setDraft] = useState("");
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
+
+  // Mutual-exclusion: only one panel expanded at a time
+  const expandAssistant = () => {
+    setAssistant("expanded");
+    setWorkspace((w) => (w === "expanded" ? "minimized" : w));
+  };
+  const expandWorkspace = () => {
+    setWorkspace("expanded");
+    setAssistant((a) => (a === "expanded" ? "minimized" : a));
+  };
 
   const respondTo = (text: string) => {
     setMessages((m) => {
@@ -92,7 +179,7 @@ function V2Page() {
       }
       return [...m, { role: "assistant", text: reply }];
     });
-    if (dock === "expanded") setDock("docked");
+    if (assistant === "expanded") setAssistant("docked");
   };
 
   const send = (raw: string) => {
@@ -105,6 +192,10 @@ function V2Page() {
 
   const onSuggestion = (s: string) => send(s);
   const hasStarted = messages.some((m) => m.role === "user");
+
+  // Right column reserves space when either panel is docked
+  const rightReserved =
+    assistant === "docked" || workspace === "docked" ? 400 : 0;
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden" style={{ backgroundColor: UHC_BLUE }}>
@@ -131,46 +222,80 @@ function V2Page() {
         ← Version 1
       </Link>
 
-      {/* Main content (when not full expanded modal) */}
-      {dock !== "expanded" && (
-        <main className="pt-24 pb-20 pl-8 pr-8" style={{ marginRight: dock === "docked" ? 400 : 0 }}>
+      {/* Content area (left) */}
+      {assistant !== "expanded" && workspace !== "expanded" && (
+        <main
+          className="pt-24 pb-20 pl-8 pr-8 transition-[margin] duration-300"
+          style={{ marginRight: rightReserved }}
+        >
           <ContentArea view={view} name={name} onSuggestion={onSuggestion} />
         </main>
       )}
 
-      {dock === "expanded" && (
+      {/* Assistant panel */}
+      {assistant === "expanded" && (
         <ExpandedModal
           messages={messages}
           draft={draft}
           setDraft={setDraft}
           onSend={send}
-          onMinimize={() => setDock("docked")}
+          onMinimize={() => setAssistant("docked")}
           placeholder={hasStarted ? "Type your response here" : "First, let's start with your name"}
         />
       )}
 
-      {dock === "docked" && (
+      {assistant === "docked" && (
         <DockedAssistant
           messages={messages}
           draft={draft}
           setDraft={setDraft}
           onSend={send}
           onSuggestion={onSuggestion}
-          onExpand={() => setDock("expanded")}
-          onMinimize={() => setDock("minimized")}
+          onExpand={expandAssistant}
+          onMinimize={() => setAssistant("minimized")}
+          stackedWithWorkspace={workspace === "docked"}
         />
       )}
 
-      {dock === "minimized" && (
+      {assistant === "minimized" && (
         <button
-          onClick={() => setDock("docked")}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-2 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          onClick={() => setAssistant("docked")}
+          className="fixed top-20 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-2 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
         >
-          <img src={assistantAsset.url} alt="Assistant" className="h-10 w-10 rounded-full object-cover" />
+          <img src={assistantAsset.url} alt="Assistant" className="h-9 w-9 rounded-full object-cover" />
           <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
-            Chat with your guide
+            Your Guide
           </span>
           <MessageCircle className="h-4 w-4" style={{ color: UHC_BLUE }} />
+        </button>
+      )}
+
+      {/* Workspace panel */}
+      {workspace === "expanded" && (
+        <WorkspaceExpanded
+          name={name}
+          onMinimize={() => setWorkspace("docked")}
+        />
+      )}
+
+      {workspace === "docked" && (
+        <DockedWorkspace
+          name={name}
+          assistantDocked={assistant === "docked"}
+          onExpand={expandWorkspace}
+          onMinimize={() => setWorkspace("minimized")}
+        />
+      )}
+
+      {workspace === "minimized" && (
+        <button
+          onClick={() => setWorkspace("docked")}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+        >
+          <Bookmark className="h-4 w-4" style={{ color: UHC_BLUE }} />
+          <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
+            My Workspace
+          </span>
         </button>
       )}
     </div>
@@ -254,7 +379,7 @@ function ExpandedModal({
 }
 
 function DockedAssistant({
-  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize,
+  messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize, stackedWithWorkspace,
 }: {
   messages: Msg[];
   draft: string;
@@ -263,14 +388,21 @@ function DockedAssistant({
   onSuggestion: (s: string) => void;
   onExpand: () => void;
   onMinimize: () => void;
+  stackedWithWorkspace: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // When stacked, assistant takes upper half; when alone, takes full height
+  const bottom = stackedWithWorkspace ? "calc(50vh + 8px)" : "1.5rem";
+
   return (
-    <aside className="fixed top-20 right-6 bottom-6 w-[360px] rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden z-40">
+    <aside
+      className="fixed top-20 right-6 w-[360px] rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden z-40"
+      style={{ bottom }}
+    >
       <header className="flex items-center gap-3 px-5 py-4 border-b border-black/5">
         <img src={assistantAsset.url} alt="Assistant" className="h-12 w-12 rounded-full object-cover" />
         <div className="flex-1 min-w-0">
@@ -282,8 +414,8 @@ function DockedAssistant({
         <button onClick={onExpand} aria-label="Expand" className="p-2 rounded-full hover:bg-black/5">
           <Maximize2 className="h-4 w-4" style={{ color: UHC_BLUE }} />
         </button>
-        <button onClick={onMinimize} aria-label="Collapse" className="p-2 rounded-full hover:bg-black/5">
-          <X className="h-4 w-4" style={{ color: UHC_BLUE }} />
+        <button onClick={onMinimize} aria-label="Minimize" className="p-2 rounded-full hover:bg-black/5">
+          <Minus className="h-4 w-4" style={{ color: UHC_BLUE }} />
         </button>
       </header>
 
@@ -306,7 +438,6 @@ function DockedAssistant({
           </div>
         ))}
 
-        {/* Suggested next steps */}
         <div className="pt-2">
           <div className="text-[10px] uppercase tracking-[0.16em] text-black/40 mb-2">
             Suggested next steps
@@ -336,9 +467,9 @@ function DockedAssistant({
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(draft); }
           }}
-            rows={1}
-            placeholder="Type your response here"
-            className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-4 py-3 pr-12 text-sm outline-none focus:ring-2"
+          rows={1}
+          placeholder="Type your response here"
+          className="w-full resize-none rounded-2xl border border-black/10 bg-[#f6f7fa] px-4 py-3 pr-12 text-sm outline-none focus:ring-2"
           style={{ color: UHC_BLUE, ['--tw-ring-color' as never]: UHC_BLUE }}
         />
         <button
@@ -351,6 +482,135 @@ function DockedAssistant({
         </button>
       </form>
     </aside>
+  );
+}
+
+function WorkspaceHeader({
+  onExpand, onMinimize, name, compact = false,
+}: {
+  onExpand?: () => void;
+  onMinimize?: () => void;
+  name: string | null;
+  compact?: boolean;
+}) {
+  return (
+    <header className="flex items-center gap-3 px-5 py-4 border-b border-black/5">
+      <div
+        className="h-10 w-10 rounded-full grid place-items-center"
+        style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+      >
+        <Bookmark className="h-5 w-5" style={{ color: UHC_BLUE }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[11px] uppercase tracking-wider text-black/50">
+          {name ? `${name}'s` : "My"} Workspace
+        </div>
+        <div style={{ ...SERIF, color: UHC_BLUE }} className={`${compact ? "text-base" : "text-lg"} font-semibold truncate`}>
+          Saved decisions & progress
+        </div>
+      </div>
+      {onExpand && (
+        <button onClick={onExpand} aria-label="Expand" className="p-2 rounded-full hover:bg-black/5">
+          <Maximize2 className="h-4 w-4" style={{ color: UHC_BLUE }} />
+        </button>
+      )}
+      {onMinimize && (
+        <button onClick={onMinimize} aria-label="Minimize" className="p-2 rounded-full hover:bg-black/5">
+          <Minus className="h-4 w-4" style={{ color: UHC_BLUE }} />
+        </button>
+      )}
+    </header>
+  );
+}
+
+function WorkspaceList({ dense = false }: { dense?: boolean }) {
+  return (
+    <div className={`space-y-${dense ? 4 : 6}`}>
+      {WORKSPACE.map((section) => {
+        const Icon = section.icon;
+        return (
+          <div key={section.key}>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
+              <div
+                className="text-[11px] uppercase tracking-[0.14em] font-semibold"
+                style={{ color: UHC_BLUE }}
+              >
+                {section.title}
+              </div>
+            </div>
+            <ul className="space-y-1.5">
+              {section.items.map((it) => (
+                <li
+                  key={it.id}
+                  className="rounded-xl px-3 py-2 border text-sm flex items-center justify-between gap-3"
+                  style={{ borderColor: "rgba(0,38,120,0.12)", color: UHC_BLUE }}
+                >
+                  <span className="truncate" style={SERIF}>{it.label}</span>
+                  {it.meta && (
+                    <span className="shrink-0 text-[11px] text-black/55">{it.meta}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DockedWorkspace({
+  name, assistantDocked, onExpand, onMinimize,
+}: {
+  name: string | null;
+  assistantDocked: boolean;
+  onExpand: () => void;
+  onMinimize: () => void;
+}) {
+  // When assistant is docked above, sit below the midpoint; otherwise span full right column
+  const top = assistantDocked ? "calc(50vh + 8px)" : "5rem";
+  return (
+    <aside
+      className="fixed right-6 bottom-6 w-[360px] rounded-3xl bg-white shadow-2xl flex flex-col overflow-hidden z-40"
+      style={{ top }}
+    >
+      <WorkspaceHeader name={name} onExpand={onExpand} onMinimize={onMinimize} compact />
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        <WorkspaceList dense />
+      </div>
+    </aside>
+  );
+}
+
+function WorkspaceExpanded({
+  name, onMinimize,
+}: {
+  name: string | null;
+  onMinimize: () => void;
+}) {
+  return (
+    <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 py-16">
+      <h1
+        className="mb-8 text-center text-white text-4xl sm:text-5xl font-normal leading-tight"
+        style={SERIF}
+      >
+        {name ? `${name}'s ` : "Your "}Medicare Workspace
+      </h1>
+      <div className="relative w-full max-w-[960px] rounded-3xl bg-white shadow-2xl overflow-hidden">
+        <button
+          onClick={onMinimize}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 transition z-10"
+          aria-label="Minimize"
+        >
+          <Minus className="h-5 w-5" style={{ color: UHC_BLUE }} />
+        </button>
+        <WorkspaceHeader name={name} />
+        <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+          <WorkspaceList />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -383,7 +643,6 @@ function ContentArea({
         </span>
       </h1>
 
-      {/* Video placeholder */}
       <div className="mt-10 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-20 w-20 rounded-full bg-white/95 grid place-items-center shadow-xl group-hover:scale-105 transition">
@@ -395,7 +654,6 @@ function ContentArea({
         </div>
       </div>
 
-      {/* Supporting content */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { t: "Part A", d: "Hospital coverage — most people pay no premium." },
