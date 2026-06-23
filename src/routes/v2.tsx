@@ -145,6 +145,7 @@ function V2Page() {
           setDraft={setDraft}
           onSend={send}
           onMinimize={() => setDock("docked")}
+          placeholder={hasStarted ? "Type your response here" : "First, let's start with your name"}
         />
       )}
 
