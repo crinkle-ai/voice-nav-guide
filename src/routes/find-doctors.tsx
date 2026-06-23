@@ -64,6 +64,28 @@ function FindDoctors() {
     });
   };
 
+  const runQuickSearch = (next: { name?: string; specialty?: string; city?: string }) => {
+    setName(next.name ?? "");
+    setSpecialty(next.specialty ?? "All");
+    setCity(next.city ?? "");
+    setFilters({
+      name: next.name?.trim() || undefined,
+      specialty: next.specialty && next.specialty !== "All" ? next.specialty : undefined,
+      city: next.city?.trim() || undefined,
+    });
+    if (typeof window !== "undefined") {
+      setTimeout(() => document.getElementById("doctor-results")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
+  };
+
+  const doctorNeeds = persona.needs.filter((n) => n.icon === "stethoscope" || n.icon === "plane");
+  const networkFilters = persona.planFilters.filter((f) => /network|state|ppo/i.test(f.label));
+  const quickSearches = [
+    { label: "Primary Care in Minneapolis", specialty: "Primary Care", city: "Minneapolis" },
+    { label: "Cardiology in Minneapolis", specialty: "Cardiology", city: "Minneapolis" },
+    { label: "Primary Care in Phoenix", specialty: "Primary Care", city: "Phoenix" },
+  ];
+
   const doctors = data?.doctors ?? [];
 
   return (
