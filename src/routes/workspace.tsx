@@ -249,9 +249,6 @@ function WorkspaceHome() {
         </section>
       )}
 
-      <section className="mt-10">
-        <AboutMoreRamble />
-      </section>
     </div>
   );
 }
