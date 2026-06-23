@@ -142,4 +142,23 @@ export const usePersonaStore = create<PersonaState>()(
 
     return { toast, addedStepId };
   },
-}));
+    }),
+    {
+      name: `persona-state-${persona.id}`,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        confidence: state.confidence,
+        progressPct: state.progressPct,
+        route: state.route,
+        concerns: state.concerns,
+        priorities: state.priorities,
+        questions: state.questions,
+        adaptiveTriggered: state.adaptiveTriggered,
+        selfEnrollUnlocked: state.selfEnrollUnlocked,
+        enrollMomentSeen: state.enrollMomentSeen,
+        extraRambleApplied: state.extraRambleApplied,
+      }),
+      version: 1,
+    },
+  ),
+);
