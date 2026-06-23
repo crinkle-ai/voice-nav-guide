@@ -104,6 +104,7 @@ function V2Page() {
   };
 
   const onSuggestion = (s: string) => send(s);
+  const hasStarted = messages.some((m) => m.role === "user");
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden" style={{ backgroundColor: UHC_BLUE }}>
