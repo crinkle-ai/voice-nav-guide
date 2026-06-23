@@ -19,7 +19,7 @@ import { LiveAdvisePanel } from "@/components/LiveAdvisePanel";
 import { AgentHighlightOverlay } from "@/components/AgentHighlightOverlay";
 import { PushedComparisonDrawer } from "@/components/PushedComparisonDrawer";
 import { GuidanceToast } from "@/components/GuidanceToast";
-import { AboutYouDrawer } from "@/components/about-you-drawer";
+import { WorkspaceDrawer } from "@/components/workspace-drawer";
 
 
 function NotFoundComponent() {
