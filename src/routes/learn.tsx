@@ -209,7 +209,8 @@ function Learn() {
         <h2 className="text-3xl font-bold text-foreground">Glossary</h2>
         <p className="mt-2 text-muted-foreground">The words that come up over and over.</p>
 
-        <div className="mt-6">
+        <div id="priority-glossary" className="mt-6 scroll-mt-24">
+
           <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Words you'll hit first</div>
           <dl className="grid gap-4 sm:grid-cols-2">
             {priorityGlossary.map(([term, def]) => (
