@@ -78,7 +78,7 @@ export function AboutMoreRamble() {
               <Plus className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">About you</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Workspace</div>
               <div className="mt-0.5 text-sm font-medium text-ink">{extra.promptLabel}</div>
               <div className="mt-0.5 text-xs text-muted-foreground">
                 A small detail can change what we put on your route.
