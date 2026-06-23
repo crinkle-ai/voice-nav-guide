@@ -95,6 +95,82 @@ function FindDoctors() {
         Search by name, specialty, or city. We'll show who's accepting new patients and who accepts Medicare assignment.
       </p>
 
+      <section className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
+          <Sparkles className="h-3 w-3" /> Here's what you told us
+        </div>
+        <p className="mt-3 text-[15px] leading-relaxed text-foreground">
+          You want to keep Dr. Patel and Dr. Chen, and you need coverage that follows you between Minnesota and Arizona.
+        </p>
+
+        {persona.doctors.length > 0 && (
+          <div className="mt-5">
+            <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Doctors you want to keep</div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {persona.doctors.map((d) => (
+                <div key={d.id} className="flex items-start justify-between gap-3 rounded-xl border bg-card p-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Stethoscope className="h-4 w-4 text-primary shrink-0" />
+                      <div className="truncate text-sm font-semibold text-foreground">{d.name}</div>
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{d.specialty} · {d.location}</div>
+                    <div className="mt-2">
+                      <span className={[
+                        "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-widest",
+                        d.status === "in-network" ? "bg-success-soft text-foreground" : "bg-warm-soft text-warm-foreground",
+                      ].join(" ")}>
+                        {d.status.replace("-", " ")}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => runQuickSearch({ name: d.name.replace(/^Dr\.\s*/, ""), specialty: d.specialty })}
+                  >
+                    Find
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(doctorNeeds.length > 0 || networkFilters.length > 0) && (
+          <div className="mt-5">
+            <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">What matters in a doctor</div>
+            <ul className="flex flex-wrap gap-2">
+              {doctorNeeds.map((n) => (
+                <li key={n.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground">
+                  {n.icon === "plane" ? <Plane className="h-3 w-3 text-primary" /> : <Stethoscope className="h-3 w-3 text-primary" />}
+                  {n.label}
+                </li>
+              ))}
+              {networkFilters.map((f) => (
+                <li key={f.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground">
+                  <FilterIcon className="h-3 w-3 text-primary" />
+                  {f.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-5">
+          <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Quick searches</div>
+          <div className="flex flex-wrap gap-2">
+            {quickSearches.map((q) => (
+              <Button key={q.label} size="sm" variant="secondary" onClick={() => runQuickSearch({ specialty: q.specialty, city: q.city })}>
+                {q.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
       <form id="doctor-search" onSubmit={onSearch} className="mt-8 grid gap-3 rounded-xl border bg-card p-5 md:grid-cols-[1fr_1fr_1fr_auto]">
         <Input placeholder="Doctor name" value={name} onChange={(e) => setName(e.target.value)} className="h-12 text-base" />
         <Select value={specialty} onValueChange={setSpecialty}>
