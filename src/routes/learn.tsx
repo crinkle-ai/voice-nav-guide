@@ -134,7 +134,7 @@ function Learn() {
         Each part of Medicare does something different. Tap any section to expand it — or press "Read aloud" to hear it.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6">
+      <section id="your-priorities" className="mt-8 rounded-2xl border border-border bg-primary-soft/30 p-6 scroll-mt-24">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
           <Sparkles className="h-3 w-3" /> Here's what you told us
         </div>
