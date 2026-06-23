@@ -1,39 +1,34 @@
-Make "Verify Doctors" actionable in two places: the workspace activity sends people to `/find-doctors` to add/save doctors, and `/compare-plans` shows per-plan in-network status for those saved doctors.
+## Goal
 
-## 1. Workspace activity → Find Doctors
+When the user lands on **Find Doctors** from her workspace, the page should immediately reflect *her* situation (the persona's "Shop my way" needs), not look like a generic provider directory. Right now it's a blank search form with no context tying it to the rest of her journey.
 
-In `src/routes/workspace.activity.$activityId.tsx`, the `doctors` kind currently just lists `persona.doctors`. Add a primary CTA inside that block:
+## What to add
 
-- "Find & verify a doctor" → `<Link to="/find-doctors">` (opens the existing search page where users can search by name/specialty/city and tap Save).
-- Keep the existing list of already-added doctors below the CTA, with their current status badge.
-- Secondary helper text: "Search for your doctor, save the ones you want to keep, and we'll check them against every plan you compare."
+A new summary panel at the top of `/find-doctors` (above the search form) that mirrors the workspace persona — Robert's case: keep Dr. Patel and Dr. Chen, multi-state coverage (MN ↔ AZ), and the specialties he already needs covered.
 
-No change to the "Mark complete" button — saving at least one doctor + returning here still lets the user mark the step complete.
+### Panel contents
 
-## 2. Per-plan network check on /compare-plans
+1. **Heading line** — small "Here's what you told us" eyebrow + one-sentence narrative pulled from `persona.narrativeMirror` (trimmed to the doctor-relevant bits, or a doctor-focused variant like *"You want to keep Dr. Patel and Dr. Chen, and you need coverage that follows you between Minnesota and Arizona."*).
 
-In `src/routes/compare-plans.tsx`, add a new "Your doctors in these plans" sub-section that only renders when `state.savedDoctorIds.length > 0` AND there is at least one plan in either Top Matches or the comparison drawer.
+2. **The doctors she wants to keep** — a row of small cards built from `persona.doctors`, each showing name, specialty, current city, and an "in-network / verifying" status pill. Each card has a "Find this doctor" button that pre-fills the search (name + specialty) and runs it.
 
-For demo purposes (no real provider-network data exists yet in the mock plans), derive status deterministically:
+3. **Need chips** — the doctor-relevant items from `persona.needs` and `persona.planFilters` rendered as chips (e.g. "Keep my doctors", "Multi-state PPO coverage", "Accepting new patients"). Visual only — no filter wiring yet.
 
-- Look up the saved doctor objects via the existing `searchDoctors` server fn (already imported in `BottomVoiceBar`) — call it once with no filters and filter client-side by `state.savedDoctorIds`. Cache via `useQuery(["saved-doctors"])`.
-- For each (plan, doctor) pair, compute a stable pseudo-status: `in-network` if `hash(plan.id + doctor.id) % 4 !== 0`, else `out-of-network`. This gives a believable mix for the demo without inventing data.
-- Render as a compact matrix: rows = saved doctors, columns = the user's selected compare plans (fall back to top 3 `robertPlans` if none selected). Cells show a green check + "In-network" or amber X + "Out-of-network".
-- Empty-state when no doctors saved: muted card with "Add doctors from Find Doctors to see network status here" + `<Link to="/find-doctors">`.
+4. **Quick-search shortcuts** — 2–3 buttons derived from her specialties ("Primary Care in Minneapolis", "Cardiology in Minneapolis", "Primary Care in Phoenix") that set the form filters and search in one click.
 
-Place this section directly under the "Top matches for you" grid, before the agent banner.
+The existing search form, filter row, and result list stay as-is below the panel.
 
-## 3. Small nav nicety
+## Files to touch
 
-Add a small "Verify another doctor" link beneath the new matrix → `/find-doctors`, so users can jump back and add more without going through the workspace.
-
-## Files touched
-
-- `src/routes/workspace.activity.$activityId.tsx` — add CTA in the `doctors` kind branch.
-- `src/routes/compare-plans.tsx` — add doctor-network matrix section + empty state.
-- (No new components needed; reuses `Link`, `Badge`, existing icons.)
+- `src/routes/find-doctors.tsx` — add the summary panel above the `<form>`. Import `persona` from `@/mock/personas`. Reuse `setName/setSpecialty/setCity` + `setFilters` to wire the "Find this doctor" and quick-search buttons.
+- No changes to `AppContext`, server functions, or routing.
 
 ## Out of scope
 
-- Real provider network data / live formulary checks (mock plans don't carry network rosters).
-- Updating the persona.doctors statuses in store — those remain narrative-only for now.
+- No changes to the search backend or the doctor schema.
+- No new persona fields. We render what's already in `persona.doctors`, `persona.needs`, `persona.planFilters`, and `persona.narrativeMirror`.
+- The workspace "Verify Doctors" activity link is not changed in this pass.
+
+## Open question
+
+Should the panel be **collapsible** (so repeat visits aren't noisy) or **always-visible** (so the context is unmissable)? Default is always-visible unless you say otherwise.

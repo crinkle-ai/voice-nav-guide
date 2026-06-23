@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Phone, Search } from "lucide-react";
+import { Heart, MapPin, Phone, Search, Sparkles, Stethoscope, Plane, Filter as FilterIcon } from "lucide-react";
+import { persona } from "@/mock/personas";
 
 export const Route = createFileRoute("/find-doctors")({
   head: () => ({
