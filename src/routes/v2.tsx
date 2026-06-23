@@ -129,7 +129,7 @@ const WORKSPACE: WorkspaceSection[] = [
 
 function V2Page() {
   const [assistant, setAssistant] = useState<PanelState>("expanded");
-  const [workspace, setWorkspace] = useState<PanelState>("docked");
+  const [workspace, setWorkspace] = useState<PanelState>("minimized");
 
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", text: "My job is to help you along the way." },
