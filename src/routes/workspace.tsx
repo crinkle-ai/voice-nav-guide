@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, Sparkles, X, Filter, Clock, Stethoscope, Pill, GitCompare, Clipboard, Plane, Scale, BookOpen, Users, ClipboardCheck, ThumbsUp, ListChecks, FileSearch, CheckCircle2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ActivityId } from "@/mock/personas";
-import { AboutMoreRamble } from "@/components/about-more-ramble";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "My Medicare Workspace" }] }),
@@ -250,9 +249,6 @@ function WorkspaceHome() {
         </section>
       )}
 
-      <section className="mt-10">
-        <AboutMoreRamble />
-      </section>
     </div>
   );
 }
