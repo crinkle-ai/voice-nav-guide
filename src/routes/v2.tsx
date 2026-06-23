@@ -274,48 +274,50 @@ function V2Page() {
         </button>
       )}
 
-      {/* Workspace panel */}
-      {workspace === "expanded" && (
-        <WorkspaceExpanded
-          name={name}
-          onMinimize={() => setWorkspace("docked")}
-        />
-      )}
+      {/* Workspace panel — hidden when assistant is expanded */}
+      {assistant !== "expanded" && (
+        <>
+          {workspace === "expanded" && (
+            <WorkspaceExpanded
+              name={name}
+              onMinimize={() => setWorkspace("docked")}
+            />
+          )}
 
-      {workspace === "docked" && (
-        <DockedWorkspace
-          name={name}
-          assistantDocked={assistant === "docked"}
-          onExpand={expandWorkspace}
-          onMinimize={() => setWorkspace("minimized")}
-        />
-      )}
+          {workspace === "docked" && (
+            <DockedWorkspace
+              name={name}
+              assistantDocked={assistant === "docked"}
+              onExpand={expandWorkspace}
+              onMinimize={() => setWorkspace("minimized")}
+            />
+          )}
 
-      {workspace === "minimized" && assistant !== "expanded" && (
-        <button
-          onClick={() => setWorkspace("docked")}
-          className="fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
-          style={
-            assistant === "docked"
-              ? { bottom: "1.5rem" }
-              : assistant === "minimized"
-              ? { top: "9rem" }
-              : { top: "5rem" }
-          }
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="h-9 w-9 rounded-full grid place-items-center"
-              style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+          {workspace === "minimized" && (
+            <button
+              onClick={() => setWorkspace("docked")}
+              className="fixed right-6 z-40 flex h-12 w-52 items-center justify-between rounded-full bg-white px-4 shadow-2xl hover:scale-[1.02] transition"
+              style={
+                assistant === "docked"
+                  ? { bottom: "1.5rem" }
+                  : { top: "9rem" }
+              }
             >
-              <Bookmark className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
-            </div>
-            <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
-              My Workspace
-            </span>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
-        </button>
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-9 w-9 rounded-full grid place-items-center"
+                  style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+                >
+                  <Bookmark className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
+                </div>
+                <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
+                  My Workspace
+                </span>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0" style={{ color: UHC_BLUE }} />
+            </button>
+          )}
+        </>
       )}
     </div>
   );
