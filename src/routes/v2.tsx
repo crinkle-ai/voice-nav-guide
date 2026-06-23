@@ -254,7 +254,8 @@ function V2Page() {
           onSuggestion={onSuggestion}
           onExpand={expandAssistant}
           onMinimize={() => setAssistant("minimized")}
-          stackedWithWorkspace={workspace === "docked"}
+          workspaceDocked={workspace === "docked"}
+          workspaceMinimized={workspace === "minimized"}
         />
       )}
 
