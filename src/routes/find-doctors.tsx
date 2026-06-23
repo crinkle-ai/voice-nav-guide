@@ -104,7 +104,8 @@ function FindDoctors() {
         </p>
 
         {persona.doctors.length > 0 && (
-          <div className="mt-5">
+          <div id="doctors-to-keep" className="mt-5 scroll-mt-24">
+
             <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Doctors you want to keep</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {persona.doctors.map((d) => (
