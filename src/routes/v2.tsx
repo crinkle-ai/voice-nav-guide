@@ -137,14 +137,14 @@ function V2Page() {
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
 
-  // Mutual-exclusion: only one panel expanded at a time
+  // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
     setAssistant("expanded");
-    setWorkspace((w) => (w === "expanded" ? "minimized" : w));
+    setWorkspace("minimized");
   };
   const expandWorkspace = () => {
     setWorkspace("expanded");
-    setAssistant((a) => (a === "expanded" ? "minimized" : a));
+    setAssistant("minimized");
   };
 
   const respondTo = (text: string) => {
@@ -257,7 +257,7 @@ function V2Page() {
         />
       )}
 
-      {assistant === "minimized" && (
+      {assistant === "minimized" && workspace !== "expanded" && (
         <button
           onClick={() => setAssistant("docked")}
           className="fixed top-20 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-2 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
@@ -287,10 +287,11 @@ function V2Page() {
         />
       )}
 
-      {workspace === "minimized" && (
+      {workspace === "minimized" && assistant !== "expanded" && (
         <button
           onClick={() => setWorkspace("docked")}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          className="fixed right-6 z-40 flex items-center gap-3 rounded-full bg-white pl-3 pr-5 py-2 shadow-2xl hover:scale-[1.02] transition"
+          style={{ top: assistant === "minimized" ? "8.25rem" : "5rem" }}
         >
           <Bookmark className="h-4 w-4" style={{ color: UHC_BLUE }} />
           <span style={{ ...SERIF, color: UHC_BLUE }} className="text-sm font-semibold">
@@ -590,24 +591,70 @@ function WorkspaceExpanded({
   onMinimize: () => void;
 }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 py-16">
-      <h1
-        className="mb-8 text-center text-white text-4xl sm:text-5xl font-normal leading-tight"
-        style={SERIF}
-      >
-        {name ? `${name}'s ` : "Your "}Medicare Workspace
-      </h1>
-      <div className="relative w-full max-w-[960px] rounded-3xl bg-white shadow-2xl overflow-hidden">
-        <button
-          onClick={onMinimize}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 transition z-10"
-          aria-label="Minimize"
-        >
-          <Minus className="h-5 w-5" style={{ color: UHC_BLUE }} />
-        </button>
-        <WorkspaceHeader name={name} />
-        <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-          <WorkspaceList />
+    <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 sm:px-10 py-12">
+      <div className="w-full max-w-[1400px]">
+        <div className="flex items-end justify-between mb-6 gap-4">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/60">
+              Unified Health · Personal Planning Center
+            </div>
+            <h1
+              className="mt-2 text-white text-3xl sm:text-4xl lg:text-5xl font-normal leading-tight truncate"
+              style={SERIF}
+            >
+              {name ? `${name}'s ` : "Your "}Medicare Workspace
+            </h1>
+          </div>
+          <button
+            onClick={onMinimize}
+            className="shrink-0 rounded-full bg-white/10 hover:bg-white/20 transition text-white px-4 py-2 text-sm flex items-center gap-2"
+            aria-label="Minimize"
+          >
+            <Minus className="h-4 w-4" />
+            Minimize
+          </button>
+        </div>
+
+        <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
+          <div className="px-6 sm:px-10 py-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+              {WORKSPACE.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <div key={section.key} className="min-w-0">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div
+                        className="h-8 w-8 rounded-full grid place-items-center shrink-0"
+                        style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
+                      >
+                        <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
+                      </div>
+                      <div
+                        className="text-[11px] uppercase tracking-[0.16em] font-semibold"
+                        style={{ color: UHC_BLUE }}
+                      >
+                        {section.title}
+                      </div>
+                    </div>
+                    <ul className="space-y-2">
+                      {section.items.map((it) => (
+                        <li
+                          key={it.id}
+                          className="rounded-xl px-4 py-3 border flex items-center justify-between gap-3"
+                          style={{ borderColor: "rgba(0,38,120,0.14)", color: UHC_BLUE }}
+                        >
+                          <span className="truncate text-[15px]" style={SERIF}>{it.label}</span>
+                          {it.meta && (
+                            <span className="shrink-0 text-[11px] text-black/55">{it.meta}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
