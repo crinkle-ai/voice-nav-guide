@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { persona, type ActivityId, type RouteStep } from "@/mock/personas";
 
 type PersonaState = {
@@ -39,8 +40,10 @@ const seed = () => {
   };
 };
 
-export const usePersonaStore = create<PersonaState>()((set, get) => ({
-  ...seed(),
+export const usePersonaStore = create<PersonaState>()(
+  persist(
+    (set, get) => ({
+      ...seed(),
   reset: () => set(seed()),
   clearToast: () => set({ lastToast: null }),
   dismissEnrollMoment: () => set({ enrollMomentSeen: true }),
@@ -139,4 +142,23 @@ export const usePersonaStore = create<PersonaState>()((set, get) => ({
 
     return { toast, addedStepId };
   },
-}));
+    }),
+    {
+      name: `persona-state-${persona.id}`,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        confidence: state.confidence,
+        progressPct: state.progressPct,
+        route: state.route,
+        concerns: state.concerns,
+        priorities: state.priorities,
+        questions: state.questions,
+        adaptiveTriggered: state.adaptiveTriggered,
+        selfEnrollUnlocked: state.selfEnrollUnlocked,
+        enrollMomentSeen: state.enrollMomentSeen,
+        extraRambleApplied: state.extraRambleApplied,
+      }),
+      version: 1,
+    },
+  ),
+);
