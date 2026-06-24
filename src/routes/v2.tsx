@@ -16,6 +16,38 @@ import {
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
+import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
+import workspaceIcons from "@/assets/v2-workspace-icons.png.asset.json";
+
+// 2x2 sprite positions for the workspace illustration sheet
+// (background-size: 200% 200%; background-position picks the quadrant)
+const WS_SPRITE: Record<string, { x: string; y: string }> = {
+  plans:    { x: "0%",   y: "0%"   }, // insurance card
+  doctors:  { x: "100%", y: "0%"   }, // doctor portrait
+  meds:     { x: "0%",   y: "100%" }, // pill bottle
+  dates:    { x: "100%", y: "100%" }, // calendar + clock
+  progress: { x: "100%", y: "100%" }, // reuse calendar/timeline
+  notes:    { x: "0%",   y: "0%"   }, // reuse document
+};
+
+function WorkspaceSpriteIcon({ sectionKey, size = 40 }: { sectionKey: string; size?: number }) {
+  const pos = WS_SPRITE[sectionKey] ?? WS_SPRITE.plans;
+  return (
+    <div
+      aria-hidden
+      className="shrink-0 rounded-xl"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: `url(${workspaceIcons.url})`,
+        backgroundSize: "200% 200%",
+        backgroundPosition: `${pos.x} ${pos.y}`,
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "rgba(0,38,120,0.04)",
+      }}
+    />
+  );
+}
 
 export const Route = createFileRoute("/v2")({
   head: () => ({
@@ -555,11 +587,10 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
   return (
     <div className={`space-y-${dense ? 4 : 6}`}>
       {WORKSPACE.map((section) => {
-        const Icon = section.icon;
         return (
           <div key={section.key}>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
+            <div className="flex items-center gap-2.5 mb-2">
+              <WorkspaceSpriteIcon sectionKey={section.key} size={28} />
               <div
                 className="text-[11px] uppercase tracking-[0.14em] font-semibold"
                 style={{ color: UHC_BLUE }}
@@ -567,6 +598,7 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
                 {section.title}
               </div>
             </div>
+
             <ul className="space-y-1.5">
               {section.items.map((it) => (
                 <li
@@ -647,16 +679,10 @@ function WorkspaceExpanded({
           <div className="px-6 sm:px-10 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
               {WORKSPACE.map((section) => {
-                const Icon = section.icon;
                 return (
                   <div key={section.key} className="min-w-0">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div
-                        className="h-8 w-8 rounded-full grid place-items-center shrink-0"
-                        style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
-                      >
-                        <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
-                      </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <WorkspaceSpriteIcon sectionKey={section.key} size={44} />
                       <div
                         className="text-[11px] uppercase tracking-[0.16em] font-semibold"
                         style={{ color: UHC_BLUE }}
@@ -664,6 +690,7 @@ function WorkspaceExpanded({
                         {section.title}
                       </div>
                     </div>
+
                     <ul className="space-y-2">
                       {section.items.map((it) => (
                         <li
@@ -718,18 +745,29 @@ function ContentArea({
         </span>
       </h1>
 
-      <div className="mt-10 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-20 w-20 rounded-full bg-white/95 grid place-items-center shadow-xl group-hover:scale-105 transition">
-            <Play className="h-8 w-8" style={{ color: UHC_BLUE }} fill={UHC_BLUE} />
+      <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+        <div className="lg:col-span-3 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-20 w-20 rounded-full bg-white/95 grid place-items-center shadow-xl group-hover:scale-105 transition">
+              <Play className="h-8 w-8" style={{ color: UHC_BLUE }} fill={UHC_BLUE} />
+            </div>
+          </div>
+          <div className="absolute bottom-4 left-5 text-white/80 text-sm">
+            {view.kind === "education" ? view.topic : "Medicare in 3 minutes"} · 3:24
           </div>
         </div>
-        <div className="absolute bottom-4 left-5 text-white/80 text-sm">
-          {view.kind === "education" ? view.topic : "Medicare in 3 minutes"} · 3:24
+        <div className="lg:col-span-2 flex items-center justify-center">
+          <img
+            src={heroIllustration.url}
+            alt="A Unified Health guide reviewing Medicare options with a senior couple"
+            className="w-full h-auto max-h-[340px] object-contain drop-shadow-2xl"
+            loading="lazy"
+          />
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { t: "Part A", d: "Hospital coverage — most people pay no premium." },
           { t: "Part B", d: "Doctor visits, preventive care, and outpatient services." },
