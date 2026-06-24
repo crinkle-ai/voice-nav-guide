@@ -1,0 +1,56 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { SYSTEM_PROMPTS } from "@/lib/v3/prompts";
+import type { IntakeMode } from "@/lib/v3/intake-types";
+
+export const Route = createFileRoute("/api/v3/gemini-live-token")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+          return new Response("Missing GEMINI_API_KEY", { status: 500 });
+        }
+        const body = (await request.json().catch(() => ({}))) as {
+          mode?: IntakeMode;
+        };
+        const mode: IntakeMode = body.mode ?? "hybrid";
+
+        const now = Date.now();
+        const newSessionExpireTime = new Date(now + 2 * 60 * 1000).toISOString();
+        const expireTime = new Date(now + 30 * 60 * 1000).toISOString();
+
+        const systemInstructionText = `${SYSTEM_PROMPTS[mode]}
+
+VOICE MODE: You are speaking out loud over a phone-like voice channel.
+Keep replies tight (1-3 short sentences). Use natural spoken language, no
+markdown, no bullet lists, no headings. Pause and let the caller talk.`;
+
+        const tokenRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1alpha/auth_tokens?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ expireTime, newSessionExpireTime }),
+          },
+        );
+
+        if (!tokenRes.ok) {
+          const text = await tokenRes.text().catch(() => "");
+          return new Response(`Token mint failed: ${tokenRes.status} ${text}`, {
+            status: 502,
+          });
+        }
+        const data = (await tokenRes.json()) as { name?: string };
+        if (!data.name) {
+          return new Response("Token mint returned no name", { status: 502 });
+        }
+
+        return Response.json({
+          token: data.name,
+          systemInstruction: systemInstructionText,
+          model: "gemini-2.5-flash-native-audio-latest",
+        });
+      },
+    },
+  },
+});

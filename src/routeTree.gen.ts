@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as V3RouteImport } from './routes/v3'
 import { Route as V2RouteImport } from './routes/v2'
+import { Route as V1RouteImport } from './routes/v1'
 import { Route as UnderstandingRouteImport } from './routes/understanding'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
@@ -21,22 +23,40 @@ import { Route as DeckRouteImport } from './routes/deck'
 import { Route as ComparePlansRouteImport } from './routes/compare-plans'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as V3IndexRouteImport } from './routes/v3.index'
 import { Route as DeckIndexRouteImport } from './routes/deck.index'
+import { Route as V3SummaryRouteImport } from './routes/v3.summary'
+import { Route as V3PrioritiesRouteImport } from './routes/v3.priorities'
+import { Route as V3NextStepRouteImport } from './routes/v3.next-step'
+import { Route as V3MatchesRouteImport } from './routes/v3.matches'
+import { Route as V3IntakeRouteImport } from './routes/v3.intake'
 import { Route as DeckLiveRouteImport } from './routes/deck.live'
 import { Route as DeckAiRouteImport } from './routes/deck.ai'
 import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/workspace.activity.$activityId'
+import { Route as ApiV3GeminiLiveTokenRouteImport } from './routes/api/v3/gemini-live-token'
+import { Route as ApiV3ChatRouteImport } from './routes/api/v3/chat'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
+const V3Route = V3RouteImport.update({
+  id: '/v3',
+  path: '/v3',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const V2Route = V2RouteImport.update({
   id: '/v2',
   path: '/v2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const V1Route = V1RouteImport.update({
+  id: '/v1',
+  path: '/v1',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UnderstandingRoute = UnderstandingRouteImport.update({
@@ -89,10 +109,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const V3IndexRoute = V3IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => V3Route,
+} as any)
 const DeckIndexRoute = DeckIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DeckRoute,
+} as any)
+const V3SummaryRoute = V3SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => V3Route,
+} as any)
+const V3PrioritiesRoute = V3PrioritiesRouteImport.update({
+  id: '/priorities',
+  path: '/priorities',
+  getParentRoute: () => V3Route,
+} as any)
+const V3NextStepRoute = V3NextStepRouteImport.update({
+  id: '/next-step',
+  path: '/next-step',
+  getParentRoute: () => V3Route,
+} as any)
+const V3MatchesRoute = V3MatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => V3Route,
+} as any)
+const V3IntakeRoute = V3IntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
+  getParentRoute: () => V3Route,
 } as any)
 const DeckLiveRoute = DeckLiveRouteImport.update({
   id: '/live',
@@ -125,6 +175,16 @@ const WorkspaceActivityActivityIdRoute =
     path: '/activity/$activityId',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const ApiV3GeminiLiveTokenRoute = ApiV3GeminiLiveTokenRouteImport.update({
+  id: '/api/v3/gemini-live-token',
+  path: '/api/v3/gemini-live-token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV3ChatRoute = ApiV3ChatRouteImport.update({
+  id: '/api/v3/chat',
+  path: '/api/v3/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,14 +197,24 @@ export interface FileRoutesByFullPath {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v1': typeof V1Route
   '/v2': typeof V2Route
+  '/v3': typeof V3RouteWithChildren
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
+  '/v3/intake': typeof V3IntakeRoute
+  '/v3/matches': typeof V3MatchesRoute
+  '/v3/next-step': typeof V3NextStepRoute
+  '/v3/priorities': typeof V3PrioritiesRoute
+  '/v3/summary': typeof V3SummaryRoute
   '/deck/': typeof DeckIndexRoute
+  '/v3/': typeof V3IndexRoute
+  '/api/v3/chat': typeof ApiV3ChatRoute
+  '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +227,7 @@ export interface FileRoutesByTo {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v1': typeof V1Route
   '/v2': typeof V2Route
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -164,7 +235,15 @@ export interface FileRoutesByTo {
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
+  '/v3/intake': typeof V3IntakeRoute
+  '/v3/matches': typeof V3MatchesRoute
+  '/v3/next-step': typeof V3NextStepRoute
+  '/v3/priorities': typeof V3PrioritiesRoute
+  '/v3/summary': typeof V3SummaryRoute
   '/deck': typeof DeckIndexRoute
+  '/v3': typeof V3IndexRoute
+  '/api/v3/chat': typeof ApiV3ChatRoute
+  '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesById {
@@ -179,14 +258,24 @@ export interface FileRoutesById {
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
+  '/v1': typeof V1Route
   '/v2': typeof V2Route
+  '/v3': typeof V3RouteWithChildren
   '/workspace': typeof WorkspaceRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/voice-session': typeof ApiVoiceSessionRoute
   '/deck/ai': typeof DeckAiRoute
   '/deck/live': typeof DeckLiveRoute
+  '/v3/intake': typeof V3IntakeRoute
+  '/v3/matches': typeof V3MatchesRoute
+  '/v3/next-step': typeof V3NextStepRoute
+  '/v3/priorities': typeof V3PrioritiesRoute
+  '/v3/summary': typeof V3SummaryRoute
   '/deck/': typeof DeckIndexRoute
+  '/v3/': typeof V3IndexRoute
+  '/api/v3/chat': typeof ApiV3ChatRoute
+  '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRouteTypes {
@@ -202,14 +291,24 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v1'
     | '/v2'
+    | '/v3'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
+    | '/v3/intake'
+    | '/v3/matches'
+    | '/v3/next-step'
+    | '/v3/priorities'
+    | '/v3/summary'
     | '/deck/'
+    | '/v3/'
+    | '/api/v3/chat'
+    | '/api/v3/gemini-live-token'
     | '/workspace/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -222,6 +321,7 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v1'
     | '/v2'
     | '/workspace'
     | '/api/chat'
@@ -229,7 +329,15 @@ export interface FileRouteTypes {
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
+    | '/v3/intake'
+    | '/v3/matches'
+    | '/v3/next-step'
+    | '/v3/priorities'
+    | '/v3/summary'
     | '/deck'
+    | '/v3'
+    | '/api/v3/chat'
+    | '/api/v3/gemini-live-token'
     | '/workspace/activity/$activityId'
   id:
     | '__root__'
@@ -243,14 +351,24 @@ export interface FileRouteTypes {
     | '/my-plans'
     | '/plans'
     | '/understanding'
+    | '/v1'
     | '/v2'
+    | '/v3'
     | '/workspace'
     | '/api/chat'
     | '/api/tts'
     | '/api/voice-session'
     | '/deck/ai'
     | '/deck/live'
+    | '/v3/intake'
+    | '/v3/matches'
+    | '/v3/next-step'
+    | '/v3/priorities'
+    | '/v3/summary'
     | '/deck/'
+    | '/v3/'
+    | '/api/v3/chat'
+    | '/api/v3/gemini-live-token'
     | '/workspace/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
@@ -265,11 +383,15 @@ export interface RootRouteChildren {
   MyPlansRoute: typeof MyPlansRoute
   PlansRoute: typeof PlansRoute
   UnderstandingRoute: typeof UnderstandingRoute
+  V1Route: typeof V1Route
   V2Route: typeof V2Route
+  V3Route: typeof V3RouteWithChildren
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
+  ApiV3ChatRoute: typeof ApiV3ChatRoute
+  ApiV3GeminiLiveTokenRoute: typeof ApiV3GeminiLiveTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -281,11 +403,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/v3': {
+      id: '/v3'
+      path: '/v3'
+      fullPath: '/v3'
+      preLoaderRoute: typeof V3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/v2': {
       id: '/v2'
       path: '/v2'
       fullPath: '/v2'
       preLoaderRoute: typeof V2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v1': {
+      id: '/v1'
+      path: '/v1'
+      fullPath: '/v1'
+      preLoaderRoute: typeof V1RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/understanding': {
@@ -358,12 +494,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/v3/': {
+      id: '/v3/'
+      path: '/'
+      fullPath: '/v3/'
+      preLoaderRoute: typeof V3IndexRouteImport
+      parentRoute: typeof V3Route
+    }
     '/deck/': {
       id: '/deck/'
       path: '/'
       fullPath: '/deck/'
       preLoaderRoute: typeof DeckIndexRouteImport
       parentRoute: typeof DeckRoute
+    }
+    '/v3/summary': {
+      id: '/v3/summary'
+      path: '/summary'
+      fullPath: '/v3/summary'
+      preLoaderRoute: typeof V3SummaryRouteImport
+      parentRoute: typeof V3Route
+    }
+    '/v3/priorities': {
+      id: '/v3/priorities'
+      path: '/priorities'
+      fullPath: '/v3/priorities'
+      preLoaderRoute: typeof V3PrioritiesRouteImport
+      parentRoute: typeof V3Route
+    }
+    '/v3/next-step': {
+      id: '/v3/next-step'
+      path: '/next-step'
+      fullPath: '/v3/next-step'
+      preLoaderRoute: typeof V3NextStepRouteImport
+      parentRoute: typeof V3Route
+    }
+    '/v3/matches': {
+      id: '/v3/matches'
+      path: '/matches'
+      fullPath: '/v3/matches'
+      preLoaderRoute: typeof V3MatchesRouteImport
+      parentRoute: typeof V3Route
+    }
+    '/v3/intake': {
+      id: '/v3/intake'
+      path: '/intake'
+      fullPath: '/v3/intake'
+      preLoaderRoute: typeof V3IntakeRouteImport
+      parentRoute: typeof V3Route
     }
     '/deck/live': {
       id: '/deck/live'
@@ -407,6 +585,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceActivityActivityIdRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/api/v3/gemini-live-token': {
+      id: '/api/v3/gemini-live-token'
+      path: '/api/v3/gemini-live-token'
+      fullPath: '/api/v3/gemini-live-token'
+      preLoaderRoute: typeof ApiV3GeminiLiveTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v3/chat': {
+      id: '/api/v3/chat'
+      path: '/api/v3/chat'
+      fullPath: '/api/v3/chat'
+      preLoaderRoute: typeof ApiV3ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -423,6 +615,26 @@ const DeckRouteChildren: DeckRouteChildren = {
 }
 
 const DeckRouteWithChildren = DeckRoute._addFileChildren(DeckRouteChildren)
+
+interface V3RouteChildren {
+  V3IntakeRoute: typeof V3IntakeRoute
+  V3MatchesRoute: typeof V3MatchesRoute
+  V3NextStepRoute: typeof V3NextStepRoute
+  V3PrioritiesRoute: typeof V3PrioritiesRoute
+  V3SummaryRoute: typeof V3SummaryRoute
+  V3IndexRoute: typeof V3IndexRoute
+}
+
+const V3RouteChildren: V3RouteChildren = {
+  V3IntakeRoute: V3IntakeRoute,
+  V3MatchesRoute: V3MatchesRoute,
+  V3NextStepRoute: V3NextStepRoute,
+  V3PrioritiesRoute: V3PrioritiesRoute,
+  V3SummaryRoute: V3SummaryRoute,
+  V3IndexRoute: V3IndexRoute,
+}
+
+const V3RouteWithChildren = V3Route._addFileChildren(V3RouteChildren)
 
 interface WorkspaceRouteChildren {
   WorkspaceActivityActivityIdRoute: typeof WorkspaceActivityActivityIdRoute
@@ -447,11 +659,15 @@ const rootRouteChildren: RootRouteChildren = {
   MyPlansRoute: MyPlansRoute,
   PlansRoute: PlansRoute,
   UnderstandingRoute: UnderstandingRoute,
+  V1Route: V1Route,
   V2Route: V2Route,
+  V3Route: V3RouteWithChildren,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
+  ApiV3ChatRoute: ApiV3ChatRoute,
+  ApiV3GeminiLiveTokenRoute: ApiV3GeminiLiveTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
