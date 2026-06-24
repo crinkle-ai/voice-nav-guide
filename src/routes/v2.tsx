@@ -13,12 +13,16 @@ import {
   FileCheck2,
   StickyNote,
   ChevronRight,
+  Activity,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
 import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
 import partIcons from "@/assets/v2-part-icons.png.asset.json";
 import workspaceScenes from "@/assets/v2-workspace-scenes.png.asset.json";
+import diabetesIllustration from "@/assets/v2-diabetes-illustration.png.asset.json";
 
 // Both sprites are 3 horizontal subjects in a 1536x1024 image.
 // backgroundSize: 300% 100%; x = 0% / 50% / 100% selects subject 1/2/3.
@@ -60,7 +64,8 @@ type Msg = { role: "assistant" | "user"; text: string };
 type PanelState = "expanded" | "docked" | "minimized";
 type ContentView =
   | { kind: "home" }
-  | { kind: "education"; topic: string };
+  | { kind: "education"; topic: string }
+  | { kind: "diabetes" };
 
 const SERIF: React.CSSProperties = { fontFamily: '"Source Serif Pro", Georgia, serif' };
 
@@ -87,6 +92,52 @@ function detectEducationIntent(s: string) {
   const t = s.toLowerCase();
   return EDUCATION_INTENT.some((k) => t.includes(k));
 }
+
+const DIABETES_INTENT = [
+  "diabetes", "diabetic", "type 1", "type 2", "prediabetes", "pre-diabetes",
+  "blood sugar", "a1c", "glucose", "insulin", "metformin", "diabetes medication",
+];
+
+function detectDiabetesIntent(s: string) {
+  const t = s.toLowerCase();
+  return DIABETES_INTENT.some((k) => t.includes(k));
+}
+
+// ----- Diabetes journey -----
+type DiabetesProfile = {
+  step: number; // index into DIABETES_QUESTIONS, -1 = not started, >=length = complete
+  diagnosed?: string;
+  type?: string;
+  duration?: string;
+  takesMeds?: string;
+  meds?: string;
+  lastA1C?: string;
+  focus?: string;
+};
+
+type DiabetesQuestion = {
+  key: keyof DiabetesProfile;
+  prompt: string;
+  helper?: string;
+  options?: string[];
+  freeText?: boolean;
+  skipIf?: (p: DiabetesProfile) => boolean;
+};
+
+const DIABETES_QUESTIONS: DiabetesQuestion[] = [
+  { key: "diagnosed", prompt: "Have you been diagnosed with diabetes?", options: ["Yes", "No", "I'm not sure"] },
+  { key: "type", prompt: "What type of diabetes do you have?", options: ["Type 1", "Type 2", "Gestational", "Prediabetes", "Not sure"] },
+  { key: "duration", prompt: "How long have you been managing diabetes?", options: ["Less than 1 year", "1–5 years", "5–10 years", "More than 10 years"] },
+  { key: "takesMeds", prompt: "Are you currently taking any medications for diabetes?", options: ["Yes", "No"] },
+  { key: "meds", prompt: "Which medications are you taking?", helper: "Type the names — for example, Metformin, Ozempic, Insulin.", freeText: true, skipIf: (p) => p.takesMeds === "No" },
+  { key: "lastA1C", prompt: "Have you had an A1C test recently?", options: ["Within 3 months", "Within 6 months", "More than 6 months", "Not sure"] },
+  { key: "focus", prompt: "What would you like help with today?", options: ["Understanding diabetes", "Managing medications", "Lowering costs", "Finding providers", "Nutrition and diet", "Monitoring blood sugar", "Insurance coverage", "Something else"] },
+];
+
+const DIABETES_TINT = "#ECFBF6";
+const DIABETES_ACCENT = "#0E7C5A";
+const DIABETES_DEEP = "#0B5C44";
+
 
 // ----- Workspace mock data -----
 type WorkspaceItem = { id: string; label: string; meta?: string };
@@ -164,6 +215,7 @@ function V2Page() {
   const [draft, setDraft] = useState("");
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
+  const [diabetes, setDiabetes] = useState<DiabetesProfile>({ step: -1 });
 
   // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
@@ -175,6 +227,28 @@ function V2Page() {
     setAssistant("minimized");
   };
 
+  const advanceDiabetes = (key: keyof DiabetesProfile, value: string) => {
+    setDiabetes((prev) => {
+      const next: DiabetesProfile = { ...prev, [key]: value };
+      // advance to next non-skipped step
+      let s = (prev.step < 0 ? 0 : prev.step) + 1;
+      while (s < DIABETES_QUESTIONS.length && DIABETES_QUESTIONS[s].skipIf?.(next)) {
+        s += 1;
+      }
+      next.step = s;
+      return next;
+    });
+    // Friendly assistant acknowledgement
+    const q = DIABETES_QUESTIONS.find((x) => x.key === key);
+    if (q) {
+      setMessages((m) => [
+        ...m,
+        { role: "user", text: value },
+        { role: "assistant", text: ackForDiabetes(key, value) },
+      ]);
+    }
+  };
+
   const respondTo = (text: string) => {
     setMessages((m) => {
       const userTurn = m.filter((x) => x.role === "user").length;
@@ -184,6 +258,10 @@ function V2Page() {
         const first = text.split(/\s+/)[0].replace(/[^a-zA-Z'-]/g, "");
         if (first) setName(first);
         reply = `It's lovely to meet you, ${first || "there"}. I'll be your guide through Medicare — at your pace, no pressure.\n\nTo get started, what brings you here today? Are you turning 65 soon, exploring plans, or looking to switch?`;
+      } else if (detectDiabetesIntent(text)) {
+        setView({ kind: "diabetes" });
+        setDiabetes((p) => (p.step < 0 ? { ...p, step: 0 } : p));
+        reply = "Thank you for sharing that. Managing diabetes alongside Medicare is something I help people with often.\n\nI've opened your Diabetes Journey on the left. If it's alright, I'd like to ask a few short questions so I can personalize what I show you — and save the important details to your Workspace.";
       } else if (detectEducationIntent(text)) {
         setView({ kind: "education", topic: "Understanding Medicare" });
         reply = "That's a wonderful place to begin. I've opened a short overview of Medicare on the left — it walks through Parts A, B, C, and D in plain language. Watch when you're ready, and ask me anything along the way.";
@@ -212,6 +290,7 @@ function V2Page() {
       setWorkspace("docked");
     }
   };
+
 
   const send = (raw: string) => {
     const text = raw.trim();
@@ -259,7 +338,14 @@ function V2Page() {
           className="pt-24 pb-20 pl-8 pr-8 transition-[margin] duration-300"
           style={{ marginRight: rightReserved }}
         >
-          <ContentArea view={view} name={name} onSuggestion={onSuggestion} />
+          <ContentArea
+            view={view}
+            name={name}
+            onSuggestion={onSuggestion}
+            diabetes={diabetes}
+            onAnswerDiabetes={advanceDiabetes}
+          />
+
         </main>
       )}
 
@@ -311,6 +397,7 @@ function V2Page() {
             <WorkspaceExpanded
               name={name}
               onMinimize={() => setWorkspace("docked")}
+              diabetes={diabetes}
             />
           )}
 
@@ -320,8 +407,10 @@ function V2Page() {
               assistantDocked={assistant === "docked"}
               onExpand={expandWorkspace}
               onMinimize={() => setWorkspace("minimized")}
+              diabetes={diabetes}
             />
           )}
+
 
           {workspace === "minimized" && (
             <button
@@ -664,12 +753,13 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
 
 
 function DockedWorkspace({
-  name, assistantDocked, onExpand, onMinimize,
+  name, assistantDocked, onExpand, onMinimize, diabetes,
 }: {
   name: string | null;
   assistantDocked: boolean;
   onExpand: () => void;
   onMinimize: () => void;
+  diabetes: DiabetesProfile;
 }) {
   // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
   const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
@@ -680,7 +770,8 @@ function DockedWorkspace({
       style={{ top }}
     >
       <WorkspaceHeader name={name} onExpand={onExpand} onMinimize={onMinimize} compact />
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+        {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
         <WorkspaceList dense />
       </div>
     </aside>
@@ -688,10 +779,11 @@ function DockedWorkspace({
 }
 
 function WorkspaceExpanded({
-  name, onMinimize,
+  name, onMinimize, diabetes,
 }: {
   name: string | null;
   onMinimize: () => void;
+  diabetes: DiabetesProfile;
 }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 sm:px-10 py-12">
@@ -719,8 +811,10 @@ function WorkspaceExpanded({
         </div>
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
-          <div className="px-6 sm:px-10 py-8">
+          <div className="px-6 sm:px-10 py-8 space-y-6">
+            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
               {WORKSPACE.map((section, idx) => {
                 const theme = WS_THEME[section.key] ?? WS_THEME.notes;
                 const Icon = section.icon;
@@ -786,14 +880,27 @@ function WorkspaceExpanded({
 }
 
 function ContentArea({
-  view, name, onSuggestion,
+  view, name, onSuggestion, diabetes, onAnswerDiabetes,
 }: {
   view: ContentView;
   name: string | null;
   onSuggestion: (s: string) => void;
+  diabetes: DiabetesProfile;
+  onAnswerDiabetes: (key: keyof DiabetesProfile, value: string) => void;
 }) {
   if (view.kind === "home") {
     return <EmptyContentArea name={name} />;
+  }
+
+  if (view.kind === "diabetes") {
+    return (
+      <DiabetesJourney
+        name={name}
+        diabetes={diabetes}
+        onAnswer={onAnswerDiabetes}
+        onSuggestion={onSuggestion}
+      />
+    );
   }
 
   return (
@@ -810,6 +917,7 @@ function ContentArea({
           A short, plain-language walkthrough — your guide stays with you.
         </span>
       </h1>
+
 
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
         <div className="lg:col-span-3 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
@@ -945,3 +1053,463 @@ function EmptyContentArea({ name }: { name: string | null }) {
   );
 }
 
+
+// ============================================================
+// Diabetes Journey
+// ============================================================
+
+function ackForDiabetes(key: keyof DiabetesProfile, value: string): string {
+  switch (key) {
+    case "diagnosed":
+      if (value === "Yes") return "Thank you for sharing that. Knowing this helps me bring the right information forward for you.";
+      if (value === "No") return "Got it — I'll keep things focused on prevention and general wellness as we go.";
+      return "That's okay. We'll explore this gently together — no pressure to know everything.";
+    case "type":
+      return `Noted — ${value}. I'll personalize what I show you with that in mind.`;
+    case "duration":
+      return `Thanks. ${value} of experience tells me a lot about what's most useful to surface for you.`;
+    case "takesMeds":
+      return value === "Yes"
+        ? "Great. Medications affect coverage and costs, so this will help me show plans that fit."
+        : "Understood. I'll keep an eye on non-medication options and wellness coverage for you.";
+    case "meds":
+      return `Saved — ${value}. I'll check how each plan covers these and flag any savings.`;
+    case "lastA1C":
+      return `Noted — last A1C ${value.toLowerCase()}. I'll surface lab and preventive coverage that fits.`;
+    case "focus":
+      return `Wonderful. I'll prioritize information about ${value.toLowerCase()} as we continue.`;
+    default:
+      return "Thanks for sharing.";
+  }
+}
+
+function diabetesMemoryChips(d: DiabetesProfile): string[] {
+  const items: string[] = [];
+  if (d.type && d.type !== "Not sure") items.push(`${d.type} Diabetes`);
+  else if (d.diagnosed === "Yes") items.push("Diagnosed with diabetes");
+  if (d.duration) items.push(`Managing for ${d.duration.toLowerCase()}`);
+  if (d.takesMeds === "Yes" && d.meds) items.push(`Uses ${d.meds}`);
+  else if (d.takesMeds === "No") items.push("No diabetes medications");
+  if (d.lastA1C) items.push(`A1C ${d.lastA1C.toLowerCase()}`);
+  if (d.focus) items.push(`Focus: ${d.focus}`);
+  return items;
+}
+
+function DiabetesWorkspaceCard({
+  diabetes, dense = false,
+}: { diabetes: DiabetesProfile; dense?: boolean }) {
+  const rows: { label: string; value?: string }[] = [
+    { label: "Type", value: diabetes.type },
+    { label: "Duration", value: diabetes.duration },
+    { label: "Medication", value: diabetes.takesMeds === "No" ? "None" : diabetes.meds },
+    { label: "Last A1C", value: diabetes.lastA1C },
+    { label: "Current Focus", value: diabetes.focus },
+  ];
+  const memory = diabetesMemoryChips(diabetes);
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden border"
+      style={{ backgroundColor: DIABETES_TINT, borderColor: "rgba(14,124,90,0.18)" }}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div
+          className="shrink-0 rounded-2xl grid place-items-center"
+          style={{ width: dense ? 56 : 72, height: dense ? 56 : 72, backgroundColor: "white" }}
+        >
+          <img
+            src={diabetesIllustration.url}
+            alt=""
+            className="object-contain"
+            style={{ width: dense ? 44 : 60, height: dense ? 44 : 60 }}
+            loading="lazy"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5 shrink-0" style={{ color: DIABETES_ACCENT }} />
+            <div
+              className="text-[10px] uppercase tracking-[0.18em] font-semibold"
+              style={{ color: DIABETES_ACCENT }}
+            >
+              Diabetes
+            </div>
+          </div>
+          <div
+            className="mt-1 text-[13px] font-semibold"
+            style={{ ...SERIF, color: DIABETES_DEEP }}
+          >
+            Your living health summary
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 pb-3">
+        <dl className="rounded-xl bg-white/85 divide-y divide-black/5 overflow-hidden">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-3 px-3 py-2 text-[12px]">
+              <dt className="w-24 shrink-0 text-black/55 uppercase tracking-wider text-[10px]">
+                {r.label}
+              </dt>
+              <dd
+                className="flex-1 truncate"
+                style={{ ...SERIF, color: r.value ? UHC_BLUE : "rgba(0,0,0,0.35)" }}
+              >
+                {r.value ?? "—"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {memory.length > 0 && (
+        <div className="px-4 pb-4">
+          <div
+            className="text-[10px] uppercase tracking-[0.18em] mb-2"
+            style={{ color: DIABETES_ACCENT }}
+          >
+            Workspace memory
+          </div>
+          <ul className="flex flex-wrap gap-1.5">
+            {memory.map((m) => (
+              <li
+                key={m}
+                className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] border"
+                style={{ color: DIABETES_DEEP, borderColor: "rgba(14,124,90,0.25)" }}
+              >
+                <Check className="h-3 w-3" style={{ color: DIABETES_ACCENT }} />
+                {m}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiabetesJourney({
+  name, diabetes, onAnswer, onSuggestion,
+}: {
+  name: string | null;
+  diabetes: DiabetesProfile;
+  onAnswer: (key: keyof DiabetesProfile, value: string) => void;
+  onSuggestion: (s: string) => void;
+}) {
+  const answered = DIABETES_QUESTIONS.filter((q) => {
+    if (q.skipIf?.(diabetes)) return false;
+    return diabetes[q.key] !== undefined;
+  }).length;
+  const total = DIABETES_QUESTIONS.filter((q) => !q.skipIf?.(diabetes)).length;
+  const progress = total === 0 ? 0 : Math.round((answered / total) * 100);
+
+  const idx = Math.max(0, diabetes.step);
+  const current = idx < DIABETES_QUESTIONS.length ? DIABETES_QUESTIONS[idx] : null;
+
+  return (
+    <div className="max-w-4xl">
+      <div className="text-xs uppercase tracking-[0.18em] text-white/60">
+        Unified Health · Diabetes Journey
+      </div>
+      <h1
+        className="mt-3 text-white text-4xl sm:text-5xl leading-tight font-normal"
+        style={SERIF}
+      >
+        {name ? `${name}, let's talk about your diabetes journey.` : "Let's talk about your diabetes journey."}
+        <span className="block text-white/70 text-xl sm:text-2xl mt-3 max-w-2xl">
+          The more I understand your experience, the better I can personalize information, resources, and recommendations.
+        </span>
+      </h1>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+        <div
+          className="lg:col-span-2 rounded-3xl p-6 flex flex-col"
+          style={{ backgroundColor: DIABETES_TINT }}
+        >
+          <div className="flex-1 grid place-items-center">
+            <img
+              src={diabetesIllustration.url}
+              alt="A friendly illustration of diabetes care tools"
+              className="w-full max-h-[260px] object-contain"
+              loading="lazy"
+            />
+          </div>
+          <div className="mt-4">
+            <div
+              className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em]"
+              style={{ color: DIABETES_ACCENT }}
+            >
+              <span className="font-semibold">Your Journey</span>
+              <span>{answered} of {total}</span>
+            </div>
+            <div
+              className="mt-2 h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: "rgba(14,124,90,0.15)" }}
+            >
+              <div
+                className="h-full transition-[width] duration-500"
+                style={{ width: `${progress}%`, backgroundColor: DIABETES_ACCENT }}
+              />
+            </div>
+            <p className="mt-3 text-[12px] leading-relaxed" style={{ color: DIABETES_DEEP }}>
+              Each answer is saved to your Workspace as a living summary you can update anytime.
+            </p>
+          </div>
+        </div>
+
+        <div className="lg:col-span-3 rounded-3xl bg-white shadow-xl p-7 flex flex-col">
+          {current ? (
+            <DiabetesQuestionCard
+              question={current}
+              onAnswer={(v) => onAnswer(current.key, v)}
+            />
+          ) : (
+            <DiabetesCompleteCard diabetes={diabetes} onSuggestion={onSuggestion} />
+          )}
+        </div>
+      </div>
+
+      {answered >= 2 && (
+        <div className="mt-10">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/60 mb-3">
+            Personalized for you
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {personalizedDiabetesCards(diabetes).map((c) => (
+              <button
+                key={c.title}
+                onClick={() => onSuggestion(c.cta)}
+                className="text-left rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ backgroundColor: c.bg }}
+              >
+                <div
+                  className="text-[10px] uppercase tracking-[0.16em] font-semibold"
+                  style={{ color: c.accent }}
+                >
+                  {c.tag}
+                </div>
+                <div style={SERIF} className="mt-1 text-lg font-semibold">
+                  <span style={{ color: c.accent }}>{c.title}</span>
+                </div>
+                <p className="mt-1 text-[13px] leading-snug" style={{ color: "rgba(0,0,0,0.65)" }}>
+                  {c.body}
+                </p>
+                <div
+                  className="mt-2 text-[12px] font-semibold inline-flex items-center gap-1"
+                  style={{ color: c.accent }}
+                >
+                  {c.cta} <ChevronRight className="h-3 w-3" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiabetesQuestionCard({
+  question, onAnswer,
+}: {
+  question: DiabetesQuestion;
+  onAnswer: (value: string) => void;
+}) {
+  const [text, setText] = useState("");
+  return (
+    <>
+      <div
+        className="text-[11px] uppercase tracking-[0.16em] font-semibold"
+        style={{ color: DIABETES_ACCENT }}
+      >
+        A quick question
+      </div>
+      <h2
+        className="mt-2 text-2xl sm:text-3xl leading-snug font-normal"
+        style={{ ...SERIF, color: DIABETES_DEEP }}
+      >
+        {question.prompt}
+      </h2>
+      {question.helper && (
+        <p className="mt-2 text-sm text-black/60">{question.helper}</p>
+      )}
+
+      <div className="mt-5 flex-1">
+        {question.options && (
+          <div className="flex flex-wrap gap-2">
+            {question.options.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => onAnswer(opt)}
+                className="rounded-full px-4 py-2 text-sm border transition hover:-translate-y-0.5"
+                style={{
+                  color: DIABETES_DEEP,
+                  borderColor: "rgba(14,124,90,0.3)",
+                  backgroundColor: "white",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = DIABETES_ACCENT;
+                  (e.currentTarget as HTMLButtonElement).style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "white";
+                  (e.currentTarget as HTMLButtonElement).style.color = DIABETES_DEEP;
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {question.freeText && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const t = text.trim();
+              if (t) onAnswer(t);
+            }}
+            className="mt-1"
+          >
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="e.g. Metformin 500mg, Ozempic"
+              className="w-full rounded-xl border bg-[#f6faf8] px-4 py-3 text-sm outline-none focus:ring-2"
+              style={{
+                color: DIABETES_DEEP,
+                borderColor: "rgba(14,124,90,0.25)",
+                ['--tw-ring-color' as never]: DIABETES_ACCENT,
+              }}
+            />
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="submit"
+                className="rounded-full px-5 py-2 text-sm text-white font-semibold"
+                style={{ backgroundColor: DIABETES_ACCENT }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => onAnswer("Prefer not to say")}
+                className="text-sm text-black/55 hover:text-black"
+              >
+                Skip for now
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </>
+  );
+}
+
+function DiabetesCompleteCard({
+  diabetes, onSuggestion,
+}: { diabetes: DiabetesProfile; onSuggestion: (s: string) => void }) {
+  return (
+    <>
+      <div
+        className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] font-semibold"
+        style={{ color: DIABETES_ACCENT }}
+      >
+        <Sparkles className="h-3.5 w-3.5" />
+        Profile saved
+      </div>
+      <h2
+        className="mt-2 text-2xl sm:text-3xl leading-snug font-normal"
+        style={{ ...SERIF, color: DIABETES_DEEP }}
+      >
+        Thank you. I'll remember this as we go.
+      </h2>
+      <p className="mt-2 text-sm text-black/65 max-w-md">
+        Your Diabetes summary now lives in your Workspace and updates whenever you share something new.
+        I'll prioritize information based on what you told me{diabetes.focus ? `, starting with ${diabetes.focus.toLowerCase()}.` : "."}
+      </p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {["Show me plans that cover my medications", "Help me lower diabetes costs", "Find an endocrinologist", "What does Medicare cover for diabetes?"].map((q) => (
+          <button
+            key={q}
+            onClick={() => onSuggestion(q)}
+            className="rounded-full px-4 py-2 text-sm border transition"
+            style={{
+              color: DIABETES_DEEP,
+              borderColor: "rgba(14,124,90,0.3)",
+              backgroundColor: "white",
+            }}
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function personalizedDiabetesCards(d: DiabetesProfile) {
+  type Card = { tag: string; title: string; body: string; cta: string; bg: string; accent: string };
+  const cards: Card[] = [];
+
+  if (d.type === "Type 2" || d.type === "Type 1" || d.diagnosed === "Yes") {
+    cards.push({
+      tag: "Education",
+      title: d.type ? `Living well with ${d.type}` : "Understanding your diabetes",
+      body: "Plain-language guide tailored to your situation — daily care, warning signs, and when to call your doctor.",
+      cta: "Open guide",
+      bg: "#ECF7F4",
+      accent: "#1F7A6B",
+    });
+  }
+  if (d.takesMeds === "Yes" || d.meds) {
+    cards.push({
+      tag: "Medication coverage",
+      title: d.meds ? `How plans cover ${d.meds.split(",")[0]}` : "Your medication coverage",
+      body: "Compare what each Medicare plan pays for your prescriptions, including tier and pharmacy options.",
+      cta: "Compare coverage",
+      bg: "#FFF1E8",
+      accent: "#B5530E",
+    });
+  }
+  if (d.focus === "Lowering costs" || d.focus === "Insurance coverage") {
+    cards.push({
+      tag: "Savings",
+      title: "Lowering your diabetes costs",
+      body: "Extra Help, manufacturer programs, and plan benefits that reduce out-of-pocket spend.",
+      cta: "Show savings options",
+      bg: "#EEF2FF",
+      accent: "#3F3D8C",
+    });
+  }
+  if (d.focus === "Finding providers") {
+    cards.push({
+      tag: "Care team",
+      title: "Diabetes specialists near you",
+      body: "Endocrinologists, certified diabetes educators, and primary care doctors that accept your plan.",
+      cta: "Find providers",
+      bg: "#E8F1FF",
+      accent: "#1E3A8A",
+    });
+  }
+  if (d.focus === "Nutrition and diet") {
+    cards.push({
+      tag: "Wellness",
+      title: "Nutrition support",
+      body: "Covered nutrition counseling, meal benefits, and trusted resources for diabetes-friendly eating.",
+      cta: "Explore nutrition",
+      bg: "#ECFDF5",
+      accent: "#0E7C5A",
+    });
+  }
+  if (d.lastA1C) {
+    cards.push({
+      tag: "Preventive care",
+      title: "Your A1C and labs",
+      body: "How Medicare covers A1C tests, eye exams, and foot care — and when to schedule each.",
+      cta: "See preventive coverage",
+      bg: "#FBF1FF",
+      accent: "#6B2E8E",
+    });
+  }
+  return cards.slice(0, 3);
+}
