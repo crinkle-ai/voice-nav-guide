@@ -1459,8 +1459,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: d.type ? `Living well with ${d.type}` : "Understanding your diabetes",
       body: "Plain-language guide tailored to your situation — daily care, warning signs, and when to call your doctor.",
       cta: "Open guide",
-      bg: "#ECF7F4",
-      accent: "#1F7A6B",
+      bg: "#DCF3F7",   // Teal — Diabetes
+      accent: "#00A5BE",
     });
   }
   if (d.takesMeds === "Yes" || d.meds) {
@@ -1469,8 +1469,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: d.meds ? `How plans cover ${d.meds.split(",")[0]}` : "Your medication coverage",
       body: "Compare what each Medicare plan pays for your prescriptions, including tier and pharmacy options.",
       cta: "Compare coverage",
-      bg: "#FFF1E8",
-      accent: "#B5530E",
+      bg: "#FDE4D2",   // Orange — Prescriptions
+      accent: "#E85C1C",
     });
   }
   if (d.focus === "Lowering costs" || d.focus === "Insurance coverage") {
@@ -1479,8 +1479,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Lowering your diabetes costs",
       body: "Extra Help, manufacturer programs, and plan benefits that reduce out-of-pocket spend.",
       cta: "Show savings options",
-      bg: "#EEF2FF",
-      accent: "#3F3D8C",
+      bg: "#FBF1D2",   // Yellow — Financial
+      accent: "#B5841A",
     });
   }
   if (d.focus === "Finding providers") {
@@ -1489,8 +1489,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Diabetes specialists near you",
       body: "Endocrinologists, certified diabetes educators, and primary care doctors that accept your plan.",
       cta: "Find providers",
-      bg: "#E8F1FF",
-      accent: "#1E3A8A",
+      bg: "#E6F0FA",   // Blue — Doctors
+      accent: "#002678",
     });
   }
   if (d.focus === "Nutrition and diet") {
@@ -1499,8 +1499,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Nutrition support",
       body: "Covered nutrition counseling, meal benefits, and trusted resources for diabetes-friendly eating.",
       cta: "Explore nutrition",
-      bg: "#ECFDF5",
-      accent: "#0E7C5A",
+      bg: "#DCEFD6",   // Green — Wellness
+      accent: "#2D9C2D",
     });
   }
   if (d.lastA1C) {
@@ -1509,8 +1509,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Your A1C and labs",
       body: "How Medicare covers A1C tests, eye exams, and foot care — and when to schedule each.",
       cta: "See preventive coverage",
-      bg: "#FBF1FF",
-      accent: "#6B2E8E",
+      bg: "#E0DCEF",   // Purple — Enrollment / health journey
+      accent: "#5B43B8",
     });
   }
   return cards.slice(0, 3);
