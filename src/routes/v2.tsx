@@ -637,7 +637,7 @@ function DockedAssistant({
             Suggested next steps
           </div>
           <div className="flex flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => (
+            {(member ? MEMBER_SUGGESTIONS : SUGGESTIONS).map((s) => (
               <button
                 key={s}
                 onClick={() => onSuggestion(s)}
