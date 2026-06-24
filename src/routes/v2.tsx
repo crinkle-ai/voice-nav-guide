@@ -386,6 +386,7 @@ function V2Page() {
             onSuggestion={onSuggestion}
             diabetes={diabetes}
             onAnswerDiabetes={advanceDiabetes}
+            member={member}
           />
 
         </main>
