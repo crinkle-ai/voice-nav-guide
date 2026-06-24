@@ -231,6 +231,49 @@ function ConditionsStep({ intake, onChange }: { intake: Intake; onChange: (n: In
   );
 }
 
+
+function MedicaidStep({ intake, onChange }: { intake: Intake; onChange: (n: Intake) => void }) {
+  const v = intake.medicaid?.value ?? null;
+  const notes = intake.medicaid?.notes ?? "";
+  const options: { key: "yes" | "no" | "applying" | "unsure"; label: string; desc: string }[] = [
+    { key: "yes", label: "Yes, I'm on Medicaid", desc: "You may qualify for a Dual Special Needs Plan (D-SNP) — often $0 premium with extra benefits." },
+    { key: "applying", label: "I've applied / plan to apply", desc: "We'll flag D-SNP options so you can switch once approved." },
+    { key: "no", label: "No, I'm not on Medicaid", desc: "Standard Medicare Advantage and Supplement plans will be matched." },
+    { key: "unsure", label: "I'm not sure", desc: "We can help you check eligibility — it's based on income and assets." },
+  ];
+  const set = (value: typeof v, nextNotes?: string) =>
+    onChange({
+      ...intake,
+      medicaid: {
+        value,
+        confidence: value ? "captured" : "missing",
+        notes: nextNotes ?? notes ?? null,
+      },
+    });
+  return (
+    <div>
+      <h2 className="font-serif text-2xl mb-2">Are you on Medicaid?</h2>
+      <p className="text-sm text-muted-2 mb-6">
+        If you qualify for both Medicare and Medicaid, you may be eligible for a Dual Special Needs Plan (D-SNP) with extra benefits.
+      </p>
+      <div className="space-y-2">
+        {options.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => set(opt.key)}
+            className={`w-full text-left rounded-lg border p-4 transition ${
+              v === opt.key ? "bg-ink text-paper border-ink" : "bg-paper border-line hover:border-ink"
+            }`}
+          >
+            <div className="font-medium">{opt.label}</div>
+            <div className={`text-sm mt-0.5 ${v === opt.key ? "text-paper/80" : "text-muted-2"}`}>{opt.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PrioritiesStep({ intake, onChange }: { intake: Intake; onChange: (n: Intake) => void }) {
   const value = intake.priorities.value;
   const toggle = (k: string) => {
