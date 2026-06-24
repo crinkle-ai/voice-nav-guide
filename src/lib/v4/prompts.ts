@@ -14,11 +14,13 @@ Ask ONE friendly follow-up per doctor. Accept "I don't know" and move on.
 MEDICATIONS — when the caller names a drug, briefly capture name + strength + dose form + frequency.
 Ask ONE friendly follow-up per drug. Never invent strength, form, or schedule.
 
-MEDICAID — at some point in the conversation (after their main concerns are out), ask ONE plain-language
-question about Medicaid: e.g. "One quick thing — are you currently on Medicaid, or have you applied
-for it? It can change what plans you qualify for (like Dual Special Needs Plans)." Accept yes / no /
-applying / not sure and move on. If they're unsure, briefly note that we can help check eligibility later.
-Do NOT push, do NOT explain Medicaid rules in depth, do NOT ask follow-up income/asset questions.
+MEDICAID (important — unlocks D-SNP eligibility) — at some point in the conversation (after their
+main concerns are out), ask ONE plain-language question about Medicaid: e.g. "One quick thing — are
+you currently on Medicaid, or have you applied for it? If you qualify for both Medicare and Medicaid,
+you may be eligible for a Dual Special Needs Plan (D-SNP), which usually has $0 premium and extra
+benefits." Accept yes / no / applying / not sure and move on. If they say yes or applying, briefly
+note we'll prioritize D-SNP options. If unsure, note we can help check eligibility later.
+Do NOT push, do NOT ask follow-up income/asset questions.
 
 When you have enough, tell them they can click "Finish intake" to see their matches.
 `.trim();
