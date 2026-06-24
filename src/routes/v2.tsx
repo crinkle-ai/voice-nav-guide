@@ -345,14 +345,18 @@ function V2Page() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden" style={{ backgroundColor: UHC_BLUE }}>
-      {/* Logo upper-left */}
-      <div className="absolute top-5 left-6 z-50">
+      {/* Logo upper-left + Back link */}
+      <div className="absolute top-5 left-6 z-50 flex items-center gap-6">
         <img
           src={logoAsset.url}
           alt="Unified Health"
           className="h-10 w-auto object-contain"
         />
+        <Link to="/" className="text-xs text-white/70 hover:text-white transition">
+          ← Back
+        </Link>
       </div>
+
 
       {/* Top nav links */}
       <nav className="absolute top-6 right-6 z-50 flex items-center gap-10 text-sm">
