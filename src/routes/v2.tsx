@@ -941,16 +941,17 @@ function WorkspaceExpanded({
 }
 
 function ContentArea({
-  view, name, onSuggestion, diabetes, onAnswerDiabetes,
+  view, name, onSuggestion, diabetes, onAnswerDiabetes, member = false,
 }: {
   view: ContentView;
   name: string | null;
   onSuggestion: (s: string) => void;
   diabetes: DiabetesProfile;
   onAnswerDiabetes: (key: keyof DiabetesProfile, value: string) => void;
+  member?: boolean;
 }) {
   if (view.kind === "home") {
-    return <EmptyContentArea name={name} />;
+    return member ? <MemberEmptyContent name={name ?? "Margaret"} /> : <EmptyContentArea name={name} />;
   }
 
   if (view.kind === "diabetes") {
