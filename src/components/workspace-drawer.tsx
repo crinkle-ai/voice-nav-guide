@@ -17,6 +17,7 @@ import {
 } from "@/lib/workspace-derivations";
 import { intakeCompleteness } from "@/lib/v3/intake-types";
 import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
+import { IntakeHandoffSummary } from "@/components/intake-handoff-summary";
 
 export function WorkspaceDrawer() {
   const open = useWorkspaceDrawerStore((s) => s.open);
