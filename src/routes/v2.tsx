@@ -753,12 +753,13 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
 
 
 function DockedWorkspace({
-  name, assistantDocked, onExpand, onMinimize,
+  name, assistantDocked, onExpand, onMinimize, diabetes,
 }: {
   name: string | null;
   assistantDocked: boolean;
   onExpand: () => void;
   onMinimize: () => void;
+  diabetes: DiabetesProfile;
 }) {
   // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
   const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
@@ -769,7 +770,8 @@ function DockedWorkspace({
       style={{ top }}
     >
       <WorkspaceHeader name={name} onExpand={onExpand} onMinimize={onMinimize} compact />
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+        {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
         <WorkspaceList dense />
       </div>
     </aside>
@@ -777,10 +779,11 @@ function DockedWorkspace({
 }
 
 function WorkspaceExpanded({
-  name, onMinimize,
+  name, onMinimize, diabetes,
 }: {
   name: string | null;
   onMinimize: () => void;
+  diabetes: DiabetesProfile;
 }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 sm:px-10 py-12">
