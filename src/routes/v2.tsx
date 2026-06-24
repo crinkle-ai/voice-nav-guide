@@ -134,9 +134,10 @@ const DIABETES_QUESTIONS: DiabetesQuestion[] = [
   { key: "focus", prompt: "What would you like help with today?", options: ["Understanding diabetes", "Managing medications", "Lowering costs", "Finding providers", "Nutrition and diet", "Monitoring blood sugar", "Insurance coverage", "Something else"] },
 ];
 
-const DIABETES_TINT = "#ECFBF6";
-const DIABETES_ACCENT = "#0E7C5A";
-const DIABETES_DEEP = "#0B5C44";
+// Diabetes uses the Teal topic color (per topic color system).
+const DIABETES_TINT = "#DCF3F7";
+const DIABETES_ACCENT = "#00A5BE";
+const DIABETES_DEEP = "#006A7A";
 
 
 // ----- Workspace mock data -----
