@@ -17,6 +17,7 @@ import { Route as V1RouteImport } from './routes/v1'
 import { Route as UnderstandingRouteImport } from './routes/understanding'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MyPlansRouteImport } from './routes/my-plans'
+import { Route as MyMatchesRouteImport } from './routes/my-matches'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as FindDoctorsRouteImport } from './routes/find-doctors'
@@ -85,6 +86,11 @@ const PlansRoute = PlansRouteImport.update({
 const MyPlansRoute = MyPlansRouteImport.update({
   id: '/my-plans',
   path: '/my-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyMatchesRoute = MyMatchesRouteImport.update({
+  id: '/my-matches',
+  path: '/my-matches',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/my-matches': typeof MyMatchesRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/my-matches': typeof MyMatchesRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/find-doctors': typeof FindDoctorsRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/my-matches': typeof MyMatchesRoute
   '/my-plans': typeof MyPlansRoute
   '/plans': typeof PlansRoute
   '/understanding': typeof UnderstandingRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/learn'
     | '/login'
+    | '/my-matches'
     | '/my-plans'
     | '/plans'
     | '/understanding'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/learn'
     | '/login'
+    | '/my-matches'
     | '/my-plans'
     | '/plans'
     | '/understanding'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/find-doctors'
     | '/learn'
     | '/login'
+    | '/my-matches'
     | '/my-plans'
     | '/plans'
     | '/understanding'
@@ -474,6 +486,7 @@ export interface RootRouteChildren {
   FindDoctorsRoute: typeof FindDoctorsRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
+  MyMatchesRoute: typeof MyMatchesRoute
   MyPlansRoute: typeof MyPlansRoute
   PlansRoute: typeof PlansRoute
   UnderstandingRoute: typeof UnderstandingRoute
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/my-plans'
       fullPath: '/my-plans'
       preLoaderRoute: typeof MyPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-matches': {
+      id: '/my-matches'
+      path: '/my-matches'
+      fullPath: '/my-matches'
+      preLoaderRoute: typeof MyMatchesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -828,6 +848,7 @@ const rootRouteChildren: RootRouteChildren = {
   FindDoctorsRoute: FindDoctorsRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
+  MyMatchesRoute: MyMatchesRoute,
   MyPlansRoute: MyPlansRoute,
   PlansRoute: PlansRoute,
   UnderstandingRoute: UnderstandingRoute,
