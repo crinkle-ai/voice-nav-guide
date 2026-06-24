@@ -338,7 +338,14 @@ function V2Page() {
           className="pt-24 pb-20 pl-8 pr-8 transition-[margin] duration-300"
           style={{ marginRight: rightReserved }}
         >
-          <ContentArea view={view} name={name} onSuggestion={onSuggestion} />
+          <ContentArea
+            view={view}
+            name={name}
+            onSuggestion={onSuggestion}
+            diabetes={diabetes}
+            onAnswerDiabetes={advanceDiabetes}
+          />
+
         </main>
       )}
 
