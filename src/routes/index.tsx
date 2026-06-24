@@ -107,7 +107,7 @@ function ChooserPage() {
           </p>
         </header>
 
-        <section className="mt-10 sm:mt-14 grid gap-5 md:grid-cols-3">
+        <section className="mt-10 sm:mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {DEMOS.map((d) => {
             const Icon = d.icon;
             return (
