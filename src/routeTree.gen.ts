@@ -36,6 +36,7 @@ import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/workspace.activity.$activityId'
+import { Route as ApiV4ChatRouteImport } from './routes/api/v4/chat'
 import { Route as ApiV3GeminiLiveTokenRouteImport } from './routes/api/v3/gemini-live-token'
 import { Route as ApiV3ChatRouteImport } from './routes/api/v3/chat'
 
@@ -175,6 +176,11 @@ const WorkspaceActivityActivityIdRoute =
     path: '/activity/$activityId',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const ApiV4ChatRoute = ApiV4ChatRouteImport.update({
+  id: '/api/v4/chat',
+  path: '/api/v4/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV3GeminiLiveTokenRoute = ApiV3GeminiLiveTokenRouteImport.update({
   id: '/api/v3/gemini-live-token',
   path: '/api/v3/gemini-live-token',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/v3/': typeof V3IndexRoute
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
+  '/api/v4/chat': typeof ApiV4ChatRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/v3': typeof V3IndexRoute
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
+  '/api/v4/chat': typeof ApiV4ChatRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesById {
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/v3/': typeof V3IndexRoute
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
+  '/api/v4/chat': typeof ApiV4ChatRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRouteTypes {
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/v3/'
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
+    | '/api/v4/chat'
     | '/workspace/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/v3'
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
+    | '/api/v4/chat'
     | '/workspace/activity/$activityId'
   id:
     | '__root__'
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | '/v3/'
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
+    | '/api/v4/chat'
     | '/workspace/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
@@ -392,6 +404,7 @@ export interface RootRouteChildren {
   ApiVoiceSessionRoute: typeof ApiVoiceSessionRoute
   ApiV3ChatRoute: typeof ApiV3ChatRoute
   ApiV3GeminiLiveTokenRoute: typeof ApiV3GeminiLiveTokenRoute
+  ApiV4ChatRoute: typeof ApiV4ChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -585,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceActivityActivityIdRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/api/v4/chat': {
+      id: '/api/v4/chat'
+      path: '/api/v4/chat'
+      fullPath: '/api/v4/chat'
+      preLoaderRoute: typeof ApiV4ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v3/gemini-live-token': {
       id: '/api/v3/gemini-live-token'
       path: '/api/v3/gemini-live-token'
@@ -668,6 +688,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiVoiceSessionRoute: ApiVoiceSessionRoute,
   ApiV3ChatRoute: ApiV3ChatRoute,
   ApiV3GeminiLiveTokenRoute: ApiV3GeminiLiveTokenRoute,
+  ApiV4ChatRoute: ApiV4ChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
