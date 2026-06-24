@@ -24,8 +24,9 @@ const initial: SessionState = {
   finalPriorities: [],
   finished: false,
   source: null,
+  sourceMode: null,
+  hybridPath: null,
   lensOverride: null,
-};
 
 
 function read(): SessionState {
