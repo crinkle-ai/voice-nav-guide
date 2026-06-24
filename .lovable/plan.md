@@ -1,89 +1,73 @@
+# Unify v4 intake → Workspace + /my-matches
 
-# Bridge v3 → v1 via a shared Workspace
+Turn the three v4 intakes (Ramble, Form, Shop Your Way) into the front door for a single shopping experience. Workspace becomes the editable record of what we heard, and a new `/my-matches` route surfaces the recommended path + ranked plans.
 
-## The shape
+## What changes for the user
 
-Shop Your Way (v3) is the front door. The Workspace (v1) becomes the persistent record of what was captured, and v1's existing pages (compare-plans, find-doctors, my-plans, learn) become the post-intake shopping surface. The v3 `Intake` is the single source of truth for the Workspace — no more hardcoded `persona` mock driving the drawer.
+1. **Workspace drawer is available inside /v4** — same component as v1, opens as a side drawer over any v4 screen. As intake fills in (chat, form, or path-picker), the Workspace populates live.
+2. **After completing any v4 intake** → land on `/my-matches` with the Workspace drawer open and editable. No `/v3/summary` confirmation gate.
+3. **/my-matches** shows: recommended path (with switcher), top 3 ranked plans, "Open full comparison" link to `/compare-plans` (pre-filtered).
+4. **Workspace is the source of truth** — edits there re-rank `/my-matches` and re-filter `/compare-plans` immediately.
+
+## Recommended path: derive + switch
+
+A single derived `recommendedLens` is computed from the intake. User can switch lenses anytime; matches re-rank.
+
+Derivation rules (first match wins):
 
 ```text
-   ┌──────────────── v3 ─────────────────┐      ┌────────── v1 ──────────┐
-   │ Ramble / Wizard / Path-picker        │      │  Home · Compare        │
-   │   ↓                                  │ ───▶ │  Find Doctors · Learn  │
-   │ Intake (ZIP, doctors, meds, …)       │      │  My Plans              │
-   │   ↓ Finish                           │      │                        │
-   └─ writes shared session ──────────────┘      │  Workspace drawer ◀────┘
-                                                    (reads same Intake,
-                                                     always on the right)
+Shop-Your-Way picked a path     → use that lens (explicit beats derived)
+intake.doctors.length >= 1      → "keep-my-doctors"
+intake.medications.length >= 2  → "afford-my-meds"
+intake.budgetSensitivity = high → "lowest-cost"
+intake.isNewToMedicare = true   → "learn-the-basics"
+fallback                        → "lowest-cost"
 ```
 
-## What changes
+Lens switcher renders as 4 chips on `/my-matches` and as a small selector at the top of the Workspace "Recommended path" card. Switching updates a `lensOverride` in the session; clearing it falls back to the derived value.
 
-### 1. One shared session store
+## Architecture
 
-Promote `src/lib/v3/session-store.ts` to `src/lib/workspace-session.ts` (re-exported from the old path so v3 keeps working). Same `Intake` shape, same localStorage key. v1 now reads from it too.
+```text
+/v4 (any mode)                          /v1 home (unchanged for cold users)
+   │                                       │
+   │ intake completes                      │ click "See my matches"
+   ▼                                       ▼
+/my-matches  ◄────────────────────►  Workspace drawer (editable)
+   │                                       │
+   │ "Open full comparison"                │ filters
+   ▼                                       ▼
+/compare-plans (pre-filtered by intake + lens)
+```
 
-Add a `source: "v3" | "manual" | null` field so the Workspace can show "Captured from your conversation" provenance.
+Workspace edits propagate to `/my-matches` and `/compare-plans` via the existing `useSession` store — no new state layer.
 
-### 2. Workspace drawer reads the Intake, not the mock
+## Files
 
-`src/components/workspace-drawer.tsx` today pulls from `persona` + `usePersonaStore`. Rewire each section to the Intake:
+**New**
+- `src/routes/my-matches.tsx` — recommended-path card with lens switcher, ranked Top 3 plans, "Open full comparison" CTA. Lives under the v1 chrome (TopNav visible). Empty state ("No intake yet — start one") links to `/v4`.
+- `src/lib/recommended-path.ts` — `deriveLens(intake)`, `LENSES` metadata (label, blurb, icon, sort/filter rules), `rankPlans(plans, intake, lens)` returning Top N with a one-line "why this matches" string per plan.
 
-| Workspace section            | Source today                  | Source after                              |
-| ---------------------------- | ----------------------------- | ----------------------------------------- |
-| Narrative mirror             | `persona.narrativeMirror`     | `intake.reasonForCall.value` + summary    |
-| What will shape your route   | `usePersonaStore().route`     | Derived from filled Intake fields         |
-| What to look for in a plan   | `persona.planFilters`         | Derived from `priorities` + `extras` + `budgetSensitivity` |
-| Your doctors                 | `persona.doctors`             | `intake.doctors.value` (incl. NPI status) |
-| Your medications             | `persona.medications`         | `intake.medications.value` (incl. RxNorm) |
-| Saved plans                  | static link                   | unchanged                                 |
-| Open questions               | `usePersonaStore().questions` | Derived from `confidence !== "captured"` critical fields |
+**Edited**
+- `src/lib/v3/session-store.ts` — add `lensOverride?: Lens` field + setter.
+- `src/routes/__root.tsx` — mount `WorkspaceDrawer` on `/v4` routes too (currently hidden). Keep TopNav/BottomVoiceBar hidden on /v4.
+- `src/components/v4/v4-shell.tsx` (or equivalent v4 header) — add a Workspace pill/button to open the drawer; show a small "items captured: N" badge.
+- `src/components/workspace-drawer.tsx` — add "Recommended path" section at the top (lens chip + switch link), and a "Top 3 plan matches" section that links to `/my-matches`. Sections already derive from intake — extend `workspace-derivations.ts`.
+- `src/lib/workspace-derivations.ts` — add `getTopMatches(intake, lens)` and `getRecommendedPath(intake)` helpers wrapping `recommended-path.ts`.
+- `src/routes/v4.ramble.tsx`, `src/routes/v4.structured.tsx`, `src/routes/v4.shop.*` — on completion, `navigate({ to: "/my-matches" })` instead of `/v3/summary`. Shop Your Way's picked path writes to `lensOverride`.
+- `src/routes/compare-plans.tsx` — read `intake` + current lens, pre-filter plan list, show a "Filtered by your Workspace" chip with a clear button.
+- `src/routes/v1.tsx` (RambleHero) — when intake exists, swap CTA from "Show my path" to "See my matches →" pointing at `/my-matches`. Keep auto-open Workspace handoff.
+- `src/routes/index.tsx` (executive chooser) — update v3 (Shop Your Way) blurb to mention "lands on your matches with an editable Workspace".
 
-Empty Intake → each section shows an "Add details" CTA that opens v3 in a sheet (see #5) scoped to that field group.
+**Retired (kept as redirects for now)**
+- `/v3/summary`, `/v3/matches`, `/v3/next-step` — replaced by `/my-matches`. Each redirects to `/my-matches` so existing links keep working.
 
-Keep `usePersonaStore` around for the demo personas page only; it stops driving the drawer.
+## Open question I'll resolve while building
 
-### 3. Hand-off at the end of v3
+Plan data source for `rankPlans`: v3's existing matches list is small + hardcoded. I'll reuse it as-is for now and flag where a real plan catalog would slot in — no new backend.
 
-Today v3 ends at `/v3/matches`. Add a clear terminal step:
+## Out of scope
 
-- On `/v3/summary` → "Looks good" already writes the Intake. Add a second CTA **"Take this to my Workspace"** that sets `source: "v3"` and navigates to `/v1` (home) with the drawer auto-opening once (via `useWorkspaceDrawerStore.openWorkspace()` + a one-shot flag so it doesn't keep popping).
-- `/v3/matches` keeps working for users who want v3's matching view, but also gets a "Shop in full view →" link to `/v1/compare-plans`.
-
-### 4. v1 surfaces the captured data
-
-- **`/v1` home (RambleHero):** when an Intake exists, replace the default `persona.ramble` textarea seed with `intake.reasonForCall.value`; change the primary CTA from "Show my path" to **"Continue where you left off"** that opens the Workspace; keep "Start over" that resets the shared session.
-- **`/v1/compare-plans`, `/v1/find-doctors`:** filter/prefill from `intake.zip`, `intake.doctors`, `intake.priorities`. (Existing pages already render lists — we just feed them from the Intake.)
-- **`/v1/my-plans`:** unchanged for now.
-
-### 5. Re-enter v3 from inside the Workspace
-
-Each Workspace section gets a small "Add / update via conversation" link that opens v3 in a right-side `Sheet` pre-scoped to that field set (`?focus=doctors`, `?focus=medications`, etc.). This is the gentle round-trip without making v1 → v3 the primary direction.
-
-Phase this: ship the focused sheet behind one link ("Tell us more →" in the narrative-mirror block) in v1.1; per-section deep links in a follow-up.
-
-### 6. Executive chooser update
-
-`src/routes/index.tsx` chooser stays, but the v1 tile copy changes to make the relationship clear: *"Crinkle Health — the shopping experience that picks up where Shop Your Way left off."* and the v3 tile copy adds *"…then hands off to the full Crinkle experience."*
-
-## File-level changes
-
-- **New / renamed:** `src/lib/workspace-session.ts` (move + re-export from `src/lib/v3/session-store.ts`).
-- **Edit:** `src/components/workspace-drawer.tsx` — swap data sources; add empty-state CTAs; add "Tell us more →" link.
-- **Edit:** `src/routes/v3.summary.tsx` — add "Take this to my Workspace" CTA + navigate to `/v1`.
-- **Edit:** `src/routes/v3.matches.tsx` — add "Shop in full view →" link.
-- **Edit:** `src/routes/v1.tsx` — RambleHero reads Intake; CTA copy switches when Intake exists; one-shot Workspace auto-open on arrival from v3.
-- **Edit:** `src/routes/compare-plans.tsx`, `src/routes/find-doctors.tsx` — read ZIP/doctors/priorities from Intake when present.
-- **Edit:** `src/routes/index.tsx` — chooser tile copy.
-- **Add (phase 2, not this plan):** `src/components/workspace-intake-sheet.tsx` — embeds v3 flows inside a v1 Sheet for focused updates.
-
-## Explicitly out of scope (this plan)
-
-- No auth, no backend persistence — still localStorage.
-- No changes to v3's intake LLM, NPI/RxNorm verification, or plan-matching engine.
-- No removal of `usePersonaStore` (still used by `/workspace` activity pages and demo personas).
-- v2 is untouched.
-- Per-section deep-link sheets (#5 second half) — deferred to a follow-up.
-
-## Open question (sensible default chosen, won't block)
-
-When a returning v1 visitor has an Intake captured, should `/v1` auto-open the Workspace on first load? **Default: yes, exactly once per session**, via a sessionStorage flag — gives the "your stuff is here" moment without being naggy.
+- Real plan catalog / CMS integration.
+- Persisting Workspace across browsers (still session-scoped).
+- Auth on `/my-matches` (open route, reads same in-memory session).
