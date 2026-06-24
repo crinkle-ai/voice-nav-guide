@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
   Minus,
@@ -207,7 +207,10 @@ function V2Page() {
       }
       return [...m, { role: "assistant", text: reply }];
     });
-    if (assistant === "expanded") setAssistant("docked");
+    if (assistant === "expanded") {
+      setAssistant("docked");
+      setWorkspace("docked");
+    }
   };
 
   const send = (raw: string) => {
@@ -789,10 +792,9 @@ function ContentArea({
   name: string | null;
   onSuggestion: (s: string) => void;
 }) {
-  const heading = useMemo(() => {
-    if (view.kind === "education") return view.topic;
-    return name ? `Welcome, ${name}.` : "Welcome.";
-  }, [view, name]);
+  if (view.kind === "home") {
+    return <EmptyContentArea name={name} />;
+  }
 
   return (
     <div className="max-w-4xl">
@@ -803,11 +805,9 @@ function ContentArea({
         className="mt-3 text-white text-4xl sm:text-5xl leading-tight font-normal"
         style={SERIF}
       >
-        {heading}
+        {view.topic}
         <span className="block text-white/70 text-2xl sm:text-3xl mt-2">
-          {view.kind === "education"
-            ? "A short, plain-language walkthrough — your guide stays with you."
-            : "Explore at your pace — your guide is right beside you."}
+          A short, plain-language walkthrough — your guide stays with you.
         </span>
       </h1>
 
@@ -819,43 +819,24 @@ function ContentArea({
             </div>
           </div>
           <div className="absolute bottom-4 left-5 text-white/80 text-sm">
-            {view.kind === "education" ? view.topic : "Medicare in 3 minutes"} · 3:24
+            {view.topic} · 3:24
           </div>
         </div>
         <div className="lg:col-span-2 flex items-center justify-center">
           <img
             src={heroIllustration.url}
-            alt="A Unified Health guide reviewing Medicare options with a senior couple"
+            alt="A Unified Health guide reviewing Medicare options"
             className="w-full h-auto max-h-[340px] object-contain drop-shadow-2xl"
             loading="lazy"
           />
         </div>
       </div>
 
-
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {([
-          {
-            t: "Part A",
-            d: "Hospital coverage — most people pay no premium.",
-            idx: 0 as const,
-            bg: "#EEF0FB", // lavender
-            accent: "#3F3D8C",
-          },
-          {
-            t: "Part B",
-            d: "Doctor visits, preventive care, and outpatient services.",
-            idx: 1 as const,
-            bg: "#E6F4F2", // teal/aqua
-            accent: "#1F7A6B",
-          },
-          {
-            t: "Parts C & D",
-            d: "Medicare Advantage and prescription drug coverage.",
-            idx: 2 as const,
-            bg: "#FDEEE3", // peach
-            accent: "#B5530E",
-          },
+          { t: "Part A", d: "Hospital coverage — most people pay no premium.", idx: 0 as const, bg: "#EEF0FB", accent: "#3F3D8C" },
+          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services.", idx: 1 as const, bg: "#E6F4F2", accent: "#1F7A6B" },
+          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage.", idx: 2 as const, bg: "#FDEEE3", accent: "#B5530E" },
         ]).map((c) => (
           <button
             key={c.t}
@@ -865,16 +846,13 @@ function ContentArea({
           >
             <SpriteBadge src={partIcons.url} index={c.idx} size={72} />
             <div className="flex-1 min-w-0">
-              <div style={SERIF} className="text-xl font-semibold" >
+              <div style={SERIF} className="text-xl font-semibold">
                 <span style={{ color: c.accent }}>{c.t}</span>
               </div>
               <div className="mt-0.5 text-[13px] leading-snug" style={{ color: "rgba(0,0,0,0.65)" }}>
                 {c.d}
               </div>
-              <div
-                className="mt-2 text-[12px] font-semibold inline-flex items-center gap-1"
-                style={{ color: c.accent }}
-              >
+              <div className="mt-2 text-[12px] font-semibold inline-flex items-center gap-1" style={{ color: c.accent }}>
                 Learn more <ChevronRight className="h-3 w-3" />
               </div>
             </div>
@@ -898,7 +876,72 @@ function ContentArea({
           ))}
         </div>
       </div>
-
     </div>
   );
 }
+
+function EmptyContentArea({ name }: { name: string | null }) {
+  return (
+    <div className="relative">
+      <div className="text-xs uppercase tracking-[0.18em] text-white/60">
+        Unified Health · Medicare
+      </div>
+      <h1
+        className="mt-3 text-white text-4xl sm:text-5xl leading-tight font-normal"
+        style={SERIF}
+      >
+        {name ? `Welcome, ${name}.` : "Welcome."}
+        <span className="block text-white/70 text-2xl sm:text-3xl mt-2">
+          Explore at your pace — your guide is right beside you.
+        </span>
+      </h1>
+
+      {/* Empty-state focal message with subtle guide curve toward the assistant */}
+      <div className="relative mt-24 sm:mt-28">
+        <div className="max-w-[560px]">
+          <p
+            className="text-white/95 font-normal leading-[1.15] text-4xl sm:text-5xl lg:text-[56px]"
+            style={SERIF}
+          >
+            What would you like me to tell you about Medicare?
+          </p>
+          <p className="mt-5 text-white/55 text-base sm:text-lg max-w-md" style={SERIF}>
+            Ask your guide a question on the right, and the answer will appear here.
+          </p>
+        </div>
+
+        {/* Curved guide line pointing from the message toward the assistant */}
+        <svg
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute -top-6 right-[-40px] w-[460px] h-[260px] opacity-70"
+          viewBox="0 0 460 260"
+          fill="none"
+        >
+          <defs>
+            <marker
+              id="v2-guide-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,0.75)" />
+            </marker>
+          </defs>
+          <path
+            d="M 20 200 C 140 220, 240 120, 300 70 S 420 30, 440 30"
+            stroke="rgba(255,255,255,0.75)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="2 7"
+            fill="none"
+            markerEnd="url(#v2-guide-arrow)"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
