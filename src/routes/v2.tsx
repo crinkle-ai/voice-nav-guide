@@ -16,6 +16,38 @@ import {
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
+import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
+import workspaceIcons from "@/assets/v2-workspace-icons.png.asset.json";
+
+// 2x2 sprite positions for the workspace illustration sheet
+// (background-size: 200% 200%; background-position picks the quadrant)
+const WS_SPRITE: Record<string, { x: string; y: string }> = {
+  plans:    { x: "0%",   y: "0%"   }, // insurance card
+  doctors:  { x: "100%", y: "0%"   }, // doctor portrait
+  meds:     { x: "0%",   y: "100%" }, // pill bottle
+  dates:    { x: "100%", y: "100%" }, // calendar + clock
+  progress: { x: "100%", y: "100%" }, // reuse calendar/timeline
+  notes:    { x: "0%",   y: "0%"   }, // reuse document
+};
+
+function WorkspaceSpriteIcon({ sectionKey, size = 40 }: { sectionKey: string; size?: number }) {
+  const pos = WS_SPRITE[sectionKey] ?? WS_SPRITE.plans;
+  return (
+    <div
+      aria-hidden
+      className="shrink-0 rounded-xl"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: `url(${workspaceIcons.url})`,
+        backgroundSize: "200% 200%",
+        backgroundPosition: `${pos.x} ${pos.y}`,
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "rgba(0,38,120,0.04)",
+      }}
+    />
+  );
+}
 
 export const Route = createFileRoute("/v2")({
   head: () => ({
