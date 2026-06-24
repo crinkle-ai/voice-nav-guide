@@ -397,6 +397,7 @@ function V2Page() {
             <WorkspaceExpanded
               name={name}
               onMinimize={() => setWorkspace("docked")}
+              diabetes={diabetes}
             />
           )}
 
@@ -406,8 +407,10 @@ function V2Page() {
               assistantDocked={assistant === "docked"}
               onExpand={expandWorkspace}
               onMinimize={() => setWorkspace("minimized")}
+              diabetes={diabetes}
             />
           )}
+
 
           {workspace === "minimized" && (
             <button
