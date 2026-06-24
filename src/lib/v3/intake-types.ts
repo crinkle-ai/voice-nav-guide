@@ -55,11 +55,34 @@ export const DoctorList = z.object({
   confidence: ConfidenceEnum,
 });
 
+export const RxCandidate = z.object({
+  rxcui: z.string(),
+  name: z.string(),
+  tty: z.string(),
+});
+
+export const RxVerification = z.object({
+  status: z.enum(["verified", "needs_detail", "ambiguous", "not_found", "error"]),
+  checkedAt: z.string(),
+  rxcui: z.string().nullable(),
+  canonicalName: z.string().nullable(),
+  tty: z.string().nullable(),
+  ingredient: z.string().nullable(),
+  brandNames: z.array(z.string()),
+  strengthMatch: z.boolean(),
+  doseFormMatch: z.boolean(),
+  spellingCorrected: z.string().nullable(),
+  candidates: z.array(RxCandidate),
+  message: z.string().optional(),
+});
+export type RxVerification = z.infer<typeof RxVerification>;
+
 export const MedicationEntry = z.object({
   name: z.string(),
   strength: z.string().nullable().optional(),
   doseForm: z.string().nullable().optional(),
   frequency: z.string().nullable().optional(),
+  rxVerification: RxVerification.optional(),
 });
 export type MedicationEntry = z.infer<typeof MedicationEntry>;
 
