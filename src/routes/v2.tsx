@@ -1575,3 +1575,256 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
   }
   return cards.slice(0, 3);
 }
+
+// ============================================================
+// Returning Member experience
+// ============================================================
+
+function MemberEmptyContent({ name }: { name: string }) {
+  return (
+    <div className="relative">
+      <div className="text-xs uppercase tracking-[0.18em] text-white/60">
+        Unified Health · Medicare
+      </div>
+      <h1
+        className="mt-3 text-white text-4xl sm:text-5xl leading-tight font-normal"
+        style={SERIF}
+      >
+        Welcome back, {name}
+        <span className="block text-white/70 text-2xl sm:text-3xl mt-2">
+          We've kept everything just like you left it.
+        </span>
+      </h1>
+
+      {/* Cue 1 — continue conversation, arrow toward assistant (top-right) */}
+      <div className="relative mt-24 sm:mt-28">
+        <div className="max-w-[520px]">
+          <p
+            className="text-white font-semibold leading-[1.1] text-3xl sm:text-4xl"
+            style={SERIF}
+          >
+            Continue your conversation here
+          </p>
+        </div>
+        <svg
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute -top-4 right-[-40px] w-[440px] h-[200px] opacity-80"
+          viewBox="0 0 440 200"
+          fill="none"
+        >
+          <defs>
+            <marker id="v2-member-arrow-1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,0.85)" />
+            </marker>
+          </defs>
+          <path
+            d="M 20 160 C 140 180, 240 100, 300 50 S 410 20, 425 20"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="2 7"
+            fill="none"
+            markerEnd="url(#v2-member-arrow-1)"
+          />
+        </svg>
+      </div>
+
+      {/* Cue 2 — workspace, arrow toward workspace (bottom-right) */}
+      <div className="relative mt-32 sm:mt-40">
+        <div className="max-w-[520px]">
+          <p
+            className="text-white font-semibold leading-[1.15] text-2xl sm:text-3xl"
+            style={SERIF}
+          >
+            Your workspace with all your saved information is here.
+          </p>
+        </div>
+        <svg
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute -top-4 right-[-40px] w-[440px] h-[200px] opacity-80"
+          viewBox="0 0 440 200"
+          fill="none"
+        >
+          <defs>
+            <marker id="v2-member-arrow-2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,0.85)" />
+            </marker>
+          </defs>
+          <path
+            d="M 20 40 C 140 30, 240 110, 300 150 S 410 180, 425 180"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="2 7"
+            fill="none"
+            markerEnd="url(#v2-member-arrow-2)"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function MemberDiabetesJourneyCard({ dense = false }: { dense?: boolean }) {
+  const rows: { label: string; value: string }[] = [
+    { label: "Condition", value: "Type 2 Diabetes" },
+    { label: "Diagnosed", value: "2.5 years ago" },
+    { label: "Current Medication", value: "Metformin" },
+    { label: "Last A1C", value: "7.1%" },
+    { label: "Current Focus", value: "Lowering medication costs" },
+    { label: "Status", value: "Actively Managing" },
+  ];
+  return (
+    <div
+      className="rounded-2xl overflow-hidden border"
+      style={{ backgroundColor: DIABETES_TINT, borderColor: "rgba(0,165,190,0.25)" }}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div
+          className="shrink-0 rounded-2xl grid place-items-center"
+          style={{ width: dense ? 56 : 80, height: dense ? 56 : 80, backgroundColor: "white" }}
+        >
+          <img
+            src={diabetesIllustration.url}
+            alt=""
+            className="object-contain"
+            style={{ width: dense ? 44 : 64, height: dense ? 44 : 64 }}
+            loading="lazy"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5 shrink-0" style={{ color: DIABETES_ACCENT }} />
+            <div
+              className="text-[10px] uppercase tracking-[0.18em] font-semibold"
+              style={{ color: DIABETES_ACCENT }}
+            >
+              Diabetes Journey
+            </div>
+          </div>
+          <div
+            className="mt-1 text-[15px] font-semibold"
+            style={{ ...SERIF, color: DIABETES_DEEP }}
+          >
+            Your ongoing diabetes care
+          </div>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <dl className="rounded-xl bg-white/90 divide-y divide-black/5 overflow-hidden">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-3 px-3 py-2 text-[12px]">
+              <dt className="w-32 shrink-0 text-black/55 uppercase tracking-wider text-[10px]">
+                {r.label}
+              </dt>
+              <dd className="flex-1 truncate" style={{ ...SERIF, color: UHC_BLUE }}>
+                {r.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+type MemberSection = {
+  key: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  tint: string;
+  accent: string;
+  items: { id: string; label: string; meta?: string }[];
+};
+
+const MEMBER_SECTIONS: MemberSection[] = [
+  {
+    key: "doctors",
+    title: "Saved Doctors",
+    icon: Stethoscope,
+    tint: "#E6F0FA",
+    accent: "#002678",
+    items: [
+      { id: "md1", label: "Dr. Patel", meta: "Primary Care" },
+      { id: "md2", label: "Dr. Nguyen", meta: "Endocrinology" },
+    ],
+  },
+  {
+    key: "meds",
+    title: "Medications",
+    icon: Pill,
+    tint: "#FDE4D2",
+    accent: "#E85C1C",
+    items: [
+      { id: "mm1", label: "Metformin", meta: "500 mg · daily" },
+      { id: "mm2", label: "Atorvastatin", meta: "20 mg · daily" },
+    ],
+  },
+  {
+    key: "topics",
+    title: "Saved Topics",
+    icon: Bookmark,
+    tint: "#E0DCEF",
+    accent: "#5B43B8",
+    items: [
+      { id: "mt1", label: "Understanding Type 2 Diabetes" },
+      { id: "mt2", label: "Lowering Prescription Costs" },
+      { id: "mt3", label: "Diabetes Nutrition" },
+      { id: "mt4", label: "A1C Monitoring" },
+    ],
+  },
+  {
+    key: "appt",
+    title: "Next Appointment",
+    icon: Calendar,
+    tint: "#FBF1D2",
+    accent: "#B5841A",
+    items: [
+      { id: "ma1", label: "Annual Diabetes Checkup", meta: "Sept 12 · 10:30 AM" },
+    ],
+  },
+];
+
+function MemberWorkspaceContent({ dense = false }: { dense?: boolean }) {
+  return (
+    <div className={dense ? "space-y-4" : "space-y-5"}>
+      <MemberDiabetesJourneyCard dense={dense} />
+      {MEMBER_SECTIONS.map((section) => {
+        const Icon = section.icon;
+        return (
+          <div
+            key={section.key}
+            className="rounded-2xl overflow-hidden border"
+            style={{ backgroundColor: section.tint, borderColor: "rgba(0,38,120,0.08)" }}
+          >
+            <div className="p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: section.accent }} />
+                <div
+                  className="text-[10px] uppercase tracking-[0.16em] font-semibold"
+                  style={{ color: section.accent }}
+                >
+                  {section.title}
+                </div>
+              </div>
+              <ul className="space-y-1.5">
+                {section.items.map((it) => (
+                  <li
+                    key={it.id}
+                    className="rounded-lg bg-white/90 px-3 py-2 text-[13px] flex items-center justify-between gap-3"
+                    style={{ color: UHC_BLUE }}
+                  >
+                    <span className="truncate" style={SERIF}>{it.label}</span>
+                    {it.meta && (
+                      <span className="shrink-0 text-[10px] text-black/55">{it.meta}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
