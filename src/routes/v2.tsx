@@ -880,14 +880,27 @@ function WorkspaceExpanded({
 }
 
 function ContentArea({
-  view, name, onSuggestion,
+  view, name, onSuggestion, diabetes, onAnswerDiabetes,
 }: {
   view: ContentView;
   name: string | null;
   onSuggestion: (s: string) => void;
+  diabetes: DiabetesProfile;
+  onAnswerDiabetes: (key: keyof DiabetesProfile, value: string) => void;
 }) {
   if (view.kind === "home") {
     return <EmptyContentArea name={name} />;
+  }
+
+  if (view.kind === "diabetes") {
+    return (
+      <DiabetesJourney
+        name={name}
+        diabetes={diabetes}
+        onAnswer={onAnswerDiabetes}
+        onSuggestion={onSuggestion}
+      />
+    );
   }
 
   return (
@@ -904,6 +917,7 @@ function ContentArea({
           A short, plain-language walkthrough — your guide stays with you.
         </span>
       </h1>
+
 
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
         <div className="lg:col-span-3 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
