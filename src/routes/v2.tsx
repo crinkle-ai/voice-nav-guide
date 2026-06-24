@@ -944,9 +944,9 @@ function ContentArea({
 
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {([
-          { t: "Part A", d: "Hospital coverage — most people pay no premium.", idx: 0 as const, bg: "#EEF0FB", accent: "#3F3D8C" },
-          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services.", idx: 1 as const, bg: "#E6F4F2", accent: "#1F7A6B" },
-          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage.", idx: 2 as const, bg: "#FDEEE3", accent: "#B5530E" },
+          { t: "Part A", d: "Hospital coverage — most people pay no premium.", idx: 0 as const, bg: "#E6F0FA", accent: "#002678" },
+          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services.", idx: 1 as const, bg: "#DCF3F7", accent: "#00A5BE" },
+          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage.", idx: 2 as const, bg: "#FDE4D2", accent: "#E85C1C" },
         ]).map((c) => (
           <button
             key={c.t}
