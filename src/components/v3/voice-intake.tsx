@@ -203,7 +203,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
       const proc = inCtx.createScriptProcessor(4096, 1, 1);
       procNodeRef.current = proc;
       proc.onaudioprocess = (e) => {
-        if (!sessionRef.current) return;
+        if (!sessionRef.current || pausedRef.current) return;
         const f32 = e.inputBuffer.getChannelData(0);
         const i16 = new Int16Array(f32.length);
         for (let i = 0; i < f32.length; i++) {
