@@ -415,6 +415,7 @@ function V2Page() {
           onMinimize={() => setAssistant("minimized")}
           workspaceDocked={workspace === "docked"}
           workspaceMinimized={workspace === "minimized"}
+          member={member}
         />
       )}
 
