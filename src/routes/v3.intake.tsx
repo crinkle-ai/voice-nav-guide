@@ -30,10 +30,17 @@ function IntakePage() {
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
   const voiceSectionRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to top on first mount so users land at the Type/Talk toggle.
+  // Scroll to top on first mount and again once content is ready,
+  // so users land at the Type/Talk toggle regardless of prior scroll.
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-  }, []);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const id = window.setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [ready]);
 
   // When user switches to voice, scroll the Start talking button into view.
   useEffect(() => {
