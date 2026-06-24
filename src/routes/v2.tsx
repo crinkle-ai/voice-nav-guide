@@ -17,37 +17,32 @@ import {
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
 import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
-import workspaceIcons from "@/assets/v2-workspace-icons.png.asset.json";
+import partIcons from "@/assets/v2-part-icons.png.asset.json";
+import workspaceScenes from "@/assets/v2-workspace-scenes.png.asset.json";
 
-// 2x2 sprite positions for the workspace illustration sheet
-// (background-size: 200% 200%; background-position picks the quadrant)
-const WS_SPRITE: Record<string, { x: string; y: string }> = {
-  plans:    { x: "0%",   y: "0%"   }, // insurance card
-  doctors:  { x: "100%", y: "0%"   }, // doctor portrait
-  meds:     { x: "0%",   y: "100%" }, // pill bottle
-  dates:    { x: "100%", y: "100%" }, // calendar + clock
-  progress: { x: "100%", y: "100%" }, // reuse calendar/timeline
-  notes:    { x: "0%",   y: "0%"   }, // reuse document
-};
-
-function WorkspaceSpriteIcon({ sectionKey, size = 40 }: { sectionKey: string; size?: number }) {
-  const pos = WS_SPRITE[sectionKey] ?? WS_SPRITE.plans;
+// Both sprites are 3 horizontal subjects in a 1536x1024 image.
+// backgroundSize: 300% 100%; x = 0% / 50% / 100% selects subject 1/2/3.
+function SpriteBadge({
+  src, index, size = 64, bg,
+}: { src: string; index: 0 | 1 | 2; size?: number; bg?: string }) {
+  const x = index === 0 ? "0%" : index === 1 ? "50%" : "100%";
   return (
     <div
       aria-hidden
-      className="shrink-0 rounded-xl"
+      className="shrink-0 rounded-full overflow-hidden"
       style={{
         width: size,
         height: size,
-        backgroundImage: `url(${workspaceIcons.url})`,
-        backgroundSize: "200% 200%",
-        backgroundPosition: `${pos.x} ${pos.y}`,
+        backgroundImage: `url(${src})`,
+        backgroundSize: "300% 100%",
+        backgroundPosition: `${x} 50%`,
         backgroundRepeat: "no-repeat",
-        backgroundColor: "rgba(0,38,120,0.04)",
+        backgroundColor: bg ?? "transparent",
       }}
     />
   );
 }
+
 
 export const Route = createFileRoute("/v2")({
   head: () => ({
@@ -583,42 +578,87 @@ function WorkspaceHeader({
   );
 }
 
+// Color theme + scene illustration per workspace section.
+const WS_THEME: Record<string, {
+  tint: string;            // background tint of the section card
+  accent: string;          // accent text/icon color
+  sceneIndex?: 0 | 1 | 2;  // index into workspaceScenes sprite (if any)
+}> = {
+  plans:    { tint: "#EEF2FF", accent: "#3F3D8C", sceneIndex: 0 }, // indigo / clipboard
+  doctors:  { tint: "#ECF7F4", accent: "#1F7A6B", sceneIndex: 1 }, // teal / doctor
+  meds:     { tint: "#FFF1E8", accent: "#B5530E", sceneIndex: 2 }, // peach / pills
+  dates:    { tint: "#E8F1FF", accent: "#1E3A8A" },
+  progress: { tint: "#ECFDF5", accent: "#0E7C5A" },
+  notes:    { tint: "#FBF1FF", accent: "#6B2E8E" },
+};
+
 function WorkspaceList({ dense = false }: { dense?: boolean }) {
   return (
-    <div className={`space-y-${dense ? 4 : 6}`}>
-      {WORKSPACE.map((section) => {
-        return (
-          <div key={section.key}>
-            <div className="flex items-center gap-2.5 mb-2">
-              <WorkspaceSpriteIcon sectionKey={section.key} size={28} />
-              <div
-                className="text-[11px] uppercase tracking-[0.14em] font-semibold"
-                style={{ color: UHC_BLUE }}
-              >
-                {section.title}
-              </div>
-            </div>
+    <div className={dense ? "space-y-4" : "space-y-5"}>
+      {WORKSPACE.map((section, idx) => {
+        const theme = WS_THEME[section.key] ?? WS_THEME.notes;
+        const Icon = section.icon;
+        const imageLeft = idx % 2 === 1; // alternate layout
+        const hasScene = theme.sceneIndex !== undefined;
 
-            <ul className="space-y-1.5">
-              {section.items.map((it) => (
-                <li
-                  key={it.id}
-                  className="rounded-xl px-3 py-2 border text-sm flex items-center justify-between gap-3"
-                  style={{ borderColor: "rgba(0,38,120,0.12)", color: UHC_BLUE }}
+        return (
+          <div
+            key={section.key}
+            className="rounded-2xl overflow-hidden border"
+            style={{ backgroundColor: theme.tint, borderColor: "rgba(0,38,120,0.08)" }}
+          >
+            <div className={`flex ${imageLeft ? "flex-row-reverse" : "flex-row"} gap-3 p-3`}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: theme.accent }} />
+                  <div
+                    className="text-[10px] uppercase tracking-[0.16em] font-semibold"
+                    style={{ color: theme.accent }}
+                  >
+                    {section.title}
+                  </div>
+                </div>
+                <ul className="space-y-1.5">
+                  {section.items.map((it) => (
+                    <li
+                      key={it.id}
+                      className="rounded-lg bg-white/85 px-3 py-2 text-[13px] flex items-center justify-between gap-3"
+                      style={{ color: UHC_BLUE }}
+                    >
+                      <span className="truncate" style={SERIF}>{it.label}</span>
+                      {it.meta && (
+                        <span className="shrink-0 text-[10px] text-black/55">{it.meta}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {hasScene ? (
+                <SpriteBadge
+                  src={workspaceScenes.url}
+                  index={theme.sceneIndex as 0 | 1 | 2}
+                  size={dense ? 72 : 84}
+                />
+              ) : (
+                <div
+                  className="shrink-0 rounded-2xl grid place-items-center"
+                  style={{
+                    width: dense ? 72 : 84,
+                    height: dense ? 72 : 84,
+                    backgroundColor: "white",
+                  }}
                 >
-                  <span className="truncate" style={SERIF}>{it.label}</span>
-                  {it.meta && (
-                    <span className="shrink-0 text-[11px] text-black/55">{it.meta}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+                  <Icon className="h-7 w-7" style={{ color: theme.accent }} />
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
     </div>
   );
 }
+
 
 function DockedWorkspace({
   name, assistantDocked, onExpand, onMinimize,
@@ -677,40 +717,66 @@ function WorkspaceExpanded({
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
           <div className="px-6 sm:px-10 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-              {WORKSPACE.map((section) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {WORKSPACE.map((section, idx) => {
+                const theme = WS_THEME[section.key] ?? WS_THEME.notes;
+                const Icon = section.icon;
+                const hasScene = theme.sceneIndex !== undefined;
+                const imageLeft = idx % 2 === 1;
                 return (
-                  <div key={section.key} className="min-w-0">
-                    <div className="flex items-center gap-3 mb-3">
-                      <WorkspaceSpriteIcon sectionKey={section.key} size={44} />
-                      <div
-                        className="text-[11px] uppercase tracking-[0.16em] font-semibold"
-                        style={{ color: UHC_BLUE }}
-                      >
-                        {section.title}
+                  <div
+                    key={section.key}
+                    className="rounded-2xl overflow-hidden border min-w-0"
+                    style={{ backgroundColor: theme.tint, borderColor: "rgba(0,38,120,0.08)" }}
+                  >
+                    <div className={`flex ${imageLeft ? "flex-row-reverse" : "flex-row"} gap-4 p-4`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <Icon className="h-4 w-4 shrink-0" style={{ color: theme.accent }} />
+                          <div
+                            className="text-[11px] uppercase tracking-[0.16em] font-semibold"
+                            style={{ color: theme.accent }}
+                          >
+                            {section.title}
+                          </div>
+                        </div>
+                        <ul className="space-y-2">
+                          {section.items.map((it) => (
+                            <li
+                              key={it.id}
+                              className="rounded-lg bg-white/90 px-3 py-2 text-[13px] flex items-center justify-between gap-3"
+                              style={{ color: UHC_BLUE }}
+                            >
+                              <span className="truncate" style={SERIF}>{it.label}</span>
+                              {it.meta && (
+                                <span className="shrink-0 text-[10px] text-black/55">{it.meta}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </div>
-
-                    <ul className="space-y-2">
-                      {section.items.map((it) => (
-                        <li
-                          key={it.id}
-                          className="rounded-xl px-4 py-3 border flex items-center justify-between gap-3"
-                          style={{ borderColor: "rgba(0,38,120,0.14)", color: UHC_BLUE }}
+                      {hasScene ? (
+                        <SpriteBadge
+                          src={workspaceScenes.url}
+                          index={theme.sceneIndex as 0 | 1 | 2}
+                          size={96}
+                        />
+                      ) : (
+                        <div
+                          className="shrink-0 rounded-2xl grid place-items-center"
+                          style={{ width: 96, height: 96, backgroundColor: "white" }}
                         >
-                          <span className="truncate text-[15px]" style={SERIF}>{it.label}</span>
-                          {it.meta && (
-                            <span className="shrink-0 text-[11px] text-black/55">{it.meta}</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                          <Icon className="h-8 w-8" style={{ color: theme.accent }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -768,15 +834,51 @@ function ContentArea({
 
 
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { t: "Part A", d: "Hospital coverage — most people pay no premium." },
-          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services." },
-          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage." },
-        ].map((c) => (
-          <div key={c.t} className="rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur">
-            <div style={{ ...SERIF }} className="text-white text-lg font-semibold">{c.t}</div>
-            <div className="mt-1 text-white/70 text-sm leading-relaxed">{c.d}</div>
-          </div>
+        {([
+          {
+            t: "Part A",
+            d: "Hospital coverage — most people pay no premium.",
+            idx: 0 as const,
+            bg: "#EEF0FB", // lavender
+            accent: "#3F3D8C",
+          },
+          {
+            t: "Part B",
+            d: "Doctor visits, preventive care, and outpatient services.",
+            idx: 1 as const,
+            bg: "#E6F4F2", // teal/aqua
+            accent: "#1F7A6B",
+          },
+          {
+            t: "Parts C & D",
+            d: "Medicare Advantage and prescription drug coverage.",
+            idx: 2 as const,
+            bg: "#FDEEE3", // peach
+            accent: "#B5530E",
+          },
+        ]).map((c) => (
+          <button
+            key={c.t}
+            onClick={() => onSuggestion(c.t === "Parts C & D" ? "Prescription Drug Coverage" : `${c.t}`)}
+            className="text-left rounded-2xl p-4 flex items-center gap-4 transition hover:-translate-y-0.5 hover:shadow-xl"
+            style={{ backgroundColor: c.bg }}
+          >
+            <SpriteBadge src={partIcons.url} index={c.idx} size={72} />
+            <div className="flex-1 min-w-0">
+              <div style={SERIF} className="text-xl font-semibold" >
+                <span style={{ color: c.accent }}>{c.t}</span>
+              </div>
+              <div className="mt-0.5 text-[13px] leading-snug" style={{ color: "rgba(0,0,0,0.65)" }}>
+                {c.d}
+              </div>
+              <div
+                className="mt-2 text-[12px] font-semibold inline-flex items-center gap-1"
+                style={{ color: c.accent }}
+              >
+                Learn more <ChevronRight className="h-3 w-3" />
+              </div>
+            </div>
+          </button>
         ))}
       </div>
 
@@ -796,6 +898,7 @@ function ContentArea({
           ))}
         </div>
       </div>
+
     </div>
   );
 }
