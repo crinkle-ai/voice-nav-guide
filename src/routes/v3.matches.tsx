@@ -34,13 +34,21 @@ function MatchesPage() {
             Ranked against what you told us. Each match shows why it fits — and where it doesn't.
           </p>
         </div>
-        <Button
-          onClick={() => navigate({ to: "/v3/next-step" })}
-          disabled={!selectedId}
-          className="bg-accent hover:bg-accent-2 text-paper"
-        >
-          Continue with selection <ArrowRight className="ml-1 h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          <a
+            href="/v1/compare-plans"
+            className="text-sm font-medium text-muted-2 underline underline-offset-4 hover:text-ink"
+          >
+            Shop in full view →
+          </a>
+          <Button
+            onClick={() => navigate({ to: "/v3/next-step" })}
+            disabled={!selectedId}
+            className="bg-accent hover:bg-accent-2 text-paper"
+          >
+            Continue with selection <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-5">

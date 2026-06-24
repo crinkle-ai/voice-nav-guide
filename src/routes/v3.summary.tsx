@@ -48,6 +48,13 @@ function SummaryPage() {
     navigate({ to: "/v3/priorities" });
   };
 
+  const takeToWorkspace = async () => {
+    update({ intake: draft, source: "v3" });
+    const { flagWorkspaceHandoff } = await import("@/lib/workspace-session");
+    flagWorkspaceHandoff();
+    navigate({ to: "/v1" });
+  };
+
   return (
     <AppShell step="summary">
       <Stepper current="summary" />
@@ -135,7 +142,10 @@ function SummaryPage() {
           </div>
         </details>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex flex-col sm:flex-row sm:justify-between gap-3">
+          <Button onClick={takeToWorkspace} variant="outline">
+            Take this to my Workspace
+          </Button>
           <Button onClick={cont} className="bg-accent hover:bg-accent-2 text-paper">
             Looks good — what matters most <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
