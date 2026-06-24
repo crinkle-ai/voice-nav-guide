@@ -1,74 +1,63 @@
 ## Goal
 
-Turn the homepage into an executive "pick a demo" chooser that links to three full prototype experiences:
+Let the v3 Medicare Compass demo prove how accurately the AI captured doctor info by checking each doctor against the public NPPES NPI Registry (no API key required, free CMS endpoint at `https://npiregistry.cms.hhs.gov/api/?version=2.1`).
 
-- **V1** — current Crinkle/Shop My Way homepage (moved to `/v1`)
-- **V2** — Unified Health / Welcome to Medicare conversational experience (already at `/v2`)
-- **V3** — Medicare Navigator (UHC AI Intake Pilot) ported in under `/v3/*`
+## What to build
 
-## Changes
+### 1. `verifyProvider` server function
+New file: `src/lib/v3/providers.functions.ts`
 
-### 1. New executive chooser at `/`
+- `createServerFn({ method: "POST" })` from `@tanstack/react-start`.
+- Zod input validator: `{ name?: string, firstName?: string, lastName?: string, specialty?: string, city?: string, state?: string, postalCode?: string, npi?: string }`. Requires either `npi` or a usable name (last name or full `name`).
+- Handler:
+  - Split `name` into first/last if `firstName`/`lastName` not provided.
+  - Build NPPES query: `version=2.1`, `enumeration_type=NPI-1` (individual providers), `first_name`, `last_name`, `city`, `state`, `postal_code`, `taxonomy_description` (from specialty, wildcarded), `limit=10`. If `npi` is supplied, query by `number` only.
+  - `fetch` NPPES with a 6s `AbortSignal.timeout`. On non-200 or fetch error, return `{ status: "error", message }` rather than throwing.
+  - Map results to a compact shape: `{ npi, firstName, lastName, credential, primaryTaxonomy, primaryAddress: { line1, city, state, postalCode }, phone, soleProprietor, enumerationDate }`.
+  - Score each match against the input (last-name exact, city/zip match, taxonomy substring) and return them sorted, plus a top-level `status`: `"verified"` (1 high-confidence match), `"ambiguous"` (multiple), `"not_found"`, or `"error"`.
 
-Rewrite `src/routes/index.tsx` to render a clean chooser page with three large cards (V1 / V2 / V3), short descriptions, and screenshots/icons. Each card links to its demo. Chooser hides the global TopNav, BottomVoiceBar, WorkspaceDrawer, and other chrome (same treatment as `/v2`).
+### 2. Extend the doctor data shape
+`src/lib/v3/intake-types.ts`
 
-### 2. Move V1 home to `/v1`
+- Add an optional `npiVerification` block to `DoctorEntry`:
+  ```ts
+  npiVerification: z.object({
+    status: z.enum(["verified", "ambiguous", "not_found", "error"]),
+    checkedAt: z.string(),
+    matches: z.array(z.object({ npi, firstName, lastName, credential, primaryTaxonomy, primaryAddress, phone })),
+    selectedNpi: z.string().nullable(),
+  }).optional()
+  ```
+- Backwards compatible: existing entries without it keep working.
 
-- Create `src/routes/v1.tsx` containing the existing `Home` / `RambleHero` / `PlanCard` / etc. components verbatim from today's `src/routes/index.tsx`.
-- All V1 sub-pages (`/learn`, `/find-doctors`, `/compare-plans`, `/plans`, `/my-plans`, `/understanding`, `/workspace`, `/compare`, `/login`, `/deck/*`) stay at their current paths — they're the V1 experience. The chooser's "V1" card links to `/v1`.
-- Update `src/routes/__root.tsx` so global chrome (TopNav, BottomVoiceBar, WorkspaceDrawer, overlays) shows on `/v1` and all the existing V1 sub-routes, but is hidden on `/`, `/v2/*`, and `/v3/*`.
-- Add a small "← Back to demos" link in V1's top-left (mirrors the V2 pattern).
+### 3. Wire it into the summary doctor editor
+`src/routes/v3.summary.tsx`
 
-### 3. V2 — minor touch
+- Import `useServerFn` and the new `verifyProvider` function.
+- In `DoctorEditor`, per row add a "Verify with NPI Registry" button (disabled until `name` plus at least one of specialty/city/zip is present).
+- On click: set a per-row `loading` state, call `verifyProvider({ data: {...row} })`, store the response on the row via `onChange` (under `npiVerification`).
+- Render results inline beneath the row:
+  - `verified`: green badge "Verified · NPI 1234567890" + matched name, taxonomy, address.
+  - `ambiguous`: small list (up to 3) of candidate matches; clicking one sets `selectedNpi` and collapses to the verified view.
+  - `not_found`: amber note "No NPI match — try adding city, ZIP, or specialty."
+  - `error`: muted "NPI registry unavailable — try again."
+- Keep the existing "low confidence" warning; suppress it once `npiVerification.status === "verified"`.
 
-- Add the same "← Back to demos" link wording on `/v2` (already exists; just relabel its target text from "Back to main view" to "Back to demos").
-
-### 4. Port Medicare Navigator as `/v3/*`
-
-Copy the full Medicare Navigator flow into this project under a `/v3` namespace so it runs end-to-end without touching V1 or V2.
-
-Routes to create (all gated chrome-less in `__root.tsx`, each uses its own ported AppShell so it looks like the original):
-
-- `src/routes/v3.tsx` — layout route, just renders `<Outlet />`; ensures `/v3/*` paths exist.
-- `src/routes/v3.index.tsx` — home page (mode chooser: Ramble / Structured / Hybrid).
-- `src/routes/v3.intake.tsx`
-- `src/routes/v3.priorities.tsx`
-- `src/routes/v3.matches.tsx`
-- `src/routes/v3.summary.tsx`
-- `src/routes/v3.next-step.tsx`
-
-Supporting files copied from the Medicare Navigator project, namespaced to avoid collisions with this project's existing components:
-
-- `src/components/v3/app-shell.tsx` (ported, with "← Back to demos" link)
-- `src/components/v3/capture-sidebar.tsx`
-- `src/components/v3/intake-chat.tsx`
-- `src/components/v3/voice-intake.tsx`
-- `src/lib/v3/session-store.ts`
-- `src/lib/v3/intake-types.ts`
-- any other `src/lib/*` and `src/data/*` files the V3 routes depend on (resolved during port)
-- any V3-only API routes from `Medicare Navigator/src/routes/api/*` copied under `src/routes/api/v3/*` if the flow calls them
-
-All V3 imports rewritten to point at the namespaced `@/components/v3/*` / `@/lib/v3/*` paths so V1's existing `app-shell.tsx`, `mock/`, etc. are untouched.
-
-### 5. Chrome rules in `__root.tsx`
-
-Update the path checks so:
-
-- `/` (chooser) → no TopNav, no BottomVoiceBar, no overlays, no WorkspaceDrawer.
-- `/v1` and existing legacy routes → full V1 chrome (today's behavior).
-- `/v2/*` → unchanged (no chrome).
-- `/v3/*` → no global chrome; V3 uses its own ported AppShell.
-
-## Out of scope (this turn)
-
-- Visual polish of the chooser beyond a clean card layout.
-- Any new functionality inside V3 beyond what the source project already has.
-- Sharing state across V1/V2/V3 (each demo is independent).
+### 4. Nothing else changes
+- No schema migration, no secrets (NPPES is public).
+- v3 chooser, intake, priorities, matches, next-step screens are untouched.
+- v1 and v2 untouched.
 
 ## Technical notes
 
-- TanStack file-based routing: `v3.intake.tsx` → `/v3/intake`, etc. `v3.tsx` is the layout and must render `<Outlet />`.
-- `routeTree.gen.ts` regenerates automatically; do not hand-edit it.
-- V1's existing global components (`TopNav`, `BottomVoiceBar`, `WorkspaceDrawer`, `LiveAdvisePanel`, `AgentHighlightOverlay`, `PushedComparisonDrawer`, `GuidanceToast`) and `AppProvider` / `LiveAdviseProvider` continue to wrap everything, but their render is gated by pathname so V2 / V3 / chooser stay clean.
-- The Medicare Navigator project uses its own `session-store` (likely Zustand) — copying it as `src/lib/v3/session-store.ts` keeps it isolated from V1's `usePersonaStore` / `useWorkspaceDrawerStore`.
-- If any V3 dependency isn't already installed in this project, install it with `bun add` before the port compiles.
+- NPPES sample call: `GET https://npiregistry.cms.hhs.gov/api/?version=2.1&first_name=anna&last_name=lee&city=Austin&state=TX&limit=10`.
+- The endpoint is CORS-restricted in browsers, which is why this must run server-side via `createServerFn` (not a client `fetch`).
+- State derivation: if the user provided only `city` (no state), pass `city` but no `state`; if only `zip`, pass `postal_code` only. NPPES tolerates partials.
+- Use `enumeration_type=NPI-1` to skip organizations; if zero results, retry once without that filter to catch group-listed providers.
+- Public server fn (no auth middleware) — read-only call to a public registry, safe to expose.
+
+## Out of scope
+
+- Saving verification results to a database.
+- Bulk-verify-all button (can add later if useful).
+- Verifying organizations/clinics by name (NPI-2). Easy to extend later.
