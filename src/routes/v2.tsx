@@ -81,6 +81,14 @@ const SUGGESTIONS = [
   "Enrollment Checklist",
 ];
 
+const MEMBER_SUGGESTIONS = [
+  "Review my diabetes information",
+  "Show my medications",
+  "Find a diabetes specialist",
+  "Review my coverage",
+  "Lower my prescription costs",
+];
+
 const EDUCATION_INTENT = [
   "don't know", "dont know", "where to start", "need help", "explain medicare",
   "don't understand", "dont understand", "what is medicare", "just learning",
