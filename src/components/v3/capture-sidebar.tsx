@@ -78,13 +78,33 @@ export function CaptureSidebar({ intake, loading }: { intake: Intake; loading?: 
       <dl className="space-y-3">
         {entries.map(([k, label]) => {
           const field = intake[k];
+          const rawValue = (field as { value: unknown }).value;
+          let display: React.ReactNode;
+          if (k === "medicaid") {
+            const v = rawValue as "yes" | "no" | "applying" | "unsure" | null;
+            const labels: Record<string, string> = {
+              yes: "On Medicaid",
+              no: "Not on Medicaid",
+              applying: "Applying / planning to apply",
+              unsure: "Not sure — check eligibility",
+            };
+            const notes = (field as { notes?: string | null }).notes;
+            display = v ? (
+              <>
+                <div>{labels[v]}</div>
+                {notes && <div className="text-xs text-muted-2">{notes}</div>}
+              </>
+            ) : "—";
+          } else {
+            display = renderValue(rawValue);
+          }
           return (
             <div key={k} className="flex items-start gap-2 text-sm">
               <div className="mt-1">{statusIcon(field.confidence)}</div>
               <div className="flex-1">
                 <dt className="text-xs uppercase tracking-wide text-muted-2">{label}</dt>
                 <dd className={`mt-0.5 ${field.confidence === "missing" ? "text-muted-2/60" : "text-ink"}`}>
-                  {renderValue((field as { value: unknown }).value)}
+                  {display}
                 </dd>
               </div>
             </div>
