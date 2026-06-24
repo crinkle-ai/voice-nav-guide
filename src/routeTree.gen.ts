@@ -27,6 +27,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as V4IndexRouteImport } from './routes/v4.index'
 import { Route as V3IndexRouteImport } from './routes/v3.index'
 import { Route as DeckIndexRouteImport } from './routes/deck.index'
+import { Route as V4SummaryRouteImport } from './routes/v4.summary'
+import { Route as V4PrioritiesRouteImport } from './routes/v4.priorities'
+import { Route as V4NextStepRouteImport } from './routes/v4.next-step'
+import { Route as V4MatchesRouteImport } from './routes/v4.matches'
 import { Route as V4IntakeRouteImport } from './routes/v4.intake'
 import { Route as V3SummaryRouteImport } from './routes/v3.summary'
 import { Route as V3PrioritiesRouteImport } from './routes/v3.priorities'
@@ -133,6 +137,26 @@ const DeckIndexRoute = DeckIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DeckRoute,
 } as any)
+const V4SummaryRoute = V4SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => V4Route,
+} as any)
+const V4PrioritiesRoute = V4PrioritiesRouteImport.update({
+  id: '/priorities',
+  path: '/priorities',
+  getParentRoute: () => V4Route,
+} as any)
+const V4NextStepRoute = V4NextStepRouteImport.update({
+  id: '/next-step',
+  path: '/next-step',
+  getParentRoute: () => V4Route,
+} as any)
+const V4MatchesRoute = V4MatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => V4Route,
+} as any)
 const V4IntakeRoute = V4IntakeRouteImport.update({
   id: '/intake',
   path: '/intake',
@@ -237,6 +261,10 @@ export interface FileRoutesByFullPath {
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
   '/v4/intake': typeof V4IntakeRoute
+  '/v4/matches': typeof V4MatchesRoute
+  '/v4/next-step': typeof V4NextStepRoute
+  '/v4/priorities': typeof V4PrioritiesRoute
+  '/v4/summary': typeof V4SummaryRoute
   '/deck/': typeof DeckIndexRoute
   '/v3/': typeof V3IndexRoute
   '/v4/': typeof V4IndexRoute
@@ -269,6 +297,10 @@ export interface FileRoutesByTo {
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
   '/v4/intake': typeof V4IntakeRoute
+  '/v4/matches': typeof V4MatchesRoute
+  '/v4/next-step': typeof V4NextStepRoute
+  '/v4/priorities': typeof V4PrioritiesRoute
+  '/v4/summary': typeof V4SummaryRoute
   '/deck': typeof DeckIndexRoute
   '/v3': typeof V3IndexRoute
   '/v4': typeof V4IndexRoute
@@ -305,6 +337,10 @@ export interface FileRoutesById {
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
   '/v4/intake': typeof V4IntakeRoute
+  '/v4/matches': typeof V4MatchesRoute
+  '/v4/next-step': typeof V4NextStepRoute
+  '/v4/priorities': typeof V4PrioritiesRoute
+  '/v4/summary': typeof V4SummaryRoute
   '/deck/': typeof DeckIndexRoute
   '/v3/': typeof V3IndexRoute
   '/v4/': typeof V4IndexRoute
@@ -342,6 +378,10 @@ export interface FileRouteTypes {
     | '/v3/priorities'
     | '/v3/summary'
     | '/v4/intake'
+    | '/v4/matches'
+    | '/v4/next-step'
+    | '/v4/priorities'
+    | '/v4/summary'
     | '/deck/'
     | '/v3/'
     | '/v4/'
@@ -374,6 +414,10 @@ export interface FileRouteTypes {
     | '/v3/priorities'
     | '/v3/summary'
     | '/v4/intake'
+    | '/v4/matches'
+    | '/v4/next-step'
+    | '/v4/priorities'
+    | '/v4/summary'
     | '/deck'
     | '/v3'
     | '/v4'
@@ -409,6 +453,10 @@ export interface FileRouteTypes {
     | '/v3/priorities'
     | '/v3/summary'
     | '/v4/intake'
+    | '/v4/matches'
+    | '/v4/next-step'
+    | '/v4/priorities'
+    | '/v4/summary'
     | '/deck/'
     | '/v3/'
     | '/v4/'
@@ -570,6 +618,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeckIndexRouteImport
       parentRoute: typeof DeckRoute
     }
+    '/v4/summary': {
+      id: '/v4/summary'
+      path: '/summary'
+      fullPath: '/v4/summary'
+      preLoaderRoute: typeof V4SummaryRouteImport
+      parentRoute: typeof V4Route
+    }
+    '/v4/priorities': {
+      id: '/v4/priorities'
+      path: '/priorities'
+      fullPath: '/v4/priorities'
+      preLoaderRoute: typeof V4PrioritiesRouteImport
+      parentRoute: typeof V4Route
+    }
+    '/v4/next-step': {
+      id: '/v4/next-step'
+      path: '/next-step'
+      fullPath: '/v4/next-step'
+      preLoaderRoute: typeof V4NextStepRouteImport
+      parentRoute: typeof V4Route
+    }
+    '/v4/matches': {
+      id: '/v4/matches'
+      path: '/matches'
+      fullPath: '/v4/matches'
+      preLoaderRoute: typeof V4MatchesRouteImport
+      parentRoute: typeof V4Route
+    }
     '/v4/intake': {
       id: '/v4/intake'
       path: '/intake'
@@ -714,11 +790,19 @@ const V3RouteWithChildren = V3Route._addFileChildren(V3RouteChildren)
 
 interface V4RouteChildren {
   V4IntakeRoute: typeof V4IntakeRoute
+  V4MatchesRoute: typeof V4MatchesRoute
+  V4NextStepRoute: typeof V4NextStepRoute
+  V4PrioritiesRoute: typeof V4PrioritiesRoute
+  V4SummaryRoute: typeof V4SummaryRoute
   V4IndexRoute: typeof V4IndexRoute
 }
 
 const V4RouteChildren: V4RouteChildren = {
   V4IntakeRoute: V4IntakeRoute,
+  V4MatchesRoute: V4MatchesRoute,
+  V4NextStepRoute: V4NextStepRoute,
+  V4PrioritiesRoute: V4PrioritiesRoute,
+  V4SummaryRoute: V4SummaryRoute,
   V4IndexRoute: V4IndexRoute,
 }
 
