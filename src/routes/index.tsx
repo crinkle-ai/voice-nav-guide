@@ -58,30 +58,15 @@ const DEMOS: DemoCard[] = [
     ring: "ring-indigo-200",
   },
   {
-    to: "/v3",
-    eyebrow: "Version 3",
-    title: "Medicare Compass — Guided Intake",
-    blurb:
-      "A three-mode AI intake (ramble, structured, hybrid) that builds a structured picture of the caller and ranks Medicare Advantage matches.",
-    bullets: [
-      "Ramble, structured, and hybrid intake styles",
-      "Live capture sidebar + plan match scoring",
-      "Voice or text channel, summary, priorities, matches",
-    ],
-    icon: MessageSquare,
-    accent: "bg-amber-50",
-    ring: "ring-amber-200",
-  },
-  {
     to: "/v4",
-    eyebrow: "Version 4",
+    eyebrow: "Version 3",
     title: "Medicare Compass — Shop Your Way",
     blurb:
       "Three genuinely different experiences: open conversation, a real step-by-step wizard, or a path-picker that tailors the conversation to what matters most.",
     bullets: [
       "Ramble chat, real form wizard, or Shop-Your-Way paths",
       "Doctor-first / drug-first / budget-first / new-to-Medicare lenses",
-      "Same scoring engine and summary as v3",
+      "Same scoring engine and summary as the guided intake",
     ],
     icon: Compass,
     accent: "bg-sky-50",
