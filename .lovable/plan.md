@@ -1,39 +1,56 @@
+
 ## Goal
 
-Make `/v3` read as a real Unified Health Medicare landing page (not a "pilot/testing site"), borrowing the v2 visual cues already in the project. **No functional changes** — the three intake modes (Ramble / Structured / Hybrid), routing, scoring, and downstream pages all work exactly as today.
+Add a new `/v4` experience that is a fork of `/v3` (Medicare Compass), differentiating the three intake modes so each tests a real hypothesis instead of being "the same chat with a different opener." `/v3` stays untouched as a reference.
 
-## Scope (what changes)
+## Approach: fork, don't refactor
 
-Two files only:
+To keep `/v3` working as the current baseline, copy the relevant v3 surface into v4-scoped files. Shared business logic (extraction, matching, intake types, plan data, providers/medications verification functions) is reused as-is — no duplication of backend logic.
 
-### 1. `src/components/v3/app-shell.tsx` — header chrome
+## New files
 
-- Replace the small "M" circle + "Medicare Compass" wordmark with the existing Unified Health logo (`src/assets/unified-health-logo-v2-white.png`, already used in v2) on a dark accent bar, or the dark logo on the current light header — matching v2's brand treatment.
--  
+Routes (file-based, `v4.*`):
+- `src/routes/v4.tsx` — pathless layout wrapper (mirrors `v3.tsx`)
+- `src/routes/v4.index.tsx` — landing page with 3 redesigned mode cards
+- `src/routes/v4.intake.tsx` — branches on mode: ramble → chat, structured → wizard, hybrid → path-picker then chat
+- `src/routes/v4.summary.tsx`, `v4.priorities.tsx`, `v4.matches.tsx`, `v4.next-step.tsx` — thin copies of the v3 equivalents pointing at v4 routes
 
-### 2. `src/routes/v3.index.tsx` — landing copy
+New v4 components (`src/components/v4/`):
+- `app-shell.tsx` — copy of v3 shell, v4 back link / nav
+- `structured-wizard.tsx` — real stepped form: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Writes directly into `state.intake`. No chat, no extraction LLM for owned fields. Progress bar, Back / Next / Skip. Reuses existing `DoctorEditor` and `MedicationEditor` (with NPI / RxNorm verify) for the doctor/med steps.
+- `path-picker.tsx` — 4 cards for Shop Your Way: Keep my doctors / Afford my medications / Lowest cost / New to Medicare. Stores choice in v4 session.
+- `intake-chat.tsx`, `voice-intake.tsx`, `capture-sidebar.tsx` — copies of v3 components, importing v4 session + v4 prompts. Capture sidebar renders as a live preview (no extraction spinner) when mode is `structured`.
 
-- Remove the "Text or Voice AI Intake" pill (it reads as internal/testing language).
-- Headline stays: "From confused to confident, in one honest conversation." (already strong and on-brand for v2's voice).
-- Subhead rewritten away from "Pick the intake style you want to test" toward member-facing copy: e.g. "Medicare doesn't have to be overwhelming. Tell us about your life and we'll guide you to a plan that actually fits — in your words, at your pace."
-- Section heading "Choose an intake style" → "How would you like to start?"
-- Mode card copy reworded so it reads as a member choice, not a test:
-  - **Ramble** → "Just talk" — "Tell us about your life in your own words. We'll listen and only ask when something's missing."
-  - **Structured** → "Step by step" — "Short, clear questions in order. Best when you already know what you're looking for."
-  - **Hybrid** → "A bit of both" — "Start open, then a few targeted questions to fill in the gaps."
-- Card CTA "Start this experience" → "Start here".
-- "How the pilot works" section → "How it works", with steps rewritten to drop "pilot/AI/test" framing where it sounds clinical (keep the four-step structure).
-- Drop the trailing paragraph that references "the telephonic AI intake from the UHC pilot guide" and "prototype". Replace with a short reassuring line, e.g. "You can restart anytime, and nothing is submitted until you say so."
+New v4 lib (`src/lib/v4/`):
+- `session-store.ts` — copy of v3 store with a new localStorage key (`v4-medicare-compass-session-v1`) and an added `path?: "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare"` field.
+- `prompts.ts` — tightened Ramble prompt; 4 path-specific Hybrid prompts that front-load the relevant fields; Structured prompt only used by the optional sidebar helper.
+- `intake.functions.ts` — re-export `extractIntake` from v3 (single source of truth for extraction).
 
-### Out of scope (explicitly unchanged)
+API:
+- `src/routes/api/v4/chat.ts` — copy of `api/v3/chat.ts` but imports `SYSTEM_PROMPTS` from `src/lib/v4/prompts.ts` and accepts an optional `path` to select a Hybrid sub-prompt.
 
-- All three intake modes still exist and still route to `/v3/intake` via the same `start(mode)` handler.
-- `useSession`, `IntakeMode` type, route tree, NPI / RxNorm verification, scoring, summary/priorities/matches/next-step pages — untouched.
-- Color tokens and the v2 blue/serif theme already scoped to `.v3-scope` stay as-is.
-- No new assets generated; reuses the existing Unified Health logo asset.
+## Behavior summary
 
-## Verification
+- **Ramble**: same chat UI as v3. Tighter system prompt: one warm invitation, follow-ups only for missing critical fields. Voice + text.
+- **Structured**: no chat. Real wizard, each step a real form using existing structured shapes. "Need help?" sidebar helper is optional and does not drive flow.
+- **Shop Your Way (hybrid)**: after mode select, `/v4/intake` shows `PathPicker` if no `path` set. Once picked, renders `IntakeChat` / `VoiceIntake` with the path-specific system prompt and a "Path: …" chip at the top. Voice remains available.
 
-- Visit `/v3`, confirm the page reads as a Unified Health landing page (logo upper-left, agent/member links upper-right, no "pilot/test" language anywhere).
-- Click each of the three cards and confirm it still lands on `/v3/intake` with the correct mode set in session.
-- Confirm `/v3/summary`, `/v3/priorities`, `/v3/matches`, `/v3/next-step` still render with the updated shell (new header, new footer) and no broken links.
+## Landing page copy (`v4.index.tsx`)
+
+Three cards exactly as in the attached screenshot:
+- Open conversation — "Just tell us everything"
+- Step-by-step wizard — "Fill out a quick form"
+- Pick your path — "Shop your way" (internal key stays `hybrid`)
+
+"How it works" section rewritten to describe the three distinct experiences.
+
+## Out of scope
+
+- No changes to `/v3` behavior, copy, or files.
+- No schema changes; intake / matching / summary logic unchanged.
+- No new backend besides the v4 chat route (which delegates to existing AI gateway helpers).
+- Executive chooser (`/`) is not modified in this plan — happy to add a v4 tile in a follow-up if you want it surfaced there.
+
+## Open question
+
+Wizard step order defaults to: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Say the word if you want it re-sequenced.
