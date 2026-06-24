@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import demoVideo from "@/assets/medicare-parts-a-b.mp4.asset.json";
+
 
 import { useTrackPage } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
@@ -62,21 +62,6 @@ function Home() {
       {/* Ramble Hero */}
       <RambleHero />
 
-      {/* Demo videos */}
-      <section id="demo" className="mt-16 sm:mt-24">
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground">See how it works</h2>
-        <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-          Talk to your AI Medicare guide — it drives the site for you, from learning the basics to comparing plans.
-        </p>
-        <div className="mt-4 sm:mt-6 grid gap-5 sm:gap-6">
-          <DemoVideoCard
-            kicker="AI Guide"
-            title="Find & compare Medicare plans with AI"
-            desc="A quick walkthrough of using your AI guide to shop plans."
-            src={demoVideo.url}
-          />
-        </div>
-      </section>
 
       {/* Plan types */}
       <section id="plans" className="mt-12 sm:mt-20">
@@ -273,28 +258,6 @@ function RambleHero() {
   );
 }
 
-function DemoVideoCard({ kicker, title, desc, src }: { kicker: string; title: string; desc: string; src: string }) {
-  return (
-    <div className="flex flex-col rounded-2xl border bg-card shadow-sm overflow-hidden">
-      <div className="bg-black">
-        <video
-          src={src}
-          controls
-          preload="metadata"
-          playsInline
-          className="w-full h-auto block"
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
-      <div className="p-4 sm:p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-primary">{kicker}</div>
-        <h3 className="mt-1 text-base sm:text-lg font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
-      </div>
-    </div>
-  );
-}
 
 function PlanCard({ badge, title, desc, bullets }: { badge?: string; title: string; desc: string; bullets: string[] }) {
   return (
