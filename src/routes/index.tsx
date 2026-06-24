@@ -16,13 +16,13 @@ export const Route = createFileRoute("/")({
 });
 
 type DemoCard = {
-  to: "/v1" | "/v2" | "/v3";
+  to: "/v1" | "/v2" | "/v3" | "/v4";
   eyebrow: string;
   title: string;
   blurb: string;
   bullets: string[];
   icon: typeof Compass;
-  accent: string; // bg color class
+  accent: string;
   ring: string;
 };
 
@@ -72,6 +72,21 @@ const DEMOS: DemoCard[] = [
     accent: "bg-amber-50",
     ring: "ring-amber-200",
   },
+  {
+    to: "/v4",
+    eyebrow: "Version 4",
+    title: "Medicare Compass — Shop Your Way",
+    blurb:
+      "Three genuinely different experiences: open conversation, a real step-by-step wizard, or a path-picker that tailors the conversation to what matters most.",
+    bullets: [
+      "Ramble chat, real form wizard, or Shop-Your-Way paths",
+      "Doctor-first / drug-first / budget-first / new-to-Medicare lenses",
+      "Same scoring engine and summary as v3",
+    ],
+    icon: Compass,
+    accent: "bg-sky-50",
+    ring: "ring-sky-200",
+  },
 ];
 
 function ChooserPage() {
@@ -92,7 +107,7 @@ function ChooserPage() {
           </p>
         </header>
 
-        <section className="mt-10 sm:mt-14 grid gap-5 md:grid-cols-3">
+        <section className="mt-10 sm:mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {DEMOS.map((d) => {
             const Icon = d.icon;
             return (
