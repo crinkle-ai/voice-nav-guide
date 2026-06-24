@@ -750,35 +750,6 @@ function ContentArea({
         </span>
       </h1>
 
-      <div className="mt-10 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-20 w-20 rounded-full bg-white/95 grid place-items-center shadow-xl group-hover:scale-105 transition">
-            <Play className="h-8 w-8" style={{ color: UHC_BLUE }} fill={UHC_BLUE} />
-          </div>
-        </div>
-        <div className="absolute bottom-4 left-5 text-white/80 text-sm">
-          {view.kind === "education" ? view.topic : "Medicare in 3 minutes"} · 3:24
-        </div>
-      </div>
-
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { t: "Part A", d: "Hospital coverage — most people pay no premium." },
-          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services." },
-          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage." },
-        ].map((c) => (
-          <div key={c.t} className="rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur">
-            <div style={{ ...SERIF }} className="text-white text-lg font-semibold">{c.t}</div>
-            <div className="mt-1 text-white/70 text-sm leading-relaxed">{c.d}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-10">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/50 mb-3">
-          Where would you like to go next?
-        </div>
-        <div className="flex flex-wrap gap-2">
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
         <div className="lg:col-span-3 rounded-3xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl aspect-video relative group">
           <div className="absolute inset-0 flex items-center justify-center">
@@ -799,6 +770,7 @@ function ContentArea({
           />
         </div>
       </div>
+
 
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
