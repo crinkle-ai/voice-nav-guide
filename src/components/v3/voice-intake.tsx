@@ -80,6 +80,16 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
     setBotLive("");
   };
 
+  const pause = () => {
+    micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = false));
+    setStatus("paused");
+  };
+
+  const resume = () => {
+    micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = true));
+    setStatus("live");
+  };
+
   useImperativeHandle(ref, () => ({
     flush: async () => {
       if (sessionRef.current) await stop();
