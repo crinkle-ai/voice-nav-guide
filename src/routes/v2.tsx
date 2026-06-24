@@ -834,15 +834,51 @@ function ContentArea({
 
 
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { t: "Part A", d: "Hospital coverage — most people pay no premium." },
-          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services." },
-          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage." },
-        ].map((c) => (
-          <div key={c.t} className="rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur">
-            <div style={{ ...SERIF }} className="text-white text-lg font-semibold">{c.t}</div>
-            <div className="mt-1 text-white/70 text-sm leading-relaxed">{c.d}</div>
-          </div>
+        {([
+          {
+            t: "Part A",
+            d: "Hospital coverage — most people pay no premium.",
+            idx: 0 as const,
+            bg: "#EEF0FB", // lavender
+            accent: "#3F3D8C",
+          },
+          {
+            t: "Part B",
+            d: "Doctor visits, preventive care, and outpatient services.",
+            idx: 1 as const,
+            bg: "#E6F4F2", // teal/aqua
+            accent: "#1F7A6B",
+          },
+          {
+            t: "Parts C & D",
+            d: "Medicare Advantage and prescription drug coverage.",
+            idx: 2 as const,
+            bg: "#FDEEE3", // peach
+            accent: "#B5530E",
+          },
+        ]).map((c) => (
+          <button
+            key={c.t}
+            onClick={() => onSuggestion(c.t === "Parts C & D" ? "Prescription Drug Coverage" : `${c.t}`)}
+            className="text-left rounded-2xl p-4 flex items-center gap-4 transition hover:-translate-y-0.5 hover:shadow-xl"
+            style={{ backgroundColor: c.bg }}
+          >
+            <SpriteBadge src={partIcons.url} index={c.idx} size={72} />
+            <div className="flex-1 min-w-0">
+              <div style={SERIF} className="text-xl font-semibold" >
+                <span style={{ color: c.accent }}>{c.t}</span>
+              </div>
+              <div className="mt-0.5 text-[13px] leading-snug" style={{ color: "rgba(0,0,0,0.65)" }}>
+                {c.d}
+              </div>
+              <div
+                className="mt-2 text-[12px] font-semibold inline-flex items-center gap-1"
+                style={{ color: c.accent }}
+              >
+                Learn more <ChevronRight className="h-3 w-3" />
+              </div>
+            </div>
+          </button>
         ))}
       </div>
 
@@ -862,6 +898,7 @@ function ContentArea({
           ))}
         </div>
       </div>
+
     </div>
   );
 }
