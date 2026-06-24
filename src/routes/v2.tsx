@@ -717,40 +717,66 @@ function WorkspaceExpanded({
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
           <div className="px-6 sm:px-10 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-              {WORKSPACE.map((section) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {WORKSPACE.map((section, idx) => {
+                const theme = WS_THEME[section.key] ?? WS_THEME.notes;
+                const Icon = section.icon;
+                const hasScene = theme.sceneIndex !== undefined;
+                const imageLeft = idx % 2 === 1;
                 return (
-                  <div key={section.key} className="min-w-0">
-                    <div className="flex items-center gap-3 mb-3">
-                      <WorkspaceSpriteIcon sectionKey={section.key} size={44} />
-                      <div
-                        className="text-[11px] uppercase tracking-[0.16em] font-semibold"
-                        style={{ color: UHC_BLUE }}
-                      >
-                        {section.title}
+                  <div
+                    key={section.key}
+                    className="rounded-2xl overflow-hidden border min-w-0"
+                    style={{ backgroundColor: theme.tint, borderColor: "rgba(0,38,120,0.08)" }}
+                  >
+                    <div className={`flex ${imageLeft ? "flex-row-reverse" : "flex-row"} gap-4 p-4`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <Icon className="h-4 w-4 shrink-0" style={{ color: theme.accent }} />
+                          <div
+                            className="text-[11px] uppercase tracking-[0.16em] font-semibold"
+                            style={{ color: theme.accent }}
+                          >
+                            {section.title}
+                          </div>
+                        </div>
+                        <ul className="space-y-2">
+                          {section.items.map((it) => (
+                            <li
+                              key={it.id}
+                              className="rounded-lg bg-white/90 px-3 py-2 text-[13px] flex items-center justify-between gap-3"
+                              style={{ color: UHC_BLUE }}
+                            >
+                              <span className="truncate" style={SERIF}>{it.label}</span>
+                              {it.meta && (
+                                <span className="shrink-0 text-[10px] text-black/55">{it.meta}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </div>
-
-                    <ul className="space-y-2">
-                      {section.items.map((it) => (
-                        <li
-                          key={it.id}
-                          className="rounded-xl px-4 py-3 border flex items-center justify-between gap-3"
-                          style={{ borderColor: "rgba(0,38,120,0.14)", color: UHC_BLUE }}
+                      {hasScene ? (
+                        <SpriteBadge
+                          src={workspaceScenes.url}
+                          index={theme.sceneIndex as 0 | 1 | 2}
+                          size={96}
+                        />
+                      ) : (
+                        <div
+                          className="shrink-0 rounded-2xl grid place-items-center"
+                          style={{ width: 96, height: 96, backgroundColor: "white" }}
                         >
-                          <span className="truncate text-[15px]" style={SERIF}>{it.label}</span>
-                          {it.meta && (
-                            <span className="shrink-0 text-[11px] text-black/55">{it.meta}</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                          <Icon className="h-8 w-8" style={{ color: theme.accent }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
