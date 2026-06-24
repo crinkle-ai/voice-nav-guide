@@ -168,9 +168,10 @@ function RootComponent() {
   const hideVoiceBar = pathname.startsWith("/deck");
   const isAltView = pathname === "/v2" || pathname.startsWith("/v2/");
   const isV3View = pathname === "/v3" || pathname.startsWith("/v3/");
+  const isV4View = pathname === "/v4" || pathname.startsWith("/v4/");
   const isChooser = pathname === "/";
-  const hideChrome = hideVoiceBar || isAltView || isV3View || isChooser;
-  const hideTopChrome = isAltView || isV3View || isChooser;
+  const hideChrome = hideVoiceBar || isAltView || isV3View || isV4View || isChooser;
+  const hideTopChrome = isAltView || isV3View || isV4View || isChooser;
 
   return (
     <QueryClientProvider client={queryClient}>
