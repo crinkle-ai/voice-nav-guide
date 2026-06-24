@@ -38,6 +38,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   const userTurnRef = useRef("");
   const botTurnRef = useRef("");
   const messagesRef = useRef(messages);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     messagesRef.current = messages;
