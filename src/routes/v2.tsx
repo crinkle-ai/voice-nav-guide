@@ -357,7 +357,13 @@ function V2Page() {
       {/* Top nav links */}
       <nav className="absolute top-6 right-6 z-50 flex items-center gap-10 text-sm">
         <a className="text-white/85 hover:text-white transition" href="#talk">Talk to an Agent</a>
-        <a className="text-white/85 hover:text-white transition" href="#member">I'm Already a Member</a>
+        <button
+          type="button"
+          onClick={activateMember}
+          className="text-white/85 hover:text-white transition"
+        >
+          I'm Already a Member
+        </button>
       </nav>
 
       {/* Demo nav: v1 link lower-left */}
