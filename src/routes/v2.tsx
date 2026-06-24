@@ -442,6 +442,7 @@ function V2Page() {
               name={name}
               onMinimize={() => setWorkspace("docked")}
               diabetes={diabetes}
+              member={member}
             />
           )}
 
@@ -452,6 +453,7 @@ function V2Page() {
               onExpand={expandWorkspace}
               onMinimize={() => setWorkspace("minimized")}
               diabetes={diabetes}
+              member={member}
             />
           )}
 
