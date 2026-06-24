@@ -566,7 +566,7 @@ function ExpandedModal({
 
 function DockedAssistant({
   messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize,
-  workspaceDocked, workspaceMinimized,
+  workspaceDocked, workspaceMinimized, member = false,
 }: {
   messages: Msg[];
   draft: string;
@@ -577,6 +577,7 @@ function DockedAssistant({
   onMinimize: () => void;
   workspaceDocked: boolean;
   workspaceMinimized: boolean;
+  member?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
