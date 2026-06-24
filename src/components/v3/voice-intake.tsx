@@ -280,7 +280,9 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   };
 
   const isLive = status === "live";
+  const isPaused = status === "paused";
   const isConnecting = status === "connecting";
+  const isActive = isLive || isPaused || isConnecting;
 
   return (
     <div className="flex flex-col h-[70vh] rounded-2xl border border-line bg-paper overflow-hidden">
@@ -301,17 +303,43 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
         <div className="flex items-center gap-2 text-sm">
           <span
             className={`h-2.5 w-2.5 rounded-full ${
-              isLive ? "bg-accent animate-pulse" : isConnecting ? "bg-amber-500 animate-pulse" : "bg-muted-2/40"
+              isLive
+                ? "bg-accent animate-pulse"
+                : isPaused
+                ? "bg-amber-500"
+                : isConnecting
+                ? "bg-amber-500 animate-pulse"
+                : "bg-muted-2/40"
             }`}
           />
           <span className="text-muted-2">
-            {isLive ? "Live — mic is open" : isConnecting ? "Connecting…" : error ? `Error: ${error}` : "Voice off"}
+            {isLive
+              ? "Live — mic is open"
+              : isPaused
+              ? "Paused — mic is muted"
+              : isConnecting
+              ? "Connecting…"
+              : error
+              ? `Error: ${error}`
+              : "Voice off"}
           </span>
         </div>
-        {isLive || isConnecting ? (
-          <Button onClick={stop} variant="outline" className="gap-2">
-            <MicOff className="h-4 w-4" /> Stop
-          </Button>
+        {isActive ? (
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <Button onClick={pause} variant="outline" className="gap-2">
+                <Pause className="h-4 w-4" /> Pause
+              </Button>
+            )}
+            {isPaused && (
+              <Button onClick={resume} className="bg-accent hover:bg-accent-2 text-paper gap-2">
+                <Play className="h-4 w-4" /> Resume
+              </Button>
+            )}
+            <Button onClick={stop} variant="outline" className="gap-2">
+              <MicOff className="h-4 w-4" /> Stop
+            </Button>
+          </div>
         ) : (
           <Button onClick={start} className="bg-accent hover:bg-accent-2 text-paper gap-2">
             {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
