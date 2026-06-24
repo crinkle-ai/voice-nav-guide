@@ -36,7 +36,7 @@ function MatchesPage() {
         </div>
         <div className="flex items-center gap-3">
           <a
-            href="/v1/compare-plans"
+            href="/compare-plans"
             className="text-sm font-medium text-muted-2 underline underline-offset-4 hover:text-ink"
           >
             Shop in full view →
