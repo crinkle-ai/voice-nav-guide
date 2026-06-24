@@ -833,11 +833,12 @@ function DockedWorkspace({
 }
 
 function WorkspaceExpanded({
-  name, onMinimize, diabetes,
+  name, onMinimize, diabetes, member = false,
 }: {
   name: string | null;
   onMinimize: () => void;
   diabetes: DiabetesProfile;
+  member?: boolean;
 }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 sm:px-10 py-12">
@@ -866,7 +867,11 @@ function WorkspaceExpanded({
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
           <div className="px-6 sm:px-10 py-8 space-y-6">
-            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
+            {member ? (
+              <MemberWorkspaceContent />
+            ) : (
+              <>
+                {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
               {WORKSPACE.map((section, idx) => {
