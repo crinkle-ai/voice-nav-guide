@@ -28,6 +28,21 @@ function IntakePage() {
   const lastUserCount = useRef(0);
   const voiceRef = useRef<VoiceIntakeHandle>(null);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
+  const voiceSectionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top on first mount so users land at the Type/Talk toggle.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
+  // When user switches to voice, scroll the Start talking button into view.
+  useEffect(() => {
+    if (channel !== "voice") return;
+    const id = window.setTimeout(() => {
+      voiceSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [channel]);
 
   useEffect(() => {
     if (ready && !state.mode) navigate({ to: "/v3" });
@@ -36,6 +51,7 @@ function IntakePage() {
   useEffect(() => {
     latestMessagesRef.current = state.messages;
   }, [state.messages]);
+
 
   const onMessagesChange = useCallback(
     (messages: UIMessage[]) => {
@@ -159,13 +175,16 @@ function IntakePage() {
               onMessagesChange={onMessagesChange}
             />
           ) : (
-            <VoiceIntake
-              ref={voiceRef}
-              mode={state.mode}
-              messages={state.messages}
-              onMessagesChange={onMessagesChange}
-            />
+            <div ref={voiceSectionRef}>
+              <VoiceIntake
+                ref={voiceRef}
+                mode={state.mode}
+                messages={state.messages}
+                onMessagesChange={onMessagesChange}
+              />
+            </div>
           )}
+
           {!enoughCaptured && (
             <p className="text-xs text-muted-2 mt-3">
               Tip: share your reason for calling, doctors, medications, and budget to unlock matches.
