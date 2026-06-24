@@ -48,6 +48,21 @@ function DeckChooser() {
             appendixCount={3}
           />
         </div>
+
+        <section id="demo" className="mt-12 sm:mt-16">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">See how it works</h2>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+            Talk to your AI Medicare guide — it drives the site for you, from learning the basics to comparing plans.
+          </p>
+          <div className="mt-4 sm:mt-6 grid gap-5 sm:gap-6">
+            <DemoVideoCard
+              kicker="AI Guide"
+              title="Find & compare Medicare plans with AI"
+              desc="A quick walkthrough of using your AI guide to shop plans."
+              src={demoVideo.url}
+            />
+          </div>
+        </section>
       </div>
     </div>
   );
