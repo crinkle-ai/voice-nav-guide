@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Stepper } from "@/components/v3/app-shell";
 import { useSession } from "@/lib/v3/session-store";
-import { FIELD_LABELS, type Intake, type DoctorEntry, type MedicationEntry, type NpiVerification } from "@/lib/v3/intake-types";
+import { FIELD_LABELS, type Intake, type DoctorEntry, type MedicationEntry, type NpiVerification, type RxVerification } from "@/lib/v3/intake-types";
 import { verifyProvider } from "@/lib/v3/providers.functions";
+import { verifyMedication } from "@/lib/v3/medications.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { ArrowRight, Plus, Trash2, AlertTriangle, ShieldCheck, Loader2, Search } from "lucide-react";
+import { ArrowRight, Plus, Trash2, AlertTriangle, ShieldCheck, Loader2, Search, Pill } from "lucide-react";
 
 export const Route = createFileRoute("/v3/summary")({
   head: () => ({ meta: [{ title: "Your summary — Medicare Compass" }] }),
