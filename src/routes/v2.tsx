@@ -215,6 +215,7 @@ function V2Page() {
   const [draft, setDraft] = useState("");
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
+  const [diabetes, setDiabetes] = useState<DiabetesProfile>({ step: -1 });
 
   // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
@@ -226,6 +227,28 @@ function V2Page() {
     setAssistant("minimized");
   };
 
+  const advanceDiabetes = (key: keyof DiabetesProfile, value: string) => {
+    setDiabetes((prev) => {
+      const next: DiabetesProfile = { ...prev, [key]: value };
+      // advance to next non-skipped step
+      let s = (prev.step < 0 ? 0 : prev.step) + 1;
+      while (s < DIABETES_QUESTIONS.length && DIABETES_QUESTIONS[s].skipIf?.(next)) {
+        s += 1;
+      }
+      next.step = s;
+      return next;
+    });
+    // Friendly assistant acknowledgement
+    const q = DIABETES_QUESTIONS.find((x) => x.key === key);
+    if (q) {
+      setMessages((m) => [
+        ...m,
+        { role: "user", text: value },
+        { role: "assistant", text: ackForDiabetes(key, value) },
+      ]);
+    }
+  };
+
   const respondTo = (text: string) => {
     setMessages((m) => {
       const userTurn = m.filter((x) => x.role === "user").length;
@@ -235,6 +258,10 @@ function V2Page() {
         const first = text.split(/\s+/)[0].replace(/[^a-zA-Z'-]/g, "");
         if (first) setName(first);
         reply = `It's lovely to meet you, ${first || "there"}. I'll be your guide through Medicare — at your pace, no pressure.\n\nTo get started, what brings you here today? Are you turning 65 soon, exploring plans, or looking to switch?`;
+      } else if (detectDiabetesIntent(text)) {
+        setView({ kind: "diabetes" });
+        setDiabetes((p) => (p.step < 0 ? { ...p, step: 0 } : p));
+        reply = "Thank you for sharing that. Managing diabetes alongside Medicare is something I help people with often.\n\nI've opened your Diabetes Journey on the left. If it's alright, I'd like to ask a few short questions so I can personalize what I show you — and save the important details to your Workspace.";
       } else if (detectEducationIntent(text)) {
         setView({ kind: "education", topic: "Understanding Medicare" });
         reply = "That's a wonderful place to begin. I've opened a short overview of Medicare on the left — it walks through Parts A, B, C, and D in plain language. Watch when you're ready, and ask me anything along the way.";
@@ -263,6 +290,7 @@ function V2Page() {
       setWorkspace("docked");
     }
   };
+
 
   const send = (raw: string) => {
     const text = raw.trim();
