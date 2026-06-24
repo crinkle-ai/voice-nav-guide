@@ -134,9 +134,10 @@ const DIABETES_QUESTIONS: DiabetesQuestion[] = [
   { key: "focus", prompt: "What would you like help with today?", options: ["Understanding diabetes", "Managing medications", "Lowering costs", "Finding providers", "Nutrition and diet", "Monitoring blood sugar", "Insurance coverage", "Something else"] },
 ];
 
-const DIABETES_TINT = "#ECFBF6";
-const DIABETES_ACCENT = "#0E7C5A";
-const DIABETES_DEEP = "#0B5C44";
+// Diabetes uses the Teal topic color (per topic color system).
+const DIABETES_TINT = "#DCF3F7";
+const DIABETES_ACCENT = "#00A5BE";
+const DIABETES_DEEP = "#006A7A";
 
 
 // ----- Workspace mock data -----
@@ -676,12 +677,13 @@ const WS_THEME: Record<string, {
   accent: string;          // accent text/icon color
   sceneIndex?: 0 | 1 | 2;  // index into workspaceScenes sprite (if any)
 }> = {
-  plans:    { tint: "#EEF2FF", accent: "#3F3D8C", sceneIndex: 0 }, // indigo / clipboard
-  doctors:  { tint: "#ECF7F4", accent: "#1F7A6B", sceneIndex: 1 }, // teal / doctor
-  meds:     { tint: "#FFF1E8", accent: "#B5530E", sceneIndex: 2 }, // peach / pills
-  dates:    { tint: "#E8F1FF", accent: "#1E3A8A" },
-  progress: { tint: "#ECFDF5", accent: "#0E7C5A" },
-  notes:    { tint: "#FBF1FF", accent: "#6B2E8E" },
+  // Topic color system: stronger, saturated accents on lighter tints.
+  plans:    { tint: "#E6F0FA", accent: "#002678", sceneIndex: 0 }, // Blue — Saved Plans
+  doctors:  { tint: "#DCF3F7", accent: "#00A5BE", sceneIndex: 1 }, // Teal — Doctors
+  meds:     { tint: "#FDE4D2", accent: "#E85C1C", sceneIndex: 2 }, // Orange — Medications
+  dates:    { tint: "#FBF1D2", accent: "#B5841A" },                // Yellow — Calendar
+  progress: { tint: "#E0DCEF", accent: "#5B43B8" },                // Purple — Health Journeys
+  notes:    { tint: "#DCEFD6", accent: "#2D9C2D" },                // Green — Wellness
 };
 
 function WorkspaceList({ dense = false }: { dense?: boolean }) {
@@ -942,9 +944,9 @@ function ContentArea({
 
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {([
-          { t: "Part A", d: "Hospital coverage — most people pay no premium.", idx: 0 as const, bg: "#EEF0FB", accent: "#3F3D8C" },
-          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services.", idx: 1 as const, bg: "#E6F4F2", accent: "#1F7A6B" },
-          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage.", idx: 2 as const, bg: "#FDEEE3", accent: "#B5530E" },
+          { t: "Part A", d: "Hospital coverage — most people pay no premium.", idx: 0 as const, bg: "#E6F0FA", accent: "#002678" },
+          { t: "Part B", d: "Doctor visits, preventive care, and outpatient services.", idx: 1 as const, bg: "#DCF3F7", accent: "#00A5BE" },
+          { t: "Parts C & D", d: "Medicare Advantage and prescription drug coverage.", idx: 2 as const, bg: "#FDE4D2", accent: "#E85C1C" },
         ]).map((c) => (
           <button
             key={c.t}
@@ -1457,8 +1459,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: d.type ? `Living well with ${d.type}` : "Understanding your diabetes",
       body: "Plain-language guide tailored to your situation — daily care, warning signs, and when to call your doctor.",
       cta: "Open guide",
-      bg: "#ECF7F4",
-      accent: "#1F7A6B",
+      bg: "#DCF3F7",   // Teal — Diabetes
+      accent: "#00A5BE",
     });
   }
   if (d.takesMeds === "Yes" || d.meds) {
@@ -1467,8 +1469,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: d.meds ? `How plans cover ${d.meds.split(",")[0]}` : "Your medication coverage",
       body: "Compare what each Medicare plan pays for your prescriptions, including tier and pharmacy options.",
       cta: "Compare coverage",
-      bg: "#FFF1E8",
-      accent: "#B5530E",
+      bg: "#FDE4D2",   // Orange — Prescriptions
+      accent: "#E85C1C",
     });
   }
   if (d.focus === "Lowering costs" || d.focus === "Insurance coverage") {
@@ -1477,8 +1479,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Lowering your diabetes costs",
       body: "Extra Help, manufacturer programs, and plan benefits that reduce out-of-pocket spend.",
       cta: "Show savings options",
-      bg: "#EEF2FF",
-      accent: "#3F3D8C",
+      bg: "#FBF1D2",   // Yellow — Financial
+      accent: "#B5841A",
     });
   }
   if (d.focus === "Finding providers") {
@@ -1487,8 +1489,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Diabetes specialists near you",
       body: "Endocrinologists, certified diabetes educators, and primary care doctors that accept your plan.",
       cta: "Find providers",
-      bg: "#E8F1FF",
-      accent: "#1E3A8A",
+      bg: "#E6F0FA",   // Blue — Doctors
+      accent: "#002678",
     });
   }
   if (d.focus === "Nutrition and diet") {
@@ -1497,8 +1499,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Nutrition support",
       body: "Covered nutrition counseling, meal benefits, and trusted resources for diabetes-friendly eating.",
       cta: "Explore nutrition",
-      bg: "#ECFDF5",
-      accent: "#0E7C5A",
+      bg: "#DCEFD6",   // Green — Wellness
+      accent: "#2D9C2D",
     });
   }
   if (d.lastA1C) {
@@ -1507,8 +1509,8 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
       title: "Your A1C and labs",
       body: "How Medicare covers A1C tests, eye exams, and foot care — and when to schedule each.",
       cta: "See preventive coverage",
-      bg: "#FBF1FF",
-      accent: "#6B2E8E",
+      bg: "#E0DCEF",   // Purple — Enrollment / health journey
+      accent: "#5B43B8",
     });
   }
   return cards.slice(0, 3);
