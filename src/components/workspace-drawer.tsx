@@ -109,22 +109,8 @@ export function WorkspaceDrawer() {
               </div>
             )}
 
-            {/* Narrative mirror */}
-            {narrative && (
-              <div className="rounded-2xl border border-border bg-primary-soft/40 p-4">
-                <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-accent-foreground">
-                  <Sparkles className="h-3 w-3" /> Here's what I'm hearing
-                </div>
-                <p className="mt-2 text-[14px] leading-relaxed text-ink">{narrative}</p>
-                <Link
-                  to="/v3"
-                  onClick={() => setOpen(false)}
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                >
-                  Tell us more → <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-            )}
+            {/* Unified intake → workspace handoff summary */}
+            {hasIntake && <IntakeHandoffSummary />}
 
             {/* Route */}
             <Section icon={RouteIcon} title="What will shape your route" count={`${steps.length} steps`} defaultOpen>
