@@ -587,11 +587,10 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
   return (
     <div className={`space-y-${dense ? 4 : 6}`}>
       {WORKSPACE.map((section) => {
-        const Icon = section.icon;
         return (
           <div key={section.key}>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
+            <div className="flex items-center gap-2.5 mb-2">
+              <WorkspaceSpriteIcon sectionKey={section.key} size={28} />
               <div
                 className="text-[11px] uppercase tracking-[0.14em] font-semibold"
                 style={{ color: UHC_BLUE }}
@@ -599,6 +598,7 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
                 {section.title}
               </div>
             </div>
+
             <ul className="space-y-1.5">
               {section.items.map((it) => (
                 <li
