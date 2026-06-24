@@ -11,6 +11,7 @@ import {
 import { hasAnyIntake } from "@/lib/workspace-derivations";
 import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
 import { ArrowRight, Check, Sparkles, Star, X } from "lucide-react";
+import { IntakeHandoffSummary } from "@/components/intake-handoff-summary";
 
 export const Route = createFileRoute("/my-matches")({
   head: () => ({ meta: [{ title: "Your matches — Unified Health" }] }),
