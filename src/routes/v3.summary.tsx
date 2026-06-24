@@ -375,10 +375,85 @@ function MedicationEditor({
   onChange: (next: MedicationEntry[]) => void;
 }) {
   const list = medications;
+  const verifyFn = useServerFn(verifyMedication);
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
+
   const update = (i: number, patch: Partial<MedicationEntry>) =>
     onChange(list.map((m, idx) => (idx === i ? { ...m, ...patch } : m)));
   const remove = (i: number) => onChange(list.filter((_, idx) => idx !== i));
   const add = () => onChange([...list, emptyMedication()]);
+
+  const runVerify = async (i: number, overrides?: Partial<MedicationEntry>) => {
+    const m = { ...list[i], ...(overrides ?? {}) };
+    setLoadingIdx(i);
+    try {
+      const result = await verifyFn({
+        data: {
+          name: m.name.trim(),
+          strength: m.strength?.trim() || undefined,
+          doseForm: m.doseForm?.trim() || undefined,
+        },
+      });
+
+      const base: RxVerification = {
+        status: result.status,
+        checkedAt: new Date().toISOString(),
+        rxcui: null,
+        canonicalName: null,
+        tty: null,
+        ingredient: null,
+        brandNames: [],
+        strengthMatch: false,
+        doseFormMatch: false,
+        spellingCorrected: null,
+        candidates: [],
+      };
+      let rxVerification: RxVerification;
+      if (result.status === "verified") {
+        rxVerification = {
+          ...base,
+          status: "verified",
+          rxcui: result.rxcui,
+          canonicalName: result.canonicalName,
+          tty: result.tty,
+          ingredient: result.ingredient,
+          brandNames: result.brandNames,
+          strengthMatch: result.strengthMatch,
+          doseFormMatch: result.doseFormMatch,
+          spellingCorrected: result.spellingCorrected,
+          candidates: result.candidates,
+        };
+      } else if (result.status === "needs_detail" || result.status === "ambiguous") {
+        rxVerification = {
+          ...base,
+          status: result.status,
+          spellingCorrected: result.spellingCorrected,
+          candidates: result.candidates,
+        };
+      } else if (result.status === "not_found") {
+        rxVerification = { ...base, status: "not_found", spellingCorrected: result.spellingCorrected };
+      } else {
+        rxVerification = { ...base, status: "error", message: result.message };
+      }
+
+      onChange(list.map((row, idx) => (idx === i ? { ...row, ...(overrides ?? {}), rxVerification } : row)));
+    } finally {
+      setLoadingIdx(null);
+    }
+  };
+
+  // Parse a strength + dose form out of a canonical RxNorm SCD/SBD name, e.g.
+  // "atorvastatin 20 MG Oral Tablet" -> { strength: "20 mg", doseForm: "Oral Tablet" }
+  const parseProduct = (name: string): { strength?: string; doseForm?: string } => {
+    const m = name.match(/(\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|unit|iu|%))\s+(.*)/i);
+    if (!m) return {};
+    return { strength: m[1].toLowerCase().replace(/\s+/g, " "), doseForm: m[2].trim() };
+  };
+
+  const pickCandidate = (i: number, name: string) => {
+    const parsed = parseProduct(name);
+    void runVerify(i, { name, ...parsed });
+  };
 
   return (
     <div className="space-y-3">
@@ -387,6 +462,8 @@ function MedicationEditor({
       )}
       {list.map((m, i) => {
         const incomplete = m.name.trim() && (!m.strength?.trim() || !m.doseForm?.trim());
+        const v = m.rxVerification;
+        const canVerify = m.name.trim().length > 1;
         return (
           <div key={i} className="rounded-lg border border-line bg-canvas/40 p-3 space-y-2">
             <div className="flex items-start gap-2">
@@ -422,11 +499,110 @@ function MedicationEditor({
                 onChange={(e) => update(i, { frequency: e.target.value })}
               />
             </div>
-            {incomplete && (
-              <div className="flex items-center gap-1.5 text-xs text-amber-700">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                Add strength and dose form to identify the product (e.g. "20 mg oral tablet").
+            <div className="flex items-center justify-between gap-2 pt-1">
+              {incomplete && v?.status !== "verified" ? (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Add strength and dose form to identify the product (e.g. "20 mg oral tablet").
+                </div>
+              ) : <span />}
+              <button
+                type="button"
+                onClick={() => runVerify(i)}
+                disabled={!canVerify || loadingIdx === i}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-2 disabled:text-muted-2 disabled:cursor-not-allowed"
+              >
+                {loadingIdx === i ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Search className="h-3.5 w-3.5" />
+                )}
+                {v ? "Re-check RxNorm" : "Verify with RxNorm"}
+              </button>
+            </div>
+            {v?.status === "verified" && (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-medium text-emerald-800">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Verified · RxCUI {v.rxcui}
+                  {v.tty && <span className="text-[10px] text-emerald-700/80">({v.tty})</span>}
+                </div>
+                <div className="text-emerald-900">{v.canonicalName}</div>
+                {v.ingredient && v.ingredient !== v.canonicalName && (
+                  <div className="text-emerald-900/80">Ingredient: {v.ingredient}</div>
+                )}
+                {v.brandNames.length > 0 && (
+                  <div className="text-emerald-900/70">
+                    Brands: {v.brandNames.slice(0, 3).join(", ")}
+                  </div>
+                )}
+                {v.spellingCorrected && (
+                  <div className="text-emerald-900/60 italic">
+                    Auto-corrected from "{m.name}" → "{v.spellingCorrected}"
+                  </div>
+                )}
+                {(!v.strengthMatch || !v.doseFormMatch) && (m.strength || m.doseForm) && (
+                  <div className="flex items-center gap-1.5 text-amber-700 pt-1">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Matched the drug, but {!v.strengthMatch ? "strength" : "dose form"} didn't line up — confirm with your pharmacy.
+                  </div>
+                )}
               </div>
+            )}
+            {v?.status === "needs_detail" && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs space-y-1.5">
+                <div className="font-medium text-amber-800">
+                  Found the drug — pick the exact product:
+                </div>
+                {v.candidates.slice(0, 4).map((c) => (
+                  <button
+                    key={c.rxcui}
+                    type="button"
+                    onClick={() => pickCandidate(i, c.name)}
+                    className="w-full text-left rounded border border-amber-200 bg-paper p-2 hover:border-amber-400"
+                  >
+                    <Pill className="inline h-3 w-3 mr-1 text-amber-700" />
+                    <span className="font-medium text-ink">{c.name}</span>
+                    <span className="ml-2 text-[10px] text-muted-2">{c.tty} · RxCUI {c.rxcui}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {v?.status === "ambiguous" && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs space-y-1.5">
+                <div className="font-medium text-amber-800">Multiple drugs match — pick one:</div>
+                {v.candidates.slice(0, 4).map((c) => (
+                  <button
+                    key={c.rxcui}
+                    type="button"
+                    onClick={() => pickCandidate(i, c.name)}
+                    className="w-full text-left rounded border border-amber-200 bg-paper p-2 hover:border-amber-400"
+                  >
+                    <span className="font-medium text-ink">{c.name}</span>
+                    <span className="ml-2 text-[10px] text-muted-2">{c.tty} · RxCUI {c.rxcui}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {v?.status === "not_found" && (
+              <div className="text-xs text-amber-700">
+                No RxNorm match.
+                {v.spellingCorrected && (
+                  <>
+                    {" "}Did you mean{" "}
+                    <button
+                      type="button"
+                      className="underline font-medium"
+                      onClick={() => runVerify(i, { name: v.spellingCorrected! })}
+                    >
+                      {v.spellingCorrected}
+                    </button>?
+                  </>
+                )}
+              </div>
+            )}
+            {v?.status === "error" && (
+              <div className="text-xs text-muted-2">RxNorm unavailable — try again.</div>
             )}
           </div>
         );
