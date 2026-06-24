@@ -13,12 +13,16 @@ import {
   FileCheck2,
   StickyNote,
   ChevronRight,
+  Activity,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
 import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
 import partIcons from "@/assets/v2-part-icons.png.asset.json";
 import workspaceScenes from "@/assets/v2-workspace-scenes.png.asset.json";
+import diabetesIllustration from "@/assets/v2-diabetes-illustration.png.asset.json";
 
 // Both sprites are 3 horizontal subjects in a 1536x1024 image.
 // backgroundSize: 300% 100%; x = 0% / 50% / 100% selects subject 1/2/3.
