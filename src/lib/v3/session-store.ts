@@ -8,6 +8,7 @@ export type SessionState = {
   intake: Intake;
   finalPriorities: string[];
   finished: boolean;
+  source: "v3" | "manual" | null;
 };
 
 const KEY = "v3-medicare-compass-session-v1";
@@ -18,6 +19,7 @@ const initial: SessionState = {
   intake: emptyIntake(),
   finalPriorities: [],
   finished: false,
+  source: null,
 };
 
 function read(): SessionState {
