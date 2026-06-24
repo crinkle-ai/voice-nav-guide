@@ -811,8 +811,10 @@ function WorkspaceExpanded({
         </div>
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
-          <div className="px-6 sm:px-10 py-8">
+          <div className="px-6 sm:px-10 py-8 space-y-6">
+            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
               {WORKSPACE.map((section, idx) => {
                 const theme = WS_THEME[section.key] ?? WS_THEME.notes;
                 const Icon = section.icon;
