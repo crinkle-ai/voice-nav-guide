@@ -81,6 +81,14 @@ const SUGGESTIONS = [
   "Enrollment Checklist",
 ];
 
+const MEMBER_SUGGESTIONS = [
+  "Review my diabetes information",
+  "Show my medications",
+  "Find a diabetes specialist",
+  "Review my coverage",
+  "Lower my prescription costs",
+];
+
 const EDUCATION_INTENT = [
   "don't know", "dont know", "where to start", "need help", "explain medicare",
   "don't understand", "dont understand", "what is medicare", "just learning",
@@ -217,6 +225,7 @@ function V2Page() {
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
   const [diabetes, setDiabetes] = useState<DiabetesProfile>({ step: -1 });
+  const [member, setMember] = useState(false);
 
   // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
@@ -226,6 +235,32 @@ function V2Page() {
   const expandWorkspace = () => {
     setWorkspace("expanded");
     setAssistant("minimized");
+  };
+
+  const activateMember = () => {
+    setMember(true);
+    setName("Margaret");
+    setView({ kind: "home" });
+    setAssistant("docked");
+    setWorkspace("docked");
+    setDiabetes({
+      step: DIABETES_QUESTIONS.length,
+      diagnosed: "Yes",
+      type: "Type 2",
+      duration: "1–5 years",
+      takesMeds: "Yes",
+      meds: "Metformin",
+      lastA1C: "Within 3 months",
+      focus: "Lowering costs",
+    });
+    setMessages([
+      { role: "assistant", text: "Let's continue our conversation." },
+      {
+        role: "assistant",
+        text:
+          "I remember we've been discussing your diabetes care, medications, and coverage options.\n\nWhat would you like to explore next?",
+      },
+    ]);
   };
 
   const advanceDiabetes = (key: keyof DiabetesProfile, value: string) => {
@@ -322,7 +357,13 @@ function V2Page() {
       {/* Top nav links */}
       <nav className="absolute top-6 right-6 z-50 flex items-center gap-10 text-sm">
         <a className="text-white/85 hover:text-white transition" href="#talk">Talk to an Agent</a>
-        <a className="text-white/85 hover:text-white transition" href="#member">I'm Already a Member</a>
+        <button
+          type="button"
+          onClick={activateMember}
+          className="text-white/85 hover:text-white transition"
+        >
+          I'm Already a Member
+        </button>
       </nav>
 
       {/* Demo nav: v1 link lower-left */}
@@ -345,6 +386,7 @@ function V2Page() {
             onSuggestion={onSuggestion}
             diabetes={diabetes}
             onAnswerDiabetes={advanceDiabetes}
+            member={member}
           />
 
         </main>
@@ -373,6 +415,7 @@ function V2Page() {
           onMinimize={() => setAssistant("minimized")}
           workspaceDocked={workspace === "docked"}
           workspaceMinimized={workspace === "minimized"}
+          member={member}
         />
       )}
 
@@ -399,6 +442,7 @@ function V2Page() {
               name={name}
               onMinimize={() => setWorkspace("docked")}
               diabetes={diabetes}
+              member={member}
             />
           )}
 
@@ -409,6 +453,7 @@ function V2Page() {
               onExpand={expandWorkspace}
               onMinimize={() => setWorkspace("minimized")}
               diabetes={diabetes}
+              member={member}
             />
           )}
 
@@ -521,7 +566,7 @@ function ExpandedModal({
 
 function DockedAssistant({
   messages, draft, setDraft, onSend, onSuggestion, onExpand, onMinimize,
-  workspaceDocked, workspaceMinimized,
+  workspaceDocked, workspaceMinimized, member = false,
 }: {
   messages: Msg[];
   draft: string;
@@ -532,6 +577,7 @@ function DockedAssistant({
   onMinimize: () => void;
   workspaceDocked: boolean;
   workspaceMinimized: boolean;
+  member?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -591,7 +637,7 @@ function DockedAssistant({
             Suggested next steps
           </div>
           <div className="flex flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => (
+            {(member ? MEMBER_SUGGESTIONS : SUGGESTIONS).map((s) => (
               <button
                 key={s}
                 onClick={() => onSuggestion(s)}
@@ -755,15 +801,15 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
 
 
 function DockedWorkspace({
-  name, assistantDocked, onExpand, onMinimize, diabetes,
+  name, assistantDocked, onExpand, onMinimize, diabetes, member = false,
 }: {
   name: string | null;
   assistantDocked: boolean;
   onExpand: () => void;
   onMinimize: () => void;
   diabetes: DiabetesProfile;
+  member?: boolean;
 }) {
-  // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
   const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
 
   return (
@@ -773,19 +819,26 @@ function DockedWorkspace({
     >
       <WorkspaceHeader name={name} onExpand={onExpand} onMinimize={onMinimize} compact />
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
-        {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
-        <WorkspaceList dense />
+        {member ? (
+          <MemberWorkspaceContent dense />
+        ) : (
+          <>
+            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
+            <WorkspaceList dense />
+          </>
+        )}
       </div>
     </aside>
   );
 }
 
 function WorkspaceExpanded({
-  name, onMinimize, diabetes,
+  name, onMinimize, diabetes, member = false,
 }: {
   name: string | null;
   onMinimize: () => void;
   diabetes: DiabetesProfile;
+  member?: boolean;
 }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start px-6 sm:px-10 py-12">
@@ -814,7 +867,11 @@ function WorkspaceExpanded({
 
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
           <div className="px-6 sm:px-10 py-8 space-y-6">
-            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
+            {member ? (
+              <MemberWorkspaceContent />
+            ) : (
+              <>
+                {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} />}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
               {WORKSPACE.map((section, idx) => {
@@ -873,6 +930,8 @@ function WorkspaceExpanded({
                 );
               })}
             </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -882,16 +941,17 @@ function WorkspaceExpanded({
 }
 
 function ContentArea({
-  view, name, onSuggestion, diabetes, onAnswerDiabetes,
+  view, name, onSuggestion, diabetes, onAnswerDiabetes, member = false,
 }: {
   view: ContentView;
   name: string | null;
   onSuggestion: (s: string) => void;
   diabetes: DiabetesProfile;
   onAnswerDiabetes: (key: keyof DiabetesProfile, value: string) => void;
+  member?: boolean;
 }) {
   if (view.kind === "home") {
-    return <EmptyContentArea name={name} />;
+    return member ? <MemberEmptyContent name={name ?? "Margaret"} /> : <EmptyContentArea name={name} />;
   }
 
   if (view.kind === "diabetes") {
@@ -1514,4 +1574,257 @@ function personalizedDiabetesCards(d: DiabetesProfile) {
     });
   }
   return cards.slice(0, 3);
+}
+
+// ============================================================
+// Returning Member experience
+// ============================================================
+
+function MemberEmptyContent({ name }: { name: string }) {
+  return (
+    <div className="relative">
+      <div className="text-xs uppercase tracking-[0.18em] text-white/60">
+        Unified Health · Medicare
+      </div>
+      <h1
+        className="mt-3 text-white text-4xl sm:text-5xl leading-tight font-normal"
+        style={SERIF}
+      >
+        Welcome back, {name}
+        <span className="block text-white/70 text-2xl sm:text-3xl mt-2">
+          We've kept everything just like you left it.
+        </span>
+      </h1>
+
+      {/* Cue 1 — continue conversation, arrow toward assistant (top-right) */}
+      <div className="relative mt-24 sm:mt-28">
+        <div className="max-w-[520px]">
+          <p
+            className="text-white font-semibold leading-[1.1] text-3xl sm:text-4xl"
+            style={SERIF}
+          >
+            Continue your conversation here
+          </p>
+        </div>
+        <svg
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute -top-4 right-[-40px] w-[440px] h-[200px] opacity-80"
+          viewBox="0 0 440 200"
+          fill="none"
+        >
+          <defs>
+            <marker id="v2-member-arrow-1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,0.85)" />
+            </marker>
+          </defs>
+          <path
+            d="M 20 160 C 140 180, 240 100, 300 50 S 410 20, 425 20"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="2 7"
+            fill="none"
+            markerEnd="url(#v2-member-arrow-1)"
+          />
+        </svg>
+      </div>
+
+      {/* Cue 2 — workspace, arrow toward workspace (bottom-right) */}
+      <div className="relative mt-32 sm:mt-40">
+        <div className="max-w-[520px]">
+          <p
+            className="text-white font-semibold leading-[1.15] text-2xl sm:text-3xl"
+            style={SERIF}
+          >
+            Your workspace with all your saved information is here.
+          </p>
+        </div>
+        <svg
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute -top-4 right-[-40px] w-[440px] h-[200px] opacity-80"
+          viewBox="0 0 440 200"
+          fill="none"
+        >
+          <defs>
+            <marker id="v2-member-arrow-2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,0.85)" />
+            </marker>
+          </defs>
+          <path
+            d="M 20 40 C 140 30, 240 110, 300 150 S 410 180, 425 180"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="2 7"
+            fill="none"
+            markerEnd="url(#v2-member-arrow-2)"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function MemberDiabetesJourneyCard({ dense = false }: { dense?: boolean }) {
+  const rows: { label: string; value: string }[] = [
+    { label: "Condition", value: "Type 2 Diabetes" },
+    { label: "Diagnosed", value: "2.5 years ago" },
+    { label: "Current Medication", value: "Metformin" },
+    { label: "Last A1C", value: "7.1%" },
+    { label: "Current Focus", value: "Lowering medication costs" },
+    { label: "Status", value: "Actively Managing" },
+  ];
+  return (
+    <div
+      className="rounded-2xl overflow-hidden border"
+      style={{ backgroundColor: DIABETES_TINT, borderColor: "rgba(0,165,190,0.25)" }}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div
+          className="shrink-0 rounded-2xl grid place-items-center"
+          style={{ width: dense ? 56 : 80, height: dense ? 56 : 80, backgroundColor: "white" }}
+        >
+          <img
+            src={diabetesIllustration.url}
+            alt=""
+            className="object-contain"
+            style={{ width: dense ? 44 : 64, height: dense ? 44 : 64 }}
+            loading="lazy"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5 shrink-0" style={{ color: DIABETES_ACCENT }} />
+            <div
+              className="text-[10px] uppercase tracking-[0.18em] font-semibold"
+              style={{ color: DIABETES_ACCENT }}
+            >
+              Diabetes Journey
+            </div>
+          </div>
+          <div
+            className="mt-1 text-[15px] font-semibold"
+            style={{ ...SERIF, color: DIABETES_DEEP }}
+          >
+            Your ongoing diabetes care
+          </div>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <dl className="rounded-xl bg-white/90 divide-y divide-black/5 overflow-hidden">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-3 px-3 py-2 text-[12px]">
+              <dt className="w-32 shrink-0 text-black/55 uppercase tracking-wider text-[10px]">
+                {r.label}
+              </dt>
+              <dd className="flex-1 truncate" style={{ ...SERIF, color: UHC_BLUE }}>
+                {r.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+type MemberSection = {
+  key: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  tint: string;
+  accent: string;
+  items: { id: string; label: string; meta?: string }[];
+};
+
+const MEMBER_SECTIONS: MemberSection[] = [
+  {
+    key: "doctors",
+    title: "Saved Doctors",
+    icon: Stethoscope,
+    tint: "#E6F0FA",
+    accent: "#002678",
+    items: [
+      { id: "md1", label: "Dr. Patel", meta: "Primary Care" },
+      { id: "md2", label: "Dr. Nguyen", meta: "Endocrinology" },
+    ],
+  },
+  {
+    key: "meds",
+    title: "Medications",
+    icon: Pill,
+    tint: "#FDE4D2",
+    accent: "#E85C1C",
+    items: [
+      { id: "mm1", label: "Metformin", meta: "500 mg · daily" },
+      { id: "mm2", label: "Atorvastatin", meta: "20 mg · daily" },
+    ],
+  },
+  {
+    key: "topics",
+    title: "Saved Topics",
+    icon: Bookmark,
+    tint: "#E0DCEF",
+    accent: "#5B43B8",
+    items: [
+      { id: "mt1", label: "Understanding Type 2 Diabetes" },
+      { id: "mt2", label: "Lowering Prescription Costs" },
+      { id: "mt3", label: "Diabetes Nutrition" },
+      { id: "mt4", label: "A1C Monitoring" },
+    ],
+  },
+  {
+    key: "appt",
+    title: "Next Appointment",
+    icon: Calendar,
+    tint: "#FBF1D2",
+    accent: "#B5841A",
+    items: [
+      { id: "ma1", label: "Annual Diabetes Checkup", meta: "Sept 12 · 10:30 AM" },
+    ],
+  },
+];
+
+function MemberWorkspaceContent({ dense = false }: { dense?: boolean }) {
+  return (
+    <div className={dense ? "space-y-4" : "space-y-5"}>
+      <MemberDiabetesJourneyCard dense={dense} />
+      {MEMBER_SECTIONS.map((section) => {
+        const Icon = section.icon;
+        return (
+          <div
+            key={section.key}
+            className="rounded-2xl overflow-hidden border"
+            style={{ backgroundColor: section.tint, borderColor: "rgba(0,38,120,0.08)" }}
+          >
+            <div className="p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: section.accent }} />
+                <div
+                  className="text-[10px] uppercase tracking-[0.16em] font-semibold"
+                  style={{ color: section.accent }}
+                >
+                  {section.title}
+                </div>
+              </div>
+              <ul className="space-y-1.5">
+                {section.items.map((it) => (
+                  <li
+                    key={it.id}
+                    className="rounded-lg bg-white/90 px-3 py-2 text-[13px] flex items-center justify-between gap-3"
+                    style={{ color: UHC_BLUE }}
+                  >
+                    <span className="truncate" style={SERIF}>{it.label}</span>
+                    {it.meta && (
+                      <span className="shrink-0 text-[10px] text-black/55">{it.meta}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
