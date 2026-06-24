@@ -17,37 +17,32 @@ import {
 import assistantAsset from "@/assets/assistant.png.asset.json";
 import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
 import heroIllustration from "@/assets/v2-hero-illustration.png.asset.json";
-import workspaceIcons from "@/assets/v2-workspace-icons.png.asset.json";
+import partIcons from "@/assets/v2-part-icons.png.asset.json";
+import workspaceScenes from "@/assets/v2-workspace-scenes.png.asset.json";
 
-// 2x2 sprite positions for the workspace illustration sheet
-// (background-size: 200% 200%; background-position picks the quadrant)
-const WS_SPRITE: Record<string, { x: string; y: string }> = {
-  plans:    { x: "0%",   y: "0%"   }, // insurance card
-  doctors:  { x: "100%", y: "0%"   }, // doctor portrait
-  meds:     { x: "0%",   y: "100%" }, // pill bottle
-  dates:    { x: "100%", y: "100%" }, // calendar + clock
-  progress: { x: "100%", y: "100%" }, // reuse calendar/timeline
-  notes:    { x: "0%",   y: "0%"   }, // reuse document
-};
-
-function WorkspaceSpriteIcon({ sectionKey, size = 40 }: { sectionKey: string; size?: number }) {
-  const pos = WS_SPRITE[sectionKey] ?? WS_SPRITE.plans;
+// Both sprites are 3 horizontal subjects in a 1536x1024 image.
+// backgroundSize: 300% 100%; x = 0% / 50% / 100% selects subject 1/2/3.
+function SpriteBadge({
+  src, index, size = 64, bg,
+}: { src: string; index: 0 | 1 | 2; size?: number; bg?: string }) {
+  const x = index === 0 ? "0%" : index === 1 ? "50%" : "100%";
   return (
     <div
       aria-hidden
-      className="shrink-0 rounded-xl"
+      className="shrink-0 rounded-full overflow-hidden"
       style={{
         width: size,
         height: size,
-        backgroundImage: `url(${workspaceIcons.url})`,
-        backgroundSize: "200% 200%",
-        backgroundPosition: `${pos.x} ${pos.y}`,
+        backgroundImage: `url(${src})`,
+        backgroundSize: "300% 100%",
+        backgroundPosition: `${x} 50%`,
         backgroundRepeat: "no-repeat",
-        backgroundColor: "rgba(0,38,120,0.04)",
+        backgroundColor: bg ?? "transparent",
       }}
     />
   );
 }
+
 
 export const Route = createFileRoute("/v2")({
   head: () => ({
