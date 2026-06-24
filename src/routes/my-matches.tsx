@@ -70,6 +70,10 @@ function MyMatchesPage() {
         </button>
       </div>
 
+      <div className="mt-6">
+        <IntakeHandoffSummary compact />
+      </div>
+
       <div className="mt-6 flex flex-wrap items-center gap-2 text-xs">
         <span className="text-muted-foreground uppercase tracking-widest">Lens:</span>
         {ALL_LENSES.map((l) => {
