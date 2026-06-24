@@ -91,11 +91,16 @@
 }
 
 .v3-scope {
-  --accent: oklch(0.42 0.09 200);
+  --accent: #002678;
   --accent-foreground: oklch(1 0 0);
+  --accent-2: #00A5BE;
+  --accent-soft: #E6F0FA;
   --ink: oklch(0.22 0.03 250);
+  --font-serif: "Source Serif Pro", Georgia, serif;
   color: var(--ink);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
+
 
 :root {
   --radius: 0.625rem;
