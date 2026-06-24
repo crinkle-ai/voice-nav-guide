@@ -175,13 +175,16 @@ function IntakePage() {
               onMessagesChange={onMessagesChange}
             />
           ) : (
-            <VoiceIntake
-              ref={voiceRef}
-              mode={state.mode}
-              messages={state.messages}
-              onMessagesChange={onMessagesChange}
-            />
+            <div ref={voiceSectionRef}>
+              <VoiceIntake
+                ref={voiceRef}
+                mode={state.mode}
+                messages={state.messages}
+                onMessagesChange={onMessagesChange}
+              />
+            </div>
           )}
+
           {!enoughCaptured && (
             <p className="text-xs text-muted-2 mt-3">
               Tip: share your reason for calling, doctors, medications, and budget to unlock matches.
