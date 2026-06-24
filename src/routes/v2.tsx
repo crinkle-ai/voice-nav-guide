@@ -801,15 +801,15 @@ function WorkspaceList({ dense = false }: { dense?: boolean }) {
 
 
 function DockedWorkspace({
-  name, assistantDocked, onExpand, onMinimize, diabetes,
+  name, assistantDocked, onExpand, onMinimize, diabetes, member = false,
 }: {
   name: string | null;
   assistantDocked: boolean;
   onExpand: () => void;
   onMinimize: () => void;
   diabetes: DiabetesProfile;
+  member?: boolean;
 }) {
-  // When assistant is docked above, sit below the midpoint; when assistant is minimized, sit below the pill; otherwise span the right column
   const top = assistantDocked ? "calc(50vh + 8px)" : "8.5rem";
 
   return (
@@ -819,8 +819,14 @@ function DockedWorkspace({
     >
       <WorkspaceHeader name={name} onExpand={onExpand} onMinimize={onMinimize} compact />
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
-        {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
-        <WorkspaceList dense />
+        {member ? (
+          <MemberWorkspaceContent dense />
+        ) : (
+          <>
+            {diabetes.step >= 0 && <DiabetesWorkspaceCard diabetes={diabetes} dense />}
+            <WorkspaceList dense />
+          </>
+        )}
       </div>
     </aside>
   );
