@@ -225,6 +225,7 @@ function V2Page() {
   const [name, setName] = useState<string | null>(null);
   const [view, setView] = useState<ContentView>({ kind: "home" });
   const [diabetes, setDiabetes] = useState<DiabetesProfile>({ step: -1 });
+  const [member, setMember] = useState(false);
 
   // Mutual-exclusion: expanding one panel minimizes the other entirely
   const expandAssistant = () => {
@@ -234,6 +235,32 @@ function V2Page() {
   const expandWorkspace = () => {
     setWorkspace("expanded");
     setAssistant("minimized");
+  };
+
+  const activateMember = () => {
+    setMember(true);
+    setName("Margaret");
+    setView({ kind: "home" });
+    setAssistant("docked");
+    setWorkspace("docked");
+    setDiabetes({
+      step: DIABETES_QUESTIONS.length,
+      diagnosed: "Yes",
+      type: "Type 2",
+      duration: "1–5 years",
+      takesMeds: "Yes",
+      meds: "Metformin",
+      lastA1C: "Within 3 months",
+      focus: "Lowering costs",
+    });
+    setMessages([
+      { role: "assistant", text: "Let's continue our conversation." },
+      {
+        role: "assistant",
+        text:
+          "I remember we've been discussing your diabetes care, medications, and coverage options.\n\nWhat would you like to explore next?",
+      },
+    ]);
   };
 
   const advanceDiabetes = (key: keyof DiabetesProfile, value: string) => {
