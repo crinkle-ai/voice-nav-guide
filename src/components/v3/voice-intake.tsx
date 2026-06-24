@@ -15,7 +15,7 @@ export type VoiceIntakeHandle = {
   flush: () => Promise<void>;
 };
 
-type Status = "idle" | "connecting" | "live" | "error";
+type Status = "idle" | "connecting" | "live" | "paused" | "error";
 
 const INPUT_SAMPLE_RATE = 16000;
 const OUTPUT_SAMPLE_RATE = 24000;
