@@ -117,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap",
       },
       {
         rel: "manifest",
@@ -167,20 +167,23 @@ function RootComponent() {
   const pathname = useRouter().state.location.pathname;
   const hideVoiceBar = pathname.startsWith("/deck");
   const isAltView = pathname === "/v2" || pathname.startsWith("/v2/");
-  const hideChrome = hideVoiceBar || isAltView;
+  const isV3View = pathname === "/v3" || pathname.startsWith("/v3/");
+  const isChooser = pathname === "/";
+  const hideChrome = hideVoiceBar || isAltView || isV3View || isChooser;
+  const hideTopChrome = isAltView || isV3View || isChooser;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <LiveAdviseProvider>
           <div className={`min-h-screen bg-background text-foreground ${hideChrome ? "" : "pb-40 sm:pb-36 [padding-bottom:calc(10rem+env(safe-area-inset-bottom))]"}`}>
-            {!isAltView && <TopNav />}
+            {!hideTopChrome && <TopNav />}
             <Outlet />
             {!hideChrome && <BottomVoiceBar />}
-            {!isAltView && <AgentHighlightOverlay />}
-            {!isAltView && <PushedComparisonDrawer />}
-            {!isAltView && <LiveAdvisePanel />}
-            {!isAltView && <GuidanceToast />}
+            {!hideTopChrome && <AgentHighlightOverlay />}
+            {!hideTopChrome && <PushedComparisonDrawer />}
+            {!hideTopChrome && <LiveAdvisePanel />}
+            {!hideTopChrome && <GuidanceToast />}
             {!hideChrome && <WorkspaceDrawer />}
           </div>
         </LiveAdviseProvider>
