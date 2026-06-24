@@ -677,12 +677,13 @@ const WS_THEME: Record<string, {
   accent: string;          // accent text/icon color
   sceneIndex?: 0 | 1 | 2;  // index into workspaceScenes sprite (if any)
 }> = {
-  plans:    { tint: "#EEF2FF", accent: "#3F3D8C", sceneIndex: 0 }, // indigo / clipboard
-  doctors:  { tint: "#ECF7F4", accent: "#1F7A6B", sceneIndex: 1 }, // teal / doctor
-  meds:     { tint: "#FFF1E8", accent: "#B5530E", sceneIndex: 2 }, // peach / pills
-  dates:    { tint: "#E8F1FF", accent: "#1E3A8A" },
-  progress: { tint: "#ECFDF5", accent: "#0E7C5A" },
-  notes:    { tint: "#FBF1FF", accent: "#6B2E8E" },
+  // Topic color system: stronger, saturated accents on lighter tints.
+  plans:    { tint: "#E6F0FA", accent: "#002678", sceneIndex: 0 }, // Blue — Saved Plans
+  doctors:  { tint: "#DCF3F7", accent: "#00A5BE", sceneIndex: 1 }, // Teal — Doctors
+  meds:     { tint: "#FDE4D2", accent: "#E85C1C", sceneIndex: 2 }, // Orange — Medications
+  dates:    { tint: "#FBF1D2", accent: "#B5841A" },                // Yellow — Calendar
+  progress: { tint: "#E0DCEF", accent: "#5B43B8" },                // Purple — Health Journeys
+  notes:    { tint: "#DCEFD6", accent: "#2D9C2D" },                // Green — Wellness
 };
 
 function WorkspaceList({ dense = false }: { dense?: boolean }) {
