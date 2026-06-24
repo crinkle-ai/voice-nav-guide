@@ -70,6 +70,7 @@ export function StructuredWizard({ intake, onChange, onFinish }: Props) {
         {step.key === "doctors" && <DoctorsStep intake={intake} onChange={onChange} />}
         {step.key === "medications" && <MedicationsStep intake={intake} onChange={onChange} />}
         {step.key === "conditions" && <ConditionsStep intake={intake} onChange={onChange} />}
+        {step.key === "medicaid" && <MedicaidStep intake={intake} onChange={onChange} />}
         {step.key === "priorities" && <PrioritiesStep intake={intake} onChange={onChange} />}
         {step.key === "budget" && <BudgetStep intake={intake} onChange={onChange} />}
         {step.key === "extras" && <ExtrasStep intake={intake} onChange={onChange} />}
