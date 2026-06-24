@@ -48,6 +48,8 @@ function mirrorToV3(s: SessionState) {
       finalPriorities: s.finalPriorities,
       finished: s.finished,
       source: "v4",
+      sourceMode: s.mode,
+      hybridPath: s.path ?? null,
     };
     window.localStorage.setItem(V3_SESSION_KEY, JSON.stringify(next));
   } catch {}

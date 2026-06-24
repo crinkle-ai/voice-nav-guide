@@ -11,6 +11,7 @@ import {
 import { hasAnyIntake } from "@/lib/workspace-derivations";
 import { useWorkspaceDrawerStore } from "@/state/useWorkspaceDrawerStore";
 import { ArrowRight, Check, Sparkles, Star, X } from "lucide-react";
+import { IntakeHandoffSummary } from "@/components/intake-handoff-summary";
 
 export const Route = createFileRoute("/my-matches")({
   head: () => ({ meta: [{ title: "Your matches — Unified Health" }] }),
@@ -23,8 +24,8 @@ function MyMatchesPage() {
   const openWorkspace = useWorkspaceDrawerStore((s) => s.setOpen);
 
   const recommended = useMemo(
-    () => (ready ? deriveLens(state.intake) : null),
-    [ready, state.intake],
+    () => (ready ? deriveLens(state.intake, { hybridPath: state.hybridPath }) : null),
+    [ready, state.intake, state.hybridPath],
   );
   const activeLensKey: LensKey =
     (state.lensOverride as LensKey | null) ?? recommended?.key ?? "balanced";
@@ -67,6 +68,10 @@ function MyMatchesPage() {
         >
           Open Workspace <ArrowRight className="h-3.5 w-3.5" />
         </button>
+      </div>
+
+      <div className="mt-6">
+        <IntakeHandoffSummary compact />
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-2 text-xs">

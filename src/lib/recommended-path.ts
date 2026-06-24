@@ -24,7 +24,28 @@ const LENS_LABELS: Record<LensKey, string> = {
 
 const norm = (s: string) => s.trim().toLowerCase();
 
-export function deriveLens(intake: Intake): Lens {
+const PATH_TO_LENS: Record<string, LensKey> = {
+  "doctor-first": "doctor-first",
+  "drug-first": "drug-first",
+  "budget-first": "lowest-cost",
+  "new-to-medicare": "balanced",
+};
+
+export function deriveLens(
+  intake: Intake,
+  opts?: { hybridPath?: string | null },
+): Lens {
+  // Explicit Shop-Your-Way path wins.
+  if (opts?.hybridPath) {
+    const key = PATH_TO_LENS[opts.hybridPath];
+    if (key) {
+      return {
+        key,
+        label: LENS_LABELS[key],
+        rationale: `You chose the "${opts.hybridPath.replace(/-/g, " ")}" path — ranking plans on that signal first.`,
+      };
+    }
+  }
   const priorities = intake.priorities.value.map(norm).join(" ");
   const budget = intake.budgetSensitivity.value;
   const docs = intake.doctors.value.length;
