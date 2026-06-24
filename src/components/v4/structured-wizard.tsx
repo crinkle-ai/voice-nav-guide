@@ -11,13 +11,14 @@ type Props = {
   onFinish: () => void;
 };
 
-type StepKey = "zip" | "doctors" | "medications" | "conditions" | "priorities" | "budget" | "extras";
+type StepKey = "zip" | "doctors" | "medications" | "conditions" | "medicaid" | "priorities" | "budget" | "extras";
 
 const STEPS: { key: StepKey; label: string }[] = [
   { key: "zip", label: "ZIP code" },
   { key: "doctors", label: "Doctors" },
   { key: "medications", label: "Medications" },
   { key: "conditions", label: "Health" },
+  { key: "medicaid", label: "Medicaid" },
   { key: "priorities", label: "Priorities" },
   { key: "budget", label: "Budget" },
   { key: "extras", label: "Extras" },
