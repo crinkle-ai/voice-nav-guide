@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import assistantAsset from "@/assets/assistant.png.asset.json";
-import logoAsset from "@/assets/unified-health-logo.png.asset.json";
+import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
 
 export const Route = createFileRoute("/v2")({
   head: () => ({
@@ -200,20 +200,20 @@ function V2Page() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden" style={{ backgroundColor: UHC_BLUE }}>
-      {/* Top nav links */}
-      <nav className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-10 text-sm">
-        <a className="text-white/85 hover:text-white transition" href="#talk">Talk to an Agent</a>
-        <a className="text-white/85 hover:text-white transition" href="#member">I'm Already a Member</a>
-      </nav>
-
-      {/* Logo upper-right */}
-      <div className="absolute top-5 right-6 z-50">
+      {/* Logo upper-left */}
+      <div className="absolute top-5 left-6 z-50">
         <img
           src={logoAsset.url}
           alt="Unified Health"
           className="h-10 w-auto object-contain"
         />
       </div>
+
+      {/* Top nav links */}
+      <nav className="absolute top-6 right-6 z-50 flex items-center gap-10 text-sm">
+        <a className="text-white/85 hover:text-white transition" href="#talk">Talk to an Agent</a>
+        <a className="text-white/85 hover:text-white transition" href="#member">I'm Already a Member</a>
+      </nav>
 
       {/* Demo nav: v1 link lower-left */}
       <Link
