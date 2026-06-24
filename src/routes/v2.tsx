@@ -679,16 +679,10 @@ function WorkspaceExpanded({
           <div className="px-6 sm:px-10 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
               {WORKSPACE.map((section) => {
-                const Icon = section.icon;
                 return (
                   <div key={section.key} className="min-w-0">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div
-                        className="h-8 w-8 rounded-full grid place-items-center shrink-0"
-                        style={{ backgroundColor: "rgba(0,38,120,0.08)" }}
-                      >
-                        <Icon className="h-4 w-4" style={{ color: UHC_BLUE }} />
-                      </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <WorkspaceSpriteIcon sectionKey={section.key} size={44} />
                       <div
                         className="text-[11px] uppercase tracking-[0.16em] font-semibold"
                         style={{ color: UHC_BLUE }}
@@ -696,6 +690,7 @@ function WorkspaceExpanded({
                         {section.title}
                       </div>
                     </div>
+
                     <ul className="space-y-2">
                       {section.items.map((it) => (
                         <li
