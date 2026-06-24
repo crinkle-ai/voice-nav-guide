@@ -77,8 +77,9 @@ export function CaptureSidebar({ intake, loading }: { intake: Intake; loading?: 
       </div>
       <dl className="space-y-3">
         {entries.map(([k, label]) => {
-          const field = intake[k];
-          const rawValue = (field as { value: unknown }).value;
+          const field = intake[k] as { value: unknown; confidence: "captured" | "needs_confirmation" | "missing"; notes?: string | null } | undefined;
+          if (!field) return null;
+          const rawValue = field.value;
           let display: React.ReactNode;
           if (k === "medicaid") {
             const v = rawValue as "yes" | "no" | "applying" | "unsure" | null;
