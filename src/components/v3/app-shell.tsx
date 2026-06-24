@@ -39,9 +39,8 @@ export function AppShell({
           </div>
           <div className="flex items-center gap-6 text-sm">
             {rightSlot}
-            <a className="text-white/85 hover:text-white transition" href="#talk">Talk to an Agent</a>
-            <Link to="/v3" className="text-white/85 hover:text-white transition">I'm Already a Member</Link>
           </div>
+
         </div>
         {active && (
           <div className="mx-auto max-w-6xl px-6 pb-3 pt-1">
