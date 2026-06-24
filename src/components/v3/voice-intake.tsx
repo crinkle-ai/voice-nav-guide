@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { GoogleGenAI, Modality, type LiveServerMessage, type Session } from "@google/genai";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2 } from "lucide-react";
+import { Mic, MicOff, Loader2, Pause, Play } from "lucide-react";
 import type { IntakeMode } from "@/lib/v3/intake-types";
 import type { UIMessage } from "ai";
 
@@ -15,7 +15,7 @@ export type VoiceIntakeHandle = {
   flush: () => Promise<void>;
 };
 
-type Status = "idle" | "connecting" | "live" | "error";
+type Status = "idle" | "connecting" | "live" | "paused" | "error";
 
 const INPUT_SAMPLE_RATE = 16000;
 const OUTPUT_SAMPLE_RATE = 24000;
@@ -38,6 +38,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   const userTurnRef = useRef("");
   const botTurnRef = useRef("");
   const messagesRef = useRef(messages);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -78,6 +79,18 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
     setStatus("idle");
     setUserLive("");
     setBotLive("");
+  };
+
+  const pause = () => {
+    pausedRef.current = true;
+    micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = false));
+    setStatus("paused");
+  };
+
+  const resume = () => {
+    pausedRef.current = false;
+    micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = true));
+    setStatus("live");
   };
 
   useImperativeHandle(ref, () => ({
@@ -190,7 +203,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
       const proc = inCtx.createScriptProcessor(4096, 1, 1);
       procNodeRef.current = proc;
       proc.onaudioprocess = (e) => {
-        if (!sessionRef.current) return;
+        if (!sessionRef.current || pausedRef.current) return;
         const f32 = e.inputBuffer.getChannelData(0);
         const i16 = new Int16Array(f32.length);
         for (let i = 0; i < f32.length; i++) {
@@ -267,7 +280,9 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   };
 
   const isLive = status === "live";
+  const isPaused = status === "paused";
   const isConnecting = status === "connecting";
+  const isActive = isLive || isPaused || isConnecting;
 
   return (
     <div className="flex flex-col h-[70vh] rounded-2xl border border-line bg-paper overflow-hidden">
@@ -288,17 +303,43 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
         <div className="flex items-center gap-2 text-sm">
           <span
             className={`h-2.5 w-2.5 rounded-full ${
-              isLive ? "bg-accent animate-pulse" : isConnecting ? "bg-amber-500 animate-pulse" : "bg-muted-2/40"
+              isLive
+                ? "bg-accent animate-pulse"
+                : isPaused
+                ? "bg-amber-500"
+                : isConnecting
+                ? "bg-amber-500 animate-pulse"
+                : "bg-muted-2/40"
             }`}
           />
           <span className="text-muted-2">
-            {isLive ? "Live — mic is open" : isConnecting ? "Connecting…" : error ? `Error: ${error}` : "Voice off"}
+            {isLive
+              ? "Live — mic is open"
+              : isPaused
+              ? "Paused — mic is muted"
+              : isConnecting
+              ? "Connecting…"
+              : error
+              ? `Error: ${error}`
+              : "Voice off"}
           </span>
         </div>
-        {isLive || isConnecting ? (
-          <Button onClick={stop} variant="outline" className="gap-2">
-            <MicOff className="h-4 w-4" /> Stop
-          </Button>
+        {isActive ? (
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <Button onClick={pause} variant="outline" className="gap-2">
+                <Pause className="h-4 w-4" /> Pause
+              </Button>
+            )}
+            {isPaused && (
+              <Button onClick={resume} className="bg-accent hover:bg-accent-2 text-paper gap-2">
+                <Play className="h-4 w-4" /> Resume
+              </Button>
+            )}
+            <Button onClick={stop} variant="outline" className="gap-2">
+              <MicOff className="h-4 w-4" /> Stop
+            </Button>
+          </div>
         ) : (
           <Button onClick={start} className="bg-accent hover:bg-accent-2 text-paper gap-2">
             {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
