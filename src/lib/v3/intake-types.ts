@@ -15,6 +15,30 @@ export const FieldList = z.object({
   confidence: ConfidenceEnum,
 });
 
+export const NpiMatch = z.object({
+  npi: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  credential: z.string().nullable(),
+  primaryTaxonomy: z.string().nullable(),
+  primaryAddress: z.object({
+    line1: z.string().nullable(),
+    city: z.string().nullable(),
+    state: z.string().nullable(),
+    postalCode: z.string().nullable(),
+  }),
+  phone: z.string().nullable(),
+});
+
+export const NpiVerification = z.object({
+  status: z.enum(["verified", "ambiguous", "not_found", "error"]),
+  checkedAt: z.string(),
+  matches: z.array(NpiMatch),
+  selectedNpi: z.string().nullable(),
+  message: z.string().optional(),
+});
+export type NpiVerification = z.infer<typeof NpiVerification>;
+
 export const DoctorEntry = z.object({
   name: z.string(),
   specialty: z.string().nullable().optional(),
@@ -22,6 +46,7 @@ export const DoctorEntry = z.object({
   zip: z.string().nullable().optional(),
   clinic: z.string().nullable().optional(),
   verification: z.enum(["high", "low", "unverified"]).default("unverified"),
+  npiVerification: NpiVerification.optional(),
 });
 export type DoctorEntry = z.infer<typeof DoctorEntry>;
 

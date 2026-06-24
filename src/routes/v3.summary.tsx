@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell, Stepper } from "@/components/v3/app-shell";
 import { useSession } from "@/lib/v3/session-store";
-import { FIELD_LABELS, type Intake, type DoctorEntry, type MedicationEntry } from "@/lib/v3/intake-types";
+import { FIELD_LABELS, type Intake, type DoctorEntry, type MedicationEntry, type NpiVerification } from "@/lib/v3/intake-types";
+import { verifyProvider } from "@/lib/v3/providers.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { ArrowRight, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowRight, Plus, Trash2, AlertTriangle, ShieldCheck, Loader2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/v3/summary")({
   head: () => ({ meta: [{ title: "Your summary — Medicare Compass" }] }),
@@ -172,6 +174,9 @@ function DoctorEditor({
   onChange: (next: DoctorEntry[]) => void;
 }) {
   const list = doctors.length ? doctors : [];
+  const verifyFn = useServerFn(verifyProvider);
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
+
   const update = (i: number, patch: Partial<DoctorEntry>) => {
     const next = list.map((d, idx) => {
       if (idx !== i) return d;
@@ -183,12 +188,53 @@ function DoctorEditor({
   const remove = (i: number) => onChange(list.filter((_, idx) => idx !== i));
   const add = () => onChange([...list, emptyDoctor()]);
 
+  const runVerify = async (i: number) => {
+    const d = list[i];
+    setLoadingIdx(i);
+    try {
+      const result = await verifyFn({
+        data: {
+          name: d.name,
+          specialty: d.specialty || undefined,
+          city: d.city || undefined,
+          postalCode: d.zip || undefined,
+        },
+      });
+      const npiVerification: NpiVerification = {
+        status: result.status,
+        checkedAt: new Date().toISOString(),
+        matches: result.matches,
+        selectedNpi: result.status === "verified" && result.matches[0] ? result.matches[0].npi : null,
+        message: "message" in result ? result.message : undefined,
+      };
+      onChange(list.map((row, idx) => (idx === i ? { ...row, npiVerification } : row)));
+    } finally {
+      setLoadingIdx(null);
+    }
+  };
+
+  const selectMatch = (i: number, npi: string) => {
+    const d = list[i];
+    if (!d.npiVerification) return;
+    const npiVerification: NpiVerification = {
+      ...d.npiVerification,
+      status: "verified",
+      selectedNpi: npi,
+      matches: d.npiVerification.matches.filter((m) => m.npi === npi),
+    };
+    onChange(list.map((row, idx) => (idx === i ? { ...row, npiVerification } : row)));
+  };
+
   return (
     <div className="space-y-3">
       {list.length === 0 && (
         <p className="text-sm text-muted-2 italic">No doctors captured yet.</p>
       )}
-      {list.map((d, i) => (
+      {list.map((d, i) => {
+        const canVerify = d.name.trim().length > 1 && Boolean(d.specialty || d.city || d.zip);
+        const v = d.npiVerification;
+        const selected = v?.selectedNpi ? v.matches.find((m) => m.npi === v.selectedNpi) : undefined;
+        return (
         <div key={i} className="rounded-lg border border-line bg-canvas/40 p-3 space-y-2">
           <div className="flex items-start gap-2">
             <Input
@@ -229,14 +275,81 @@ function DoctorEditor({
               maxLength={5}
             />
           </div>
-          {d.verification === "low" && d.name.trim() && (
-            <div className="flex items-center gap-1.5 text-xs text-amber-700">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              Name alone isn't enough to match a provider — add specialty or city/ZIP.
+          <div className="flex items-center justify-between gap-2 pt-1">
+            {d.verification === "low" && d.name.trim() && v?.status !== "verified" ? (
+              <div className="flex items-center gap-1.5 text-xs text-amber-700">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Name alone isn't enough — add specialty or city/ZIP.
+              </div>
+            ) : <span />}
+            <button
+              type="button"
+              onClick={() => runVerify(i)}
+              disabled={!canVerify || loadingIdx === i}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-2 disabled:text-muted-2 disabled:cursor-not-allowed"
+            >
+              {loadingIdx === i ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Search className="h-3.5 w-3.5" />
+              )}
+              {v ? "Re-check NPI Registry" : "Verify with NPI Registry"}
+            </button>
+          </div>
+          {v?.status === "verified" && selected && (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-medium text-emerald-800">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Verified · NPI {selected.npi}
+              </div>
+              <div className="text-emerald-900">
+                {selected.firstName} {selected.lastName}{selected.credential ? `, ${selected.credential}` : ""}
+              </div>
+              {selected.primaryTaxonomy && (
+                <div className="text-emerald-900/80">{selected.primaryTaxonomy}</div>
+              )}
+              {selected.primaryAddress.city && (
+                <div className="text-emerald-900/70">
+                  {[selected.primaryAddress.line1, selected.primaryAddress.city, selected.primaryAddress.state, selected.primaryAddress.postalCode].filter(Boolean).join(", ")}
+                </div>
+              )}
             </div>
           )}
+          {v?.status === "ambiguous" && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs space-y-1.5">
+              <div className="font-medium text-amber-800">Multiple matches — pick the right one:</div>
+              {v.matches.slice(0, 3).map((m) => (
+                <button
+                  key={m.npi}
+                  type="button"
+                  onClick={() => selectMatch(i, m.npi)}
+                  className="w-full text-left rounded border border-amber-200 bg-paper p-2 hover:border-amber-400"
+                >
+                  <div className="font-medium text-ink">
+                    {m.firstName} {m.lastName}{m.credential ? `, ${m.credential}` : ""}
+                    <span className="ml-2 text-[10px] text-muted-2">NPI {m.npi}</span>
+                  </div>
+                  {m.primaryTaxonomy && <div className="text-muted-2">{m.primaryTaxonomy}</div>}
+                  {m.primaryAddress.city && (
+                    <div className="text-muted-2">
+                      {[m.primaryAddress.city, m.primaryAddress.state, m.primaryAddress.postalCode].filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+          {v?.status === "not_found" && (
+            <div className="text-xs text-amber-700">
+              No NPI match — try adding city, ZIP, or specialty.
+            </div>
+          )}
+          {v?.status === "error" && (
+            <div className="text-xs text-muted-2">NPI registry unavailable — try again.</div>
+          )}
         </div>
-      ))}
+        );
+      })}
       <button
         type="button"
         onClick={add}
@@ -247,6 +360,7 @@ function DoctorEditor({
     </div>
   );
 }
+
 
 function emptyMedication(): MedicationEntry {
   return { name: "", strength: "", doseForm: "", frequency: "" };
