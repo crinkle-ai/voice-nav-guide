@@ -24,10 +24,14 @@ Return ONLY a JSON object (no prose, no markdown fences) matching this exact sha
   "currentPlan":       { "value": string | null, "confidence": "captured" | "needs_confirmation" | "missing" },
   "budgetSensitivity": { "value": "low" | "medium" | "high" | null, "confidence": "captured" | "needs_confirmation" | "missing" },
   "zip":               { "value": string | null, "confidence": "captured" | "needs_confirmation" | "missing" },
-  "extras":            { "value": ("dental" | "vision" | "hearing" | "fitness" | "transportation" | "otc")[], "confidence": "captured" | "needs_confirmation" | "missing" }
+  "extras":            { "value": ("dental" | "vision" | "hearing" | "fitness" | "transportation" | "otc")[], "confidence": "captured" | "needs_confirmation" | "missing" },
+  "medicaid":          { "value": "yes" | "no" | "applying" | "unsure" | null, "confidence": "captured" | "needs_confirmation" | "missing", "notes": string | null }
 }
 
 Every field MUST be present. Use empty array [] for missing list fields and null for missing string fields.
+For "medicaid": set value to "yes" if the caller is currently on Medicaid, "no" if they're not, "applying"
+if they've applied or plan to apply, "unsure" if they don't know. Use "notes" for any short context they gave
+(e.g. "spouse on Medicaid", "lost it last year"). Confidence "missing" only if Medicaid was never discussed.
 `.trim();
 
 function stripCodeFences(s: string): string {

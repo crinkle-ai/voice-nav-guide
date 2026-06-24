@@ -111,6 +111,13 @@ export const IntakeSchema = z.object({
     value: z.array(z.enum(["dental", "vision", "hearing", "fitness", "transportation", "otc"])),
     confidence: ConfidenceEnum,
   }),
+  medicaid: z
+    .object({
+      value: z.enum(["yes", "no", "applying", "unsure"]).nullable(),
+      confidence: ConfidenceEnum,
+      notes: z.string().nullable().optional(),
+    })
+    .default({ value: null, confidence: "missing", notes: null }),
 });
 
 export type Intake = z.infer<typeof IntakeSchema>;
@@ -125,6 +132,7 @@ export const emptyIntake = (): Intake => ({
   budgetSensitivity: { value: null, confidence: "missing" },
   zip: { value: null, confidence: "missing" },
   extras: { value: [], confidence: "missing" },
+  medicaid: { value: null, confidence: "missing", notes: null },
 });
 
 export const FIELD_LABELS: Record<keyof Intake, string> = {
@@ -137,6 +145,7 @@ export const FIELD_LABELS: Record<keyof Intake, string> = {
   budgetSensitivity: "Budget sensitivity",
   zip: "ZIP code",
   extras: "Extra benefits",
+  medicaid: "Medicaid status",
 };
 
 export const CRITICAL_FIELDS: (keyof Intake)[] = [
