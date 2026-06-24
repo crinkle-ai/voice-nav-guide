@@ -207,7 +207,10 @@ function V2Page() {
       }
       return [...m, { role: "assistant", text: reply }];
     });
-    if (assistant === "expanded") setAssistant("docked");
+    if (assistant === "expanded") {
+      setAssistant("docked");
+      setWorkspace("docked");
+    }
   };
 
   const send = (raw: string) => {
