@@ -64,7 +64,8 @@ type Msg = { role: "assistant" | "user"; text: string };
 type PanelState = "expanded" | "docked" | "minimized";
 type ContentView =
   | { kind: "home" }
-  | { kind: "education"; topic: string };
+  | { kind: "education"; topic: string }
+  | { kind: "diabetes" };
 
 const SERIF: React.CSSProperties = { fontFamily: '"Source Serif Pro", Georgia, serif' };
 
@@ -91,6 +92,52 @@ function detectEducationIntent(s: string) {
   const t = s.toLowerCase();
   return EDUCATION_INTENT.some((k) => t.includes(k));
 }
+
+const DIABETES_INTENT = [
+  "diabetes", "diabetic", "type 1", "type 2", "prediabetes", "pre-diabetes",
+  "blood sugar", "a1c", "glucose", "insulin", "metformin", "diabetes medication",
+];
+
+function detectDiabetesIntent(s: string) {
+  const t = s.toLowerCase();
+  return DIABETES_INTENT.some((k) => t.includes(k));
+}
+
+// ----- Diabetes journey -----
+type DiabetesProfile = {
+  step: number; // index into DIABETES_QUESTIONS, -1 = not started, >=length = complete
+  diagnosed?: string;
+  type?: string;
+  duration?: string;
+  takesMeds?: string;
+  meds?: string;
+  lastA1C?: string;
+  focus?: string;
+};
+
+type DiabetesQuestion = {
+  key: keyof DiabetesProfile;
+  prompt: string;
+  helper?: string;
+  options?: string[];
+  freeText?: boolean;
+  skipIf?: (p: DiabetesProfile) => boolean;
+};
+
+const DIABETES_QUESTIONS: DiabetesQuestion[] = [
+  { key: "diagnosed", prompt: "Have you been diagnosed with diabetes?", options: ["Yes", "No", "I'm not sure"] },
+  { key: "type", prompt: "What type of diabetes do you have?", options: ["Type 1", "Type 2", "Gestational", "Prediabetes", "Not sure"] },
+  { key: "duration", prompt: "How long have you been managing diabetes?", options: ["Less than 1 year", "1–5 years", "5–10 years", "More than 10 years"] },
+  { key: "takesMeds", prompt: "Are you currently taking any medications for diabetes?", options: ["Yes", "No"] },
+  { key: "meds", prompt: "Which medications are you taking?", helper: "Type the names — for example, Metformin, Ozempic, Insulin.", freeText: true, skipIf: (p) => p.takesMeds === "No" },
+  { key: "lastA1C", prompt: "Have you had an A1C test recently?", options: ["Within 3 months", "Within 6 months", "More than 6 months", "Not sure"] },
+  { key: "focus", prompt: "What would you like help with today?", options: ["Understanding diabetes", "Managing medications", "Lowering costs", "Finding providers", "Nutrition and diet", "Monitoring blood sugar", "Insurance coverage", "Something else"] },
+];
+
+const DIABETES_TINT = "#ECFBF6";
+const DIABETES_ACCENT = "#0E7C5A";
+const DIABETES_DEEP = "#0B5C44";
+
 
 // ----- Workspace mock data -----
 type WorkspaceItem = { id: string; label: string; meta?: string };
