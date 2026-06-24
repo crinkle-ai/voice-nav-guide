@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "@/lib/v3/session-store";
+import { consumeWorkspaceHandoff } from "@/lib/workspace-session";
 
 
 import { useTrackPage } from "@/context/AppContext";
