@@ -930,6 +930,8 @@ function WorkspaceExpanded({
                 );
               })}
             </div>
+              </>
+            )}
           </div>
         </div>
 
