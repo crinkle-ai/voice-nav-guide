@@ -122,3 +122,26 @@ function DeckCard({
     </Link>
   );
 }
+
+function DemoVideoCard({ kicker, title, desc, src }: { kicker: string; title: string; desc: string; src: string }) {
+  return (
+    <div className="flex flex-col rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <div className="bg-black">
+        <video
+          src={src}
+          controls
+          preload="metadata"
+          playsInline
+          className="w-full h-auto block"
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <div className="p-4 sm:p-5">
+        <div className="text-xs font-semibold uppercase tracking-wide text-primary">{kicker}</div>
+        <h3 className="mt-1 text-base sm:text-lg font-semibold text-foreground">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
+      </div>
+    </div>
+  );
+}
