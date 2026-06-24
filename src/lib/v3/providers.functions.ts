@@ -109,12 +109,17 @@ function mapResult(
   };
 }
 
-async function queryNppes(params: URLSearchParams): Promise<NppesResult[]> {
+async function queryNppes(
+  params: URLSearchParams,
+): Promise<{ results: NppesResult[]; errors: Array<{ field?: string; description?: string }> }> {
   const url = `${NPPES_URL}?${params.toString()}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
   if (!res.ok) throw new Error(`NPPES ${res.status}`);
-  const json = (await res.json()) as { results?: NppesResult[] };
-  return json.results ?? [];
+  const json = (await res.json()) as {
+    results?: NppesResult[];
+    Errors?: Array<{ field?: string; description?: string }>;
+  };
+  return { results: json.results ?? [], errors: json.Errors ?? [] };
 }
 
 export const verifyProvider = createServerFn({ method: "POST" })
@@ -124,7 +129,7 @@ export const verifyProvider = createServerFn({ method: "POST" })
       // NPI direct lookup
       if (data.npi && /^\d{10}$/.test(data.npi)) {
         const params = new URLSearchParams({ version: "2.1", number: data.npi });
-        const results = await queryNppes(params);
+        const { results } = await queryNppes(params);
         if (results.length === 0) return { status: "not_found", matches: [] };
         const matches = results.map((r) => mapResult(r, {}));
         return { status: "verified", matches };
@@ -142,22 +147,44 @@ export const verifyProvider = createServerFn({ method: "POST" })
         return { status: "error", matches: [], message: "A last name is required to search." };
       }
 
-      const buildParams = (includeType: boolean) => {
-        const p = new URLSearchParams({ version: "2.1", limit: "10" });
-        if (includeType) p.set("enumeration_type", "NPI-1");
+      type Filters = {
+        includeType: boolean;
+        specialty?: string;
+        postalCode?: string;
+        city?: string;
+        state?: string;
+      };
+
+      const buildParams = (f: Filters) => {
+        const p = new URLSearchParams({ version: "2.1", limit: "20" });
+        if (f.includeType) p.set("enumeration_type", "NPI-1");
         if (first) p.set("first_name", `${first}*`);
         p.set("last_name", `${last}*`);
-        if (data.city) p.set("city", data.city);
-        if (data.state) p.set("state", data.state.toUpperCase());
-        if (data.postalCode) p.set("postal_code", data.postalCode);
-        if (data.specialty) p.set("taxonomy_description", `*${data.specialty}*`);
+        if (f.city) p.set("city", f.city);
+        if (f.state) p.set("state", f.state.toUpperCase());
+        if (f.postalCode) p.set("postal_code", f.postalCode);
+        if (f.specialty) p.set("taxonomy_description", `*${f.specialty}*`);
         return p;
       };
 
-      let results = await queryNppes(buildParams(true));
-      if (results.length === 0) {
-        // Retry without enumeration_type to catch group-listed providers
-        results = await queryNppes(buildParams(false));
+      // Cascade: try strictest first, drop filters that error or return empty.
+      // Order of drops: taxonomy (often free-text mismatch) → postal_code
+      // (NPPES only knows primary practice address) → city.
+      const attempts: Filters[] = [
+        { includeType: true, specialty: data.specialty, postalCode: data.postalCode, city: data.city, state: data.state },
+        { includeType: true, postalCode: data.postalCode, city: data.city, state: data.state },
+        { includeType: true, city: data.city, state: data.state },
+        { includeType: true, state: data.state },
+        { includeType: false, state: data.state },
+      ];
+
+      let results: NppesResult[] = [];
+      for (const f of attempts) {
+        const r = await queryNppes(buildParams(f));
+        if (r.results.length > 0) {
+          results = r.results;
+          break;
+        }
       }
 
       if (results.length === 0) return { status: "not_found", matches: [] };
