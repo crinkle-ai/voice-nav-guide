@@ -52,7 +52,7 @@ function V3Home() {
     <AppShell>
       <section className="max-w-3xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-medium mb-6">
-          UHC AI Intake Pilot · v1
+          {"Text or Voice AI Intake\u00a0"}
         </div>
         <h1 className="font-serif text-5xl md:text-6xl leading-[1.05] tracking-tight">
           From confused to confident,<br />
