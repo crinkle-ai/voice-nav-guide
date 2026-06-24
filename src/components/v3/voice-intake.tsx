@@ -82,11 +82,13 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   };
 
   const pause = () => {
+    pausedRef.current = true;
     micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = false));
     setStatus("paused");
   };
 
   const resume = () => {
+    pausedRef.current = false;
     micStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = true));
     setStatus("live");
   };
