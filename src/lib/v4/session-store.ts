@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { UIMessage } from "ai";
 import { emptyIntake, type Intake, type IntakeMode } from "@/lib/v3/intake-types";
-import { V3_SESSION_KEY } from "@/lib/v3/session-store";
 
 export type HybridPath = "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare";
 
@@ -35,32 +34,10 @@ function read(): SessionState {
   }
 }
 
-function mirrorToV3(s: SessionState) {
-  // Single source of truth: feed the v1 Workspace from v3 store.
-  if (typeof window === "undefined") return;
-  try {
-    const raw = window.localStorage.getItem(V3_SESSION_KEY);
-    const prev = raw ? JSON.parse(raw) : {};
-    const next = {
-      ...prev,
-      mode: s.mode,
-      intake: s.intake,
-      finalPriorities: s.finalPriorities,
-      finished: s.finished,
-      source: "v4",
-      sourceMode: s.mode,
-      hybridPath: s.path ?? null,
-    };
-    window.localStorage.setItem(V3_SESSION_KEY, JSON.stringify(next));
-  } catch {}
-}
-
 function write(s: SessionState) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(s));
-  mirrorToV3(s);
 }
-
 
 export function useSession() {
   const [state, setState] = useState<SessionState>(initial);

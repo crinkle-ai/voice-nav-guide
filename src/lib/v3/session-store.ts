@@ -8,14 +8,9 @@ export type SessionState = {
   intake: Intake;
   finalPriorities: string[];
   finished: boolean;
-  source: "v3" | "v4" | "manual" | null;
-  sourceMode?: "ramble" | "structured" | "hybrid" | null;
-  hybridPath?: "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare" | null;
-  lensOverride?: string | null;
 };
 
-export const V3_SESSION_KEY = "v3-medicare-compass-session-v1";
-const KEY = V3_SESSION_KEY;
+const KEY = "v3-medicare-compass-session-v1";
 
 const initial: SessionState = {
   mode: null,
@@ -23,13 +18,7 @@ const initial: SessionState = {
   intake: emptyIntake(),
   finalPriorities: [],
   finished: false,
-  source: null,
-  sourceMode: null,
-  hybridPath: null,
-  lensOverride: null,
 };
-
-
 
 function read(): SessionState {
   if (typeof window === "undefined") return initial;

@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useSession } from "@/lib/v3/session-store";
-import { consumeWorkspaceHandoff } from "@/lib/workspace-session";
+import { useState } from "react";
 
 
 import { useTrackPage } from "@/context/AppContext";
@@ -164,37 +162,11 @@ function Home() {
 
 function RambleHero() {
   const openWorkspace = useWorkspaceDrawerStore((s) => s.openWorkspace);
-  const { state, update, ready } = useSession();
-  const intake = state.intake;
-  const seed = intake.reasonForCall.value?.trim() || persona.ramble;
-  const [text, setText] = useState(seed);
+  const [text, setText] = useState(persona.ramble);
   const [generating, setGenerating] = useState(false);
-  const hasIntake = ready && (intake.reasonForCall.value || intake.doctors.value.length > 0 || intake.medications.value.length > 0);
-
-  // Sync text once session is hydrated.
-  useEffect(() => {
-    if (ready && intake.reasonForCall.value && text === persona.ramble) {
-      setText(intake.reasonForCall.value);
-    }
-  }, [ready, intake.reasonForCall.value]);
-
-  // One-shot auto-open Workspace when arriving from v3 hand-off.
-  useEffect(() => {
-    if (!ready) return;
-    if (consumeWorkspaceHandoff()) {
-      openWorkspace();
-    }
-  }, [ready, openWorkspace]);
 
   const onGenerate = () => {
     setGenerating(true);
-    // Persist whatever they wrote here as a manual intake update.
-    if (text.trim() && text.trim() !== intake.reasonForCall.value) {
-      update({
-        intake: { ...intake, reasonForCall: { value: text.trim(), confidence: "captured" } },
-        source: state.source ?? "manual",
-      });
-    }
     openWorkspace();
     setTimeout(() => setGenerating(false), 900);
   };

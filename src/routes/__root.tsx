@@ -169,12 +169,9 @@ function RootComponent() {
   const isAltView = pathname === "/v2" || pathname.startsWith("/v2/");
   const isV3View = pathname === "/v3" || pathname.startsWith("/v3/");
   const isV4View = pathname === "/v4" || pathname.startsWith("/v4/");
-  const isMyMatches = pathname === "/my-matches" || pathname.startsWith("/my-matches/");
   const isChooser = pathname === "/";
   const hideChrome = hideVoiceBar || isAltView || isV3View || isV4View || isChooser;
   const hideTopChrome = isAltView || isV3View || isV4View || isChooser;
-  // Workspace drawer should be available on /v4 intake AND on the /my-matches landing.
-  const showWorkspace = !hideChrome || isV4View || isMyMatches;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -188,7 +185,7 @@ function RootComponent() {
             {!hideTopChrome && <PushedComparisonDrawer />}
             {!hideTopChrome && <LiveAdvisePanel />}
             {!hideTopChrome && <GuidanceToast />}
-            {showWorkspace && <WorkspaceDrawer />}
+            {!hideChrome && <WorkspaceDrawer />}
           </div>
         </LiveAdviseProvider>
       </AppProvider>
@@ -196,5 +193,4 @@ function RootComponent() {
   );
 
 }
-
 

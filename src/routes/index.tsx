@@ -32,10 +32,10 @@ const DEMOS: DemoCard[] = [
     eyebrow: "Version 1",
     title: "Crinkle Health — Shop My Way",
     blurb:
-      "The production-style Medicare homepage with the Ramble hero, plan comparisons, and the Workspace — your living record. Comes pre-filled when you arrive from Shop Your Way.",
+      "The production-style Medicare homepage with the Ramble hero, plan comparisons, and the voice-guided Medicare Navigator chrome.",
     bullets: [
-      "Workspace drawer reads from your Shop Your Way intake",
       "Top nav, plan grid, and benefits content",
+      "Voice bar and Workspace drawer",
       "Live-advise overlay and guidance toasts",
     ],
     icon: Compass,
@@ -62,11 +62,11 @@ const DEMOS: DemoCard[] = [
     eyebrow: "Version 3",
     title: "Medicare Compass — Shop Your Way",
     blurb:
-      "Three different intake experiences — open conversation, a step-by-step wizard, or path-picker — that hand off cleanly into the v1 Workspace when you're ready to shop.",
+      "Three genuinely different experiences: open conversation, a real step-by-step wizard, or a path-picker that tailors the conversation to what matters most.",
     bullets: [
       "Ramble chat, real form wizard, or Shop-Your-Way paths",
-      "Summary screen hands intake straight to the v1 Workspace",
-      "Doctor / drug / budget / new-to-Medicare lenses",
+      "Doctor-first / drug-first / budget-first / new-to-Medicare lenses",
+      "Same scoring engine and summary as the guided intake",
     ],
     icon: Compass,
     accent: "bg-sky-50",

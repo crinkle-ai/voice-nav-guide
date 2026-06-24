@@ -1,73 +1,56 @@
-# Unify v4 intake → Workspace + /my-matches
 
-Turn the three v4 intakes (Ramble, Form, Shop Your Way) into the front door for a single shopping experience. Workspace becomes the editable record of what we heard, and a new `/my-matches` route surfaces the recommended path + ranked plans.
+## Goal
 
-## What changes for the user
+Add a new `/v4` experience that is a fork of `/v3` (Medicare Compass), differentiating the three intake modes so each tests a real hypothesis instead of being "the same chat with a different opener." `/v3` stays untouched as a reference.
 
-1. **Workspace drawer is available inside /v4** — same component as v1, opens as a side drawer over any v4 screen. As intake fills in (chat, form, or path-picker), the Workspace populates live.
-2. **After completing any v4 intake** → land on `/my-matches` with the Workspace drawer open and editable. No `/v3/summary` confirmation gate.
-3. **/my-matches** shows: recommended path (with switcher), top 3 ranked plans, "Open full comparison" link to `/compare-plans` (pre-filtered).
-4. **Workspace is the source of truth** — edits there re-rank `/my-matches` and re-filter `/compare-plans` immediately.
+## Approach: fork, don't refactor
 
-## Recommended path: derive + switch
+To keep `/v3` working as the current baseline, copy the relevant v3 surface into v4-scoped files. Shared business logic (extraction, matching, intake types, plan data, providers/medications verification functions) is reused as-is — no duplication of backend logic.
 
-A single derived `recommendedLens` is computed from the intake. User can switch lenses anytime; matches re-rank.
+## New files
 
-Derivation rules (first match wins):
+Routes (file-based, `v4.*`):
+- `src/routes/v4.tsx` — pathless layout wrapper (mirrors `v3.tsx`)
+- `src/routes/v4.index.tsx` — landing page with 3 redesigned mode cards
+- `src/routes/v4.intake.tsx` — branches on mode: ramble → chat, structured → wizard, hybrid → path-picker then chat
+- `src/routes/v4.summary.tsx`, `v4.priorities.tsx`, `v4.matches.tsx`, `v4.next-step.tsx` — thin copies of the v3 equivalents pointing at v4 routes
 
-```text
-Shop-Your-Way picked a path     → use that lens (explicit beats derived)
-intake.doctors.length >= 1      → "keep-my-doctors"
-intake.medications.length >= 2  → "afford-my-meds"
-intake.budgetSensitivity = high → "lowest-cost"
-intake.isNewToMedicare = true   → "learn-the-basics"
-fallback                        → "lowest-cost"
-```
+New v4 components (`src/components/v4/`):
+- `app-shell.tsx` — copy of v3 shell, v4 back link / nav
+- `structured-wizard.tsx` — real stepped form: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Writes directly into `state.intake`. No chat, no extraction LLM for owned fields. Progress bar, Back / Next / Skip. Reuses existing `DoctorEditor` and `MedicationEditor` (with NPI / RxNorm verify) for the doctor/med steps.
+- `path-picker.tsx` — 4 cards for Shop Your Way: Keep my doctors / Afford my medications / Lowest cost / New to Medicare. Stores choice in v4 session.
+- `intake-chat.tsx`, `voice-intake.tsx`, `capture-sidebar.tsx` — copies of v3 components, importing v4 session + v4 prompts. Capture sidebar renders as a live preview (no extraction spinner) when mode is `structured`.
 
-Lens switcher renders as 4 chips on `/my-matches` and as a small selector at the top of the Workspace "Recommended path" card. Switching updates a `lensOverride` in the session; clearing it falls back to the derived value.
+New v4 lib (`src/lib/v4/`):
+- `session-store.ts` — copy of v3 store with a new localStorage key (`v4-medicare-compass-session-v1`) and an added `path?: "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare"` field.
+- `prompts.ts` — tightened Ramble prompt; 4 path-specific Hybrid prompts that front-load the relevant fields; Structured prompt only used by the optional sidebar helper.
+- `intake.functions.ts` — re-export `extractIntake` from v3 (single source of truth for extraction).
 
-## Architecture
+API:
+- `src/routes/api/v4/chat.ts` — copy of `api/v3/chat.ts` but imports `SYSTEM_PROMPTS` from `src/lib/v4/prompts.ts` and accepts an optional `path` to select a Hybrid sub-prompt.
 
-```text
-/v4 (any mode)                          /v1 home (unchanged for cold users)
-   │                                       │
-   │ intake completes                      │ click "See my matches"
-   ▼                                       ▼
-/my-matches  ◄────────────────────►  Workspace drawer (editable)
-   │                                       │
-   │ "Open full comparison"                │ filters
-   ▼                                       ▼
-/compare-plans (pre-filtered by intake + lens)
-```
+## Behavior summary
 
-Workspace edits propagate to `/my-matches` and `/compare-plans` via the existing `useSession` store — no new state layer.
+- **Ramble**: same chat UI as v3. Tighter system prompt: one warm invitation, follow-ups only for missing critical fields. Voice + text.
+- **Structured**: no chat. Real wizard, each step a real form using existing structured shapes. "Need help?" sidebar helper is optional and does not drive flow.
+- **Shop Your Way (hybrid)**: after mode select, `/v4/intake` shows `PathPicker` if no `path` set. Once picked, renders `IntakeChat` / `VoiceIntake` with the path-specific system prompt and a "Path: …" chip at the top. Voice remains available.
 
-## Files
+## Landing page copy (`v4.index.tsx`)
 
-**New**
-- `src/routes/my-matches.tsx` — recommended-path card with lens switcher, ranked Top 3 plans, "Open full comparison" CTA. Lives under the v1 chrome (TopNav visible). Empty state ("No intake yet — start one") links to `/v4`.
-- `src/lib/recommended-path.ts` — `deriveLens(intake)`, `LENSES` metadata (label, blurb, icon, sort/filter rules), `rankPlans(plans, intake, lens)` returning Top N with a one-line "why this matches" string per plan.
+Three cards exactly as in the attached screenshot:
+- Open conversation — "Just tell us everything"
+- Step-by-step wizard — "Fill out a quick form"
+- Pick your path — "Shop your way" (internal key stays `hybrid`)
 
-**Edited**
-- `src/lib/v3/session-store.ts` — add `lensOverride?: Lens` field + setter.
-- `src/routes/__root.tsx` — mount `WorkspaceDrawer` on `/v4` routes too (currently hidden). Keep TopNav/BottomVoiceBar hidden on /v4.
-- `src/components/v4/v4-shell.tsx` (or equivalent v4 header) — add a Workspace pill/button to open the drawer; show a small "items captured: N" badge.
-- `src/components/workspace-drawer.tsx` — add "Recommended path" section at the top (lens chip + switch link), and a "Top 3 plan matches" section that links to `/my-matches`. Sections already derive from intake — extend `workspace-derivations.ts`.
-- `src/lib/workspace-derivations.ts` — add `getTopMatches(intake, lens)` and `getRecommendedPath(intake)` helpers wrapping `recommended-path.ts`.
-- `src/routes/v4.ramble.tsx`, `src/routes/v4.structured.tsx`, `src/routes/v4.shop.*` — on completion, `navigate({ to: "/my-matches" })` instead of `/v3/summary`. Shop Your Way's picked path writes to `lensOverride`.
-- `src/routes/compare-plans.tsx` — read `intake` + current lens, pre-filter plan list, show a "Filtered by your Workspace" chip with a clear button.
-- `src/routes/v1.tsx` (RambleHero) — when intake exists, swap CTA from "Show my path" to "See my matches →" pointing at `/my-matches`. Keep auto-open Workspace handoff.
-- `src/routes/index.tsx` (executive chooser) — update v3 (Shop Your Way) blurb to mention "lands on your matches with an editable Workspace".
-
-**Retired (kept as redirects for now)**
-- `/v3/summary`, `/v3/matches`, `/v3/next-step` — replaced by `/my-matches`. Each redirects to `/my-matches` so existing links keep working.
-
-## Open question I'll resolve while building
-
-Plan data source for `rankPlans`: v3's existing matches list is small + hardcoded. I'll reuse it as-is for now and flag where a real plan catalog would slot in — no new backend.
+"How it works" section rewritten to describe the three distinct experiences.
 
 ## Out of scope
 
-- Real plan catalog / CMS integration.
-- Persisting Workspace across browsers (still session-scoped).
-- Auth on `/my-matches` (open route, reads same in-memory session).
+- No changes to `/v3` behavior, copy, or files.
+- No schema changes; intake / matching / summary logic unchanged.
+- No new backend besides the v4 chat route (which delegates to existing AI gateway helpers).
+- Executive chooser (`/`) is not modified in this plan — happy to add a v4 tile in a follow-up if you want it surfaced there.
+
+## Open question
+
+Wizard step order defaults to: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Say the word if you want it re-sequenced.

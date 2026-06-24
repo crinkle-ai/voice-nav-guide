@@ -95,7 +95,7 @@ function IntakePage() {
       } else {
         update({ finished: true });
       }
-      navigate({ to: "/my-matches" });
+      navigate({ to: "/v4/summary" });
     } finally {
       setFinishing(false);
     }
@@ -128,7 +128,7 @@ function IntakePage() {
             onChange={(intake) => update({ intake })}
             onFinish={() => {
               update({ finished: true });
-              navigate({ to: "/my-matches" });
+              navigate({ to: "/v4/summary" });
             }}
           />
           <CaptureSidebar intake={state.intake} loading={false} />
