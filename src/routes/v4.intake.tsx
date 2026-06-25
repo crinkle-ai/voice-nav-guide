@@ -157,21 +157,7 @@ function IntakePage() {
   const enoughCaptured = pct >= 60;
 
   return (
-    <AppShell
-      step="intake"
-      rightSlot={
-        <div className="flex items-center gap-2">
-          {state.mode === "hybrid" && state.path && (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-paper text-accent border border-accent/40 font-medium">
-              Path: {PATH_LABELS[state.path]}
-            </span>
-          )}
-          <span className="text-xs px-2.5 py-1 rounded-full bg-accent-soft text-accent font-medium capitalize">
-            {state.mode === "hybrid" ? "Shop your way" : "Open conversation"}
-          </span>
-        </div>
-      }
-    >
+    <AppShell step="intake" rightSlot={undefined}>
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
