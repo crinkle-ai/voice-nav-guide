@@ -80,7 +80,7 @@ export function AppShell({
               <span>{active.label}</span>
               <span className="font-medium" style={{ color: V4_HEADER_TEXT }}>Confidence {active.pct}%</span>
             </div>
-            <Progress value={active.pct} className="h-1.5" />
+            <Progress value={active.pct} className="h-1.5 bg-[#01579B]/20 [&>*]:bg-[#01579B]" />
           </div>
         )}
       </header>
