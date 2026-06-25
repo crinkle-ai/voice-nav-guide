@@ -61,33 +61,24 @@ export function AppShell({
               ← Back
             </Link>
           </div>
-          <div className="flex flex-col items-end text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
-            <div className="flex items-center gap-5">
-              {rightSlot}
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-1.5 transition"
-                style={{ color: `${V4_HEADER_TEXT}e6` }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
-              >
-                <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
-                <span>Sign in</span>
-              </Link>
-            </div>
-            <HeaderIndicators />
+          <div className="flex items-center gap-5 text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
+            {rightSlot}
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 transition"
+              style={{ color: `${V4_HEADER_TEXT}e6` }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
+            >
+              <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
+              <span>Sign in</span>
+            </Link>
           </div>
         </div>
-        {active && (
-          <div className="mx-auto max-w-6xl px-6 pb-3 pt-1">
-            <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: `${V4_HEADER_TEXT}bf` }}>
-              <span>{active.label}</span>
-              <span className="font-medium" style={{ color: V4_HEADER_TEXT }}>Confidence {active.pct}%</span>
-            </div>
-            <Progress value={active.pct} className="h-1.5 bg-[#033592]/20 [&>*]:bg-[#033592]" />
-          </div>
-        )}
       </header>
+      <div className="mx-auto max-w-6xl px-6 pt-3 flex justify-end">
+        <HeaderIndicators />
+      </div>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
