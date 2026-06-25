@@ -174,74 +174,44 @@ function IntakePage() {
         </div>
       }
     >
-      <div>
-        <div>
-          <div className="mb-6 flex items-baseline justify-between gap-4">
-            <div>
-              <h1 className="font-serif text-3xl">Let's talk Medicare</h1>
-              <p className="text-sm text-muted-2 mt-1">
-                The more you share, the better your matches.{" "}
-                {state.mode === "hybrid" && (
-                  <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
-                    Switch path
-                  </button>
-                )}
-              </p>
-            </div>
-            <Button
-              onClick={finishToSummary}
-              disabled={finishing}
-              variant={enoughCaptured ? "default" : "outline"}
-              className={enoughCaptured ? "bg-accent hover:bg-accent-2 text-paper" : ""}
-            >
-              {finishing ? (
-                <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
-              ) : (
-                <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-6 flex items-baseline justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl">Let's talk Medicare</h1>
+            <p className="text-sm text-muted-2 mt-1">
+              Type, dictate, or have a live voice conversation.{" "}
+              {state.mode === "hybrid" && (
+                <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
+                  Switch path
+                </button>
               )}
-            </Button>
-          </div>
-          <div className="mb-3 inline-flex rounded-full border border-line bg-paper p-1 text-sm">
-            <button
-              onClick={() => setChannel("text")}
-              className={`px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 transition ${
-                channel === "text" ? "bg-ink text-paper" : "text-muted-2 hover:text-ink"
-              }`}
-            >
-              <Keyboard className="h-3.5 w-3.5" /> Type
-            </button>
-            <button
-              onClick={() => setChannel("voice")}
-              className={`px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 transition ${
-                channel === "voice" ? "bg-ink text-paper" : "text-muted-2 hover:text-ink"
-              }`}
-            >
-              <Mic className="h-3.5 w-3.5" /> Talk
-            </button>
-          </div>
-          {channel === "text" ? (
-            <IntakeChat
-              mode={state.mode}
-              path={state.path}
-              initialMessages={state.messages}
-              onMessagesChange={onMessagesChange}
-            />
-          ) : (
-            <VoiceIntake
-              ref={voiceRef}
-              mode={state.mode}
-              messages={state.messages}
-              onMessagesChange={onMessagesChange}
-            />
-          )}
-
-          {!enoughCaptured && (
-            <p className="text-xs text-muted-2 mt-3">
-              Tip: share your reason for calling, doctors, medications, and budget to unlock matches.
             </p>
-          )}
+          </div>
+          <Button
+            onClick={finishToSummary}
+            disabled={finishing}
+            variant={enoughCaptured ? "default" : "outline"}
+            className={enoughCaptured ? "bg-accent hover:bg-accent-2 text-paper" : ""}
+          >
+            {finishing ? (
+              <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
+            ) : (
+              <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
+            )}
+          </Button>
         </div>
+        <IntakeChat
+          mode={state.mode}
+          path={state.path}
+          initialMessages={state.messages}
+          onMessagesChange={onMessagesChange}
+          intake={state.intake}
+        />
+        {extracting && (
+          <p className="text-xs text-muted-2 mt-3">Updating workspace…</p>
+        )}
       </div>
+
 
     </AppShell>
   );
