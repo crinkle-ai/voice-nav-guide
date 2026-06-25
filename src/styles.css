@@ -78,9 +78,17 @@
   --font-serif: "Fraunces", ui-serif, Georgia, serif;
 }
 
-/* V3 editorial tokens — global defaults. Inside .v3-scope, --accent is
-   overridden to deep teal so V3 components render with the editorial palette
-   without affecting V1/V2. */
+/* V4 (UnitedHealthcare Medicare Compass) blue palette */
+.v4-scope {
+  --canvas: #01579B;
+  --paper: #ffffff;
+  --accent: #00B0FF;
+  --accent-2: #0277BD;
+  --accent-soft: rgba(255, 255, 255, 0.15);
+  --line: rgba(255, 255, 255, 0.25);
+  --muted-2: rgba(255, 255, 255, 0.7);
+  --ink: #0D1B4C;
+}
 :root {
   --canvas: oklch(0.985 0.008 85);
   --paper: oklch(1 0 0);
