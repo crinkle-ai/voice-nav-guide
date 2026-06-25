@@ -105,9 +105,9 @@ export function Stepper({ current }: { current: StepKey }) {
             <div
               className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium border ${
                 active
-                  ? "bg-white text-[#01579B] border-white"
+                  ? "bg-white text-[#033592] border-white"
                   : done
-                  ? "bg-[#0277BD] text-white border-[#0277BD]"
+                  ? "bg-[#033592] text-white border-[#033592]"
                   : "bg-white/10 text-white/70 border-white/30"
               }`}
             >
