@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import logoAsset from "@/assets/unified-health-logo-v2-white.png.asset.json";
+import logoAsset from "@/assets/uhc-logo-white.png.asset.json";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -29,15 +30,26 @@ export function AppShell({
     <div className="min-h-screen bg-canvas text-ink">
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: UHC_BLUE }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/v4" className="flex items-center">
-              <img src={logoAsset.url} alt="Unified Health" className="h-9 w-auto object-contain" />
+          <div className="flex items-center gap-4">
+            <Link to="/v4" className="flex items-center gap-3">
+              <img src={logoAsset.url} alt="UnitedHealthcare" className="h-8 w-auto object-contain" />
+              <span className="text-white/40">|</span>
+              <span className="text-white font-medium text-lg tracking-tight">Medicare</span>
             </Link>
-            <Link to="/" className="text-xs text-white/70 hover:text-white transition">
+            <Link to="/" className="text-xs text-white/60 hover:text-white transition ml-2">
               ← Back
             </Link>
           </div>
-          <div className="flex items-center gap-6 text-sm">{rightSlot}</div>
+          <div className="flex items-center gap-5 text-sm">
+            {rightSlot}
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-white/90 hover:text-white transition"
+            >
+              <UserCircle2 className="h-5 w-5" />
+              <span>Sign in</span>
+            </Link>
+          </div>
         </div>
         {active && (
           <div className="mx-auto max-w-6xl px-6 pb-3 pt-1">
