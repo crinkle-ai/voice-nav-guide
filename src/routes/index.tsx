@@ -1,5 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Compass, Sparkles, MessageSquare } from "lucide-react";
+import { ArrowRight, Compass, Sparkles, MessageSquare, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+
+function resetDemoData(label: string) {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (!k) continue;
+      if (
+        k.startsWith("v3-medicare-compass-session") ||
+        k.startsWith("v4-medicare-compass-session") ||
+        k.startsWith("persona-state-") ||
+        k.startsWith("workspace-") ||
+        k.startsWith("v2-") ||
+        k.startsWith("uhc-")
+      ) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+    window.sessionStorage.clear();
+    toast.success(`${label} demo data cleared`);
+  } catch (e) {
+    toast.error("Couldn't clear demo data");
+  }
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
