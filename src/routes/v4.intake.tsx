@@ -158,9 +158,40 @@ function IntakePage() {
     );
   }
 
-  // RAMBLE or HYBRID-with-path → chat surface
+  // RAMBLE or HYBRID-with-path → landing or chat surface
   const pct = intakeCompleteness(state.intake);
   const enoughCaptured = pct >= 60;
+  const showLanding = state.messages.length === 0 && !autoSend;
+
+  if (showLanding) {
+    const startWith = (text: string) => {
+      setAutoSend(text);
+    };
+    const appendChip = (text: string) => {
+      setLandingInput((prev) => (prev ? `${prev} ${text}` : text));
+    };
+    return (
+      <AppShell step="intake">
+        <div className="max-w-2xl mx-auto pt-8 pb-16">
+          <LandingHero />
+          <PathCards onPick={startWith} />
+          <PromptChips onPick={appendChip} />
+          <Composer
+            value={landingInput}
+            onChange={setLandingInput}
+            onSubmit={() => {
+              const v = landingInput.trim();
+              if (v) startWith(v);
+            }}
+            onToggleVoice={() => startWith(landingInput.trim() || "Let's get started.")}
+            voiceActive={false}
+            busy={false}
+            placeholder="What's on your mind?"
+          />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell step="intake">
@@ -196,13 +227,13 @@ function IntakePage() {
           initialMessages={state.messages}
           onMessagesChange={onMessagesChange}
           intake={state.intake}
+          autoSend={autoSend}
+          skipOpener={!!autoSend}
         />
         {extracting && (
           <p className="text-xs text-muted-2 mt-3">Updating workspace…</p>
         )}
       </div>
-
-
     </AppShell>
   );
 }
