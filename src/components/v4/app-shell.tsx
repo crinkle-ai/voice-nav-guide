@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import logoAsset from "@/assets/uhc-logo-white.png.asset.json";
+import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -31,14 +31,27 @@ export function AppShell({
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: UHC_BLUE }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/v4" className="flex items-center gap-3">
-              <img src={logoAsset.url} alt="UnitedHealthcare" className="h-8 w-auto object-contain" />
-              <span className="text-white/40">|</span>
-              <span className="text-white font-medium text-lg tracking-tight">Medicare</span>
-            </Link>
-            <Link to="/" className="text-xs text-white/60 hover:text-white transition ml-2">
-              ← Back
-            </Link>
+          <Link to="/v4" className="flex items-center gap-3">
+            <img
+              src={emblemAsset.url}
+              alt="UnitedHealthcare"
+              className="h-12 w-auto object-contain"
+            />
+            <div className="flex flex-col leading-none">
+              <span
+                className="text-white text-[1.05rem]"
+                style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }}
+              >
+                UnitedHealthcare
+              </span>
+              <span className="text-white/80 text-[0.95rem] tracking-tight">
+                Medicare
+              </span>
+            </div>
+          </Link>
+          <Link to="/" className="text-xs text-white/60 hover:text-white transition ml-4">
+            ← Back
+          </Link>
           </div>
           <div className="flex items-center gap-5 text-sm">
             {rightSlot}
