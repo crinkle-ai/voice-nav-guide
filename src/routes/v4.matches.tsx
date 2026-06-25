@@ -36,8 +36,8 @@ function MatchesPage() {
       <Stepper current="matches" />
       <div className="flex items-baseline justify-between flex-wrap gap-4 mb-6">
         <div>
-          <h1 className="font-serif text-3xl">Your top matches</h1>
-          <p className="text-muted-2 mt-2 max-w-xl">Ranked against what you told us.</p>
+          <h1 className="font-serif text-3xl text-white">Your top matches</h1>
+          <p className="text-white/80 mt-2 max-w-xl">Ranked against what you told us.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button

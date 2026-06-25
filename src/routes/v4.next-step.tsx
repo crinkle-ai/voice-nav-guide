@@ -19,11 +19,11 @@ function NextStepPage() {
     <AppShell step="next">
       <Stepper current="next" />
       <div className="max-w-2xl">
-        <div className="h-14 w-14 rounded-full bg-accent-soft text-accent flex items-center justify-center mb-6">
+        <div className="h-14 w-14 rounded-full bg-[#E0F7FA] text-[#01579B] flex items-center justify-center mb-6">
           <CheckCircle2 className="h-7 w-7" />
         </div>
-        <h1 className="font-serif text-4xl">You're ready.</h1>
-        <p className="text-muted-2 mt-3 text-lg">
+        <h1 className="font-serif text-4xl text-white">You're ready.</h1>
+        <p className="text-white/80 mt-3 text-lg">
           You went from a blank page to a clear, ranked plan recommendation. Here's what to do next.
         </p>
 

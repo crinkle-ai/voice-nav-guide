@@ -42,8 +42,8 @@ function SummaryPage() {
     <AppShell step="summary">
       <Stepper current="summary" />
       <div className="max-w-2xl">
-        <h1 className="font-serif text-3xl">Here's what we heard</h1>
-        <p className="text-muted-2 mt-2">Edit anything that's wrong before we score plans.</p>
+        <h1 className="font-serif text-3xl text-white">Here's what we heard</h1>
+        <p className="text-white/80 mt-2">Edit anything that's wrong before we score plans.</p>
 
         <div className="mt-8 rounded-2xl border border-line bg-paper p-6 space-y-5">
           <Row label={FIELD_LABELS.reasonForCall}>
