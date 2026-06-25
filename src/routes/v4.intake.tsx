@@ -122,7 +122,7 @@ function IntakePage() {
             Predictable and fast. <Link to="/v4" className="underline">Switch experience</Link>
           </p>
         </div>
-        <div className="grid lg:grid-cols-[1fr_340px] gap-8">
+        <div>
           <StructuredWizard
             intake={state.intake}
             onChange={(intake) => update({ intake })}
@@ -131,8 +131,8 @@ function IntakePage() {
               navigate({ to: "/v4/summary" });
             }}
           />
-          <CaptureSidebar intake={state.intake} loading={false} />
         </div>
+
       </AppShell>
     );
   }
@@ -174,7 +174,7 @@ function IntakePage() {
         </div>
       }
     >
-      <div className="grid lg:grid-cols-[1fr_340px] gap-8">
+      <div>
         <div>
           <div className="mb-6 flex items-baseline justify-between gap-4">
             <div>
@@ -241,8 +241,8 @@ function IntakePage() {
             </p>
           )}
         </div>
-        <CaptureSidebar intake={state.intake} loading={extracting} />
       </div>
+
     </AppShell>
   );
 }
