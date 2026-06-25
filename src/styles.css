@@ -86,7 +86,7 @@
   --accent-2: #0277BD;
   --accent-soft: rgba(255, 255, 255, 0.15);
   --line: rgba(255, 255, 255, 0.25);
-  --muted-2: rgba(255, 255, 255, 0.7);
+  --muted-2: #0D1B4C99;
   --ink: #0D1B4C;
 }
 :root {
