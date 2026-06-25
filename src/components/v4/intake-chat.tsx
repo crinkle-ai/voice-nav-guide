@@ -38,7 +38,7 @@ function openerFor(mode: IntakeMode, path?: HybridPath): string {
   return RAMBLE_OPENER;
 }
 
-export function IntakeChat({ mode, path, initialMessages, onMessagesChange, intake }: Props) {
+export function IntakeChat({ mode, path, initialMessages, onMessagesChange, intake, autoSend, skipOpener }: Props) {
   const intakeRef = useRef(intake);
   useEffect(() => {
     intakeRef.current = intake;
@@ -55,13 +55,15 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     () =>
       initialMessages.length > 0
         ? initialMessages
-        : [
-            {
-              id: "opener",
-              role: "assistant",
-              parts: [{ type: "text", text: openerFor(mode, path) }],
-            },
-          ],
+        : skipOpener
+          ? []
+          : [
+              {
+                id: "opener",
+                role: "assistant",
+                parts: [{ type: "text", text: openerFor(mode, path) }],
+              },
+            ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -76,6 +78,14 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const [voiceActive, setVoiceActive] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<VoiceIntakeHandle>(null);
+  const autoSentRef = useRef(false);
+
+  useEffect(() => {
+    if (autoSend && !autoSentRef.current) {
+      autoSentRef.current = true;
+      sendMessage({ text: autoSend });
+    }
+  }, [autoSend, sendMessage]);
 
   useEffect(() => {
     onMessagesChange(messages);
