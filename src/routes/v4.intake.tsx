@@ -174,7 +174,7 @@ function IntakePage() {
         </div>
       }
     >
-      <div className="grid lg:grid-cols-[1fr_340px] gap-8">
+      <div>
         <div>
           <div className="mb-6 flex items-baseline justify-between gap-4">
             <div>
