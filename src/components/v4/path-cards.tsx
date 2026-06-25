@@ -31,23 +31,24 @@ export function PathCards({ onPick }: Props) {
             key={c.key}
             type="button"
             onClick={() => onPick(c.prompt)}
-            className="text-left rounded-2xl border border-line bg-paper p-5 hover:border-accent hover:shadow-md transition-all group"
+            className="text-left rounded-2xl border border-line bg-paper p-5 hover:border-[#00B0FF] hover:shadow-md transition-all group"
           >
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-xl bg-accent-soft text-accent flex items-center justify-center shrink-0 group-hover:bg-accent group-hover:text-paper transition">
+              <div className="h-10 w-10 rounded-xl bg-[#01579B] text-white flex items-center justify-center shrink-0 group-hover:bg-[#00B0FF] transition">
                 <Icon className="h-5 w-5" />
               </div>
               <div className="min-w-0">
                 <div
-                  className="text-lg text-ink"
+                  className="text-lg text-[#0D1B4C]"
                   style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }}
                 >
                   {c.title}
                 </div>
-                <div className="text-sm text-muted-2 mt-1">{c.desc}</div>
+                <div className="text-sm text-[#0D1B4C]/70 mt-1">{c.desc}</div>
               </div>
             </div>
           </button>
+
         );
       })}
     </div>
