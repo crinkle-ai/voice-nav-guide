@@ -14,8 +14,8 @@ const STEPS: { key: StepKey; label: string; pct: number }[] = [
   { key: "next", label: "Next step", pct: 100 },
 ];
 
-const V4_HEADER_BG = "#E0F7FA";
-const V4_HEADER_TEXT = "#01579B";
+const V4_HEADER_BG = "#E5F5F8";
+const V4_HEADER_TEXT = "#033592";
 
 export function AppShell({
   step,
@@ -80,7 +80,7 @@ export function AppShell({
               <span>{active.label}</span>
               <span className="font-medium" style={{ color: V4_HEADER_TEXT }}>Confidence {active.pct}%</span>
             </div>
-            <Progress value={active.pct} className="h-1.5 bg-[#01579B]/20 [&>*]:bg-[#01579B]" />
+            <Progress value={active.pct} className="h-1.5 bg-[#033592]/20 [&>*]:bg-[#033592]" />
           </div>
         )}
       </header>
