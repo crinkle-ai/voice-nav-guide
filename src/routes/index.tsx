@@ -133,9 +133,24 @@ function ChooserPage() {
                   >
                     <Icon className="h-6 w-6" />
                   </div>
-                  <span className="text-[10px] uppercase tracking-widest text-slate-500 font-medium">
-                    {d.eyebrow}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        resetDemoData(d.eyebrow);
+                      }}
+                      title="Reset this demo's data"
+                      aria-label={`Reset ${d.eyebrow} demo data`}
+                      className="h-7 w-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500 font-medium">
+                      {d.eyebrow}
+                    </span>
+                  </div>
                 </div>
                 <h2 className="mt-5 text-xl font-semibold text-slate-900 leading-snug">
                   {d.title}
