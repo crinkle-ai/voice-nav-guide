@@ -147,7 +147,7 @@ function IntakePage() {
     return (
       <AppShell
         step="intake"
-        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#01579B]/10 text-[#01579B] font-medium">Shop your way</span>}
+        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#033592]/10 text-[#033592] font-medium">Shop your way</span>}
       >
         <PathPicker
           onPick={(path) => {
