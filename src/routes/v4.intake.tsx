@@ -118,7 +118,7 @@ function IntakePage() {
     return (
       <AppShell
         step="intake"
-        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#01579B]/10 text-[#01579B] font-medium">Step-by-step wizard</span>}
+        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#033592]/10 text-[#E5F5F8] font-medium">Step-by-step wizard</span>}
       >
         <div className="mb-6">
           <h1 className="font-serif text-3xl text-white">Fill out a quick form</h1>
