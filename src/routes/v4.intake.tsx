@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/v4/app-shell";
 import { IntakeChat } from "@/components/v4/intake-chat";
-import { VoiceIntake, type VoiceIntakeHandle } from "@/components/v4/voice-intake";
-import { CaptureSidebar } from "@/components/v4/capture-sidebar";
 import { StructuredWizard } from "@/components/v4/structured-wizard";
 import { PathPicker } from "@/components/v4/path-picker";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
@@ -11,7 +9,8 @@ import { intakeCompleteness } from "@/lib/v3/intake-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Keyboard, Mic, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/v4/intake")({
   head: () => ({ meta: [{ title: "Intake — Medicare Compass v4" }] }),
