@@ -172,22 +172,27 @@ function IntakePage() {
     };
     return (
       <AppShell step="intake">
-        <div className="max-w-2xl mx-auto pt-8 pb-16">
-          <LandingHero />
-          <PathCards onPick={startWith} />
-          <PromptChips onPick={appendChip} />
-          <Composer
-            value={landingInput}
-            onChange={setLandingInput}
-            onSubmit={() => {
-              const v = landingInput.trim();
-              if (v) startWith(v);
-            }}
-            onToggleVoice={() => startWith(landingInput.trim() || "Let's get started.")}
-            voiceActive={false}
-            busy={false}
-            placeholder="What's on your mind?"
-          />
+        <div className="max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-160px)]">
+          <div className="pt-8">
+            <LandingHero />
+            <PathCards onPick={startWith} />
+          </div>
+          <div className="flex-1" />
+          <div className="pb-8 sticky bottom-4">
+            <PromptChips onPick={appendChip} />
+            <Composer
+              value={landingInput}
+              onChange={setLandingInput}
+              onSubmit={() => {
+                const v = landingInput.trim();
+                if (v) startWith(v);
+              }}
+              onToggleVoice={() => startWith(landingInput.trim() || "Let's get started.")}
+              voiceActive={false}
+              busy={false}
+              placeholder="Ask anything"
+            />
+          </div>
         </div>
       </AppShell>
     );
