@@ -43,6 +43,7 @@ import { Route as ApiVoiceSessionRouteImport } from './routes/api/voice-session'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as WorkspaceActivityActivityIdRouteImport } from './routes/workspace.activity.$activityId'
+import { Route as ApiV4TranscribeRouteImport } from './routes/api/v4/transcribe'
 import { Route as ApiV4ChatRouteImport } from './routes/api/v4/chat'
 import { Route as ApiV3GeminiLiveTokenRouteImport } from './routes/api/v3/gemini-live-token'
 import { Route as ApiV3ChatRouteImport } from './routes/api/v3/chat'
@@ -218,6 +219,11 @@ const WorkspaceActivityActivityIdRoute =
     path: '/activity/$activityId',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const ApiV4TranscribeRoute = ApiV4TranscribeRouteImport.update({
+  id: '/api/v4/transcribe',
+  path: '/api/v4/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV4ChatRoute = ApiV4ChatRouteImport.update({
   id: '/api/v4/chat',
   path: '/api/v4/chat',
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/api/v4/chat': typeof ApiV4ChatRoute
+  '/api/v4/transcribe': typeof ApiV4TranscribeRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesByTo {
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/api/v4/chat': typeof ApiV4ChatRoute
+  '/api/v4/transcribe': typeof ApiV4TranscribeRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRoutesById {
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/api/v3/chat': typeof ApiV3ChatRoute
   '/api/v3/gemini-live-token': typeof ApiV3GeminiLiveTokenRoute
   '/api/v4/chat': typeof ApiV4ChatRoute
+  '/api/v4/transcribe': typeof ApiV4TranscribeRoute
   '/workspace/activity/$activityId': typeof WorkspaceActivityActivityIdRoute
 }
 export interface FileRouteTypes {
@@ -388,6 +397,7 @@ export interface FileRouteTypes {
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
     | '/api/v4/chat'
+    | '/api/v4/transcribe'
     | '/workspace/activity/$activityId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
     | '/api/v4/chat'
+    | '/api/v4/transcribe'
     | '/workspace/activity/$activityId'
   id:
     | '__root__'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/api/v3/chat'
     | '/api/v3/gemini-live-token'
     | '/api/v4/chat'
+    | '/api/v4/transcribe'
     | '/workspace/activity/$activityId'
   fileRoutesById: FileRoutesById
 }
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   ApiV3ChatRoute: typeof ApiV3ChatRoute
   ApiV3GeminiLiveTokenRoute: typeof ApiV3GeminiLiveTokenRoute
   ApiV4ChatRoute: typeof ApiV4ChatRoute
+  ApiV4TranscribeRoute: typeof ApiV4TranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -730,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceActivityActivityIdRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/api/v4/transcribe': {
+      id: '/api/v4/transcribe'
+      path: '/api/v4/transcribe'
+      fullPath: '/api/v4/transcribe'
+      preLoaderRoute: typeof ApiV4TranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v4/chat': {
       id: '/api/v4/chat'
       path: '/api/v4/chat'
@@ -842,6 +862,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV3ChatRoute: ApiV3ChatRoute,
   ApiV3GeminiLiveTokenRoute: ApiV3GeminiLiveTokenRoute,
   ApiV4ChatRoute: ApiV4ChatRoute,
+  ApiV4TranscribeRoute: ApiV4TranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

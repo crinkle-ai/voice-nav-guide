@@ -1,17 +1,20 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Send } from "lucide-react";
-import type { IntakeMode } from "@/lib/v3/intake-types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { IntakeMode, Intake } from "@/lib/v3/intake-types";
 import type { HybridPath } from "@/lib/v4/session-store";
+import { Composer } from "./composer";
+import { VoiceIntake, type VoiceIntakeHandle } from "./voice-intake";
+import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questionnaire";
+import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
+import { SuggestNextCard } from "./chat-cards/suggest-next";
 
 type Props = {
   mode: IntakeMode;
   path?: HybridPath;
   initialMessages: UIMessage[];
   onMessagesChange: (msgs: UIMessage[]) => void;
+  intake: Intake;
 };
 
 const RAMBLE_OPENER =
@@ -33,24 +36,33 @@ function openerFor(mode: IntakeMode, path?: HybridPath): string {
   return RAMBLE_OPENER;
 }
 
-export function IntakeChat({ mode, path, initialMessages, onMessagesChange }: Props) {
+export function IntakeChat({ mode, path, initialMessages, onMessagesChange, intake }: Props) {
+  const intakeRef = useRef(intake);
+  useEffect(() => {
+    intakeRef.current = intake;
+  }, [intake]);
+
   const transport = useRef(
     new DefaultChatTransport({
       api: "/api/v4/chat",
-      body: { mode, path },
+      body: () => ({ mode, path, intakeSnapshot: intakeRef.current }),
     }),
   );
 
-  const seeded: UIMessage[] =
-    initialMessages.length > 0
-      ? initialMessages
-      : [
-          {
-            id: "opener",
-            role: "assistant",
-            parts: [{ type: "text", text: openerFor(mode, path) }],
-          },
-        ];
+  const seeded: UIMessage[] = useMemo(
+    () =>
+      initialMessages.length > 0
+        ? initialMessages
+        : [
+            {
+              id: "opener",
+              role: "assistant",
+              parts: [{ type: "text", text: openerFor(mode, path) }],
+            },
+          ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const { messages, sendMessage, status } = useChat({
     id: `v4-intake-${mode}-${path ?? "none"}`,
@@ -59,12 +71,9 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange }: Pr
   });
 
   const [input, setInput] = useState("");
-  const taRef = useRef<HTMLTextAreaElement>(null);
+  const [voiceActive, setVoiceActive] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    taRef.current?.focus();
-  }, []);
+  const voiceRef = useRef<VoiceIntakeHandle>(null);
 
   useEffect(() => {
     onMessagesChange(messages);
@@ -73,74 +82,132 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange }: Pr
 
   const busy = status === "submitted" || status === "streaming";
 
-  const submit = () => {
-    const text = input.trim();
+  const submit = (override?: string) => {
+    const text = (override ?? input).trim();
     if (!text || busy) return;
     sendMessage({ text });
-    setInput("");
-    setTimeout(() => taRef.current?.focus(), 0);
+    if (!override) setInput("");
   };
 
   return (
-    <div className="flex flex-col h-[70vh] rounded-2xl border border-line bg-paper overflow-hidden">
-      <div ref={scrollerRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+    <div className="flex flex-col min-h-[calc(100vh-220px)]">
+      <div ref={scrollerRef} className="flex-1 overflow-y-auto px-1 py-6 space-y-6">
         {messages.map((m) => (
-          <Bubble key={m.id} message={m} />
+          <MessageRow
+            key={m.id}
+            message={m}
+            onPickChip={(c) => submit(c)}
+            onQuestionnaireSubmit={(text) => submit(text)}
+            disabled={busy}
+          />
         ))}
         {busy && (
-          <div className="flex items-center gap-2 text-sm text-muted-2">
+          <div className="flex items-center gap-2 text-sm text-muted-2 px-1">
             <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
             <span>Thinking…</span>
           </div>
         )}
       </div>
-      <div className="border-t border-line p-3 bg-canvas/40">
-        <div className="flex gap-2 items-end">
-          <Textarea
-            ref={taRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            placeholder="Type your response… (Enter to send, Shift+Enter for new line)"
-            className="min-h-[52px] max-h-40 resize-none bg-paper border-line"
-            disabled={busy}
+
+      {voiceActive && (
+        <div className="my-3">
+          <VoiceIntake
+            ref={voiceRef}
+            mode={mode}
+            messages={messages}
+            onMessagesChange={onMessagesChange}
           />
-          <Button
-            onClick={submit}
-            disabled={busy || !input.trim()}
-            size="icon"
-            className="h-[52px] w-[52px] bg-accent hover:bg-accent-2 text-paper"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          <div className="text-right mt-2">
+            <button
+              type="button"
+              onClick={async () => {
+                if (voiceRef.current) await voiceRef.current.flush();
+                setVoiceActive(false);
+              }}
+              className="text-xs underline text-muted-2 hover:text-ink"
+            >
+              Close voice conversation
+            </button>
+          </div>
         </div>
+      )}
+
+      <div className="sticky bottom-4 mt-4">
+        <Composer
+          value={input}
+          onChange={setInput}
+          onSubmit={() => submit()}
+          onToggleVoice={() => setVoiceActive((v) => !v)}
+          voiceActive={voiceActive}
+          busy={busy}
+        />
       </div>
     </div>
   );
 }
 
-function Bubble({ message }: { message: UIMessage }) {
-  const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+type AnyPart = UIMessage["parts"][number] & { type: string; state?: string; input?: unknown };
+
+function MessageRow({
+  message,
+  onPickChip,
+  onQuestionnaireSubmit,
+  disabled,
+}: {
+  message: UIMessage;
+  onPickChip: (chip: string) => void;
+  onQuestionnaireSubmit: (text: string) => void;
+  disabled: boolean;
+}) {
+  const text = message.parts
+    .map((p) => (p.type === "text" ? p.text : ""))
+    .join("")
+    .trim();
+
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-ink text-paper px-4 py-2.5 text-sm leading-relaxed">
+        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-ink text-paper px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
           {text}
         </div>
       </div>
     );
   }
+
   return (
     <div className="flex gap-3">
       <div className="h-8 w-8 shrink-0 rounded-full bg-accent-soft text-accent flex items-center justify-center font-serif text-sm">
         M
       </div>
-      <div className="text-[15px] leading-relaxed text-ink max-w-[85%] whitespace-pre-wrap">{text}</div>
+      <div className="flex-1 min-w-0 max-w-[85%]">
+        {text && (
+          <div className="text-[15px] leading-relaxed text-ink whitespace-pre-wrap">{text}</div>
+        )}
+        {message.parts.map((p, i) => {
+          const part = p as AnyPart;
+          if (!part.type?.startsWith("tool-")) return null;
+          if (part.state !== "input-available" && part.state !== "output-available") return null;
+          const input = part.input as unknown;
+          if (part.type === "tool-askQuestionnaire" && input) {
+            return (
+              <QuestionnaireCard
+                key={i}
+                data={input as QuestionnaireInput}
+                onSubmit={onQuestionnaireSubmit}
+                disabled={disabled}
+              />
+            );
+          }
+          if (part.type === "tool-recommendPlans" && input) {
+            return <PlanComparisonCard key={i} data={input as RecommendPlansInput} />;
+          }
+          if (part.type === "tool-suggestNext" && input) {
+            const { chips } = input as { chips: string[] };
+            return <SuggestNextCard key={i} chips={chips} onPick={onPickChip} disabled={disabled} />;
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 }
