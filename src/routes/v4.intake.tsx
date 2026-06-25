@@ -118,7 +118,7 @@ function IntakePage() {
     return (
       <AppShell
         step="intake"
-        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#01579B]/10 text-[#01579B] font-medium">Step-by-step wizard</span>}
+        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#033592]/10 text-[#033592] font-medium">Step-by-step wizard</span>}
       >
         <div className="mb-6">
           <h1 className="font-serif text-3xl text-white">Fill out a quick form</h1>
@@ -147,7 +147,7 @@ function IntakePage() {
     return (
       <AppShell
         step="intake"
-        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#01579B]/10 text-[#01579B] font-medium">Shop your way</span>}
+        rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#033592]/10 text-[#033592] font-medium">Shop your way</span>}
       >
         <PathPicker
           onPick={(path) => {
@@ -219,7 +219,7 @@ function IntakePage() {
             onClick={finishToSummary}
             disabled={finishing}
             variant={enoughCaptured ? "default" : "outline"}
-            className={enoughCaptured ? "bg-[#00B0FF] hover:bg-[#0277BD] text-white" : "border-white/30 text-white hover:bg-white/10"}
+            className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
           >
             {finishing ? (
               <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>

@@ -115,7 +115,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
         ))}
         {busy && (
           <div className="flex items-center gap-2 text-sm text-white/70 px-1">
-            <span className="h-2 w-2 rounded-full bg-[#00B0FF] animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-[#033592] animate-pulse" />
             <span>Thinking…</span>
           </div>
         )}
@@ -190,7 +190,7 @@ function MessageRow({
 
   return (
       <div className="flex gap-3">
-      <div className="h-8 w-8 shrink-0 rounded-full bg-[#E0F7FA] text-[#01579B] flex items-center justify-center font-serif text-sm">
+      <div className="h-8 w-8 shrink-0 rounded-full bg-[#E5F5F8] text-[#033592] flex items-center justify-center font-serif text-sm">
         M
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">

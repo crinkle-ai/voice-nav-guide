@@ -113,7 +113,7 @@ export function Composer({
           }}
           placeholder={placeholder ?? "Ask anything about Medicare…"}
           rows={1}
-          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-transparent p-0 text-[15px] leading-6 text-[#0D1B4C] placeholder:text-[#0D1B4C]/50"
+          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-transparent p-0 text-[15px] leading-6 text-[#033592] placeholder:text-[#033592]/50"
           disabled={busy}
         />
         <Button
@@ -123,7 +123,7 @@ export function Composer({
           onClick={toggleDictation}
           disabled={busy || rec === "transcribing" || voiceActive}
           title={rec === "recording" ? "Stop dictation" : "Dictate"}
-          className="h-10 w-10 rounded-full text-[#0D1B4C] hover:bg-[#E0F7FA] shrink-0"
+          className="h-10 w-10 rounded-full text-[#033592] hover:bg-[#E5F5F8] shrink-0"
         >
           {rec === "recording" ? <Square className="h-4 w-4 text-red-500" /> : <Mic className="h-5 w-5" />}
         </Button>
@@ -132,7 +132,7 @@ export function Composer({
           onClick={canSend ? onSubmit : onToggleVoice}
           disabled={busy || rec === "transcribing"}
           size="icon"
-          className={`h-10 w-10 rounded-full shrink-0 ${voiceActive ? "bg-[#00B0FF] text-white hover:bg-[#0277BD]" : "bg-[#0D1B4C] text-white hover:bg-[#0D1B4C]/90"}`}
+          className={`h-10 w-10 rounded-full shrink-0 ${voiceActive ? "bg-[#033592] text-white hover:bg-[#033592]/90" : "bg-[#033592] text-white hover:bg-[#033592]/90"}`}
           title={canSend ? "Send" : "Voice conversation"}
         >
           {canSend ? <Send className="h-4 w-4" /> : <AudioLines className="h-5 w-5" />}
@@ -140,7 +140,7 @@ export function Composer({
       </div>
 
       {(rec === "recording" || rec === "transcribing" || voiceActive) && (
-        <div className="text-xs text-[#0D1B4C]/70 mt-2 pl-5">
+        <div className="text-xs text-[#033592]/70 mt-2 pl-5">
           {rec === "recording" && (
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -153,7 +153,7 @@ export function Composer({
             </span>
           )}
           {voiceActive && rec === "idle" && (
-            <span className="inline-flex items-center gap-1.5 text-[#00B0FF]">
+            <span className="inline-flex items-center gap-1.5 text-[#033592]">
               <AudioLines className="h-3 w-3" /> Voice conversation active
             </span>
           )}
