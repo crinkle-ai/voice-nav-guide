@@ -241,8 +241,8 @@ function IntakePage() {
             </p>
           )}
         </div>
-        <CaptureSidebar intake={state.intake} loading={extracting} />
       </div>
+
     </AppShell>
   );
 }
