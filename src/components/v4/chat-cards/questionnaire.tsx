@@ -71,8 +71,9 @@ export function QuestionnaireCard({ data, onSubmit, disabled }: Props) {
                       className={`text-xs px-2.5 py-1 rounded-full border transition ${
                         selected
                           ? "border-accent bg-accent text-paper"
-                          : "border-line bg-paper text-ink hover:border-accent/60"
+                          : "border-[#E5F5F8]/30 bg-[#E5F5F8]/15 text-[#E5F5F8] hover:bg-[#E5F5F8]/25 hover:border-[#E5F5F8]/50"
                       }`}
+
                     >
                       {opt}
                     </button>
