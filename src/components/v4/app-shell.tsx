@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
+import { HeaderIndicators } from "./header-indicators";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -60,18 +61,21 @@ export function AppShell({
               ← Back
             </Link>
           </div>
-          <div className="flex items-center gap-5 text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
-            {rightSlot}
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 transition"
-              style={{ color: `${V4_HEADER_TEXT}e6` }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
-            >
-              <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
-              <span>Sign in</span>
-            </Link>
+          <div className="flex flex-col items-end text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
+            <div className="flex items-center gap-5">
+              {rightSlot}
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 transition"
+                style={{ color: `${V4_HEADER_TEXT}e6` }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
+              >
+                <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
+                <span>Sign in</span>
+              </Link>
+            </div>
+            <HeaderIndicators />
           </div>
         </div>
         {active && (
