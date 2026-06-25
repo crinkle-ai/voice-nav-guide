@@ -8,6 +8,7 @@ import { VoiceIntake, type VoiceIntakeHandle } from "./voice-intake";
 import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questionnaire";
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
+import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 
 type Props = {
   mode: IntakeMode;
@@ -181,7 +182,7 @@ function MessageRow({
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-ink text-paper px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-white text-[#033592] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
           {text}
         </div>
       </div>
@@ -190,8 +191,8 @@ function MessageRow({
 
   return (
       <div className="flex gap-3">
-      <div className="h-8 w-8 shrink-0 rounded-full bg-[#E5F5F8] text-[#033592] flex items-center justify-center font-serif text-sm">
-        M
+      <div className="h-8 w-8 shrink-0 rounded-full bg-white flex items-center justify-center p-1">
+        <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-5 w-5 object-contain" />
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">
         {text && (
