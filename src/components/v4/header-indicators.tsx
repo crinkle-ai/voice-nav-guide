@@ -6,6 +6,8 @@ import { computeProgress } from "@/lib/v4/profile-progress";
 import { PLAN_CATALOG, computeMatches } from "@/lib/v4/plan-catalog";
 
 const HEADER_TEXT = "#033592";
+const ON_DARK = "rgba(255,255,255,0.85)";
+const ON_DARK_MUTED = "rgba(255,255,255,0.6)";
 
 export function HeaderIndicators() {
   const { state, ready } = useSession();
@@ -24,13 +26,13 @@ export function HeaderIndicators() {
 
   return (
     <>
-      <div className="flex flex-col items-end gap-1 mt-1 select-none">
-        <div className="flex items-center gap-1.5" style={{ color: `${HEADER_TEXT}b3` }}>
+      <div className="flex flex-col items-end gap-1 select-none">
+        <div className="flex items-center gap-1.5" style={{ color: ON_DARK_MUTED }}>
           <span className="text-[10px] leading-none">Profile {pct}%</span>
-          <div className="h-[3px] w-[60px] rounded-full" style={{ backgroundColor: `${HEADER_TEXT}26` }}>
+          <div className="h-[3px] w-[60px] rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${pct}%`, backgroundColor: HEADER_TEXT }}
+              style={{ width: `${pct}%`, backgroundColor: "#fff" }}
             />
           </div>
         </div>
@@ -38,7 +40,7 @@ export function HeaderIndicators() {
           type="button"
           onClick={() => setOpen(true)}
           className="text-[11px] leading-none transition hover:underline"
-          style={{ color: narrowed ? HEADER_TEXT : `${HEADER_TEXT}99` }}
+          style={{ color: narrowed ? ON_DARK : ON_DARK_MUTED }}
         >
           {planLabel}
         </button>
