@@ -219,7 +219,7 @@ function IntakePage() {
             onClick={finishToSummary}
             disabled={finishing}
             variant={enoughCaptured ? "default" : "outline"}
-            className={enoughCaptured ? "bg-[#00B0FF] hover:bg-[#0277BD] text-white" : "border-white/30 text-white hover:bg-white/10"}
+            className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
           >
             {finishing ? (
               <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
