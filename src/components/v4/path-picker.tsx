@@ -40,14 +40,14 @@ export function PathPicker({ onPick }: { onPick: (path: HybridPath) => void }) {
           <button
             key={key}
             onClick={() => onPick(key)}
-            className="group text-left rounded-2xl border border-line bg-paper p-6 hover:border-[#00B0FF] hover:shadow-md transition-all"
+            className="group text-left rounded-2xl border border-line bg-paper p-6 hover:border-[#033592] hover:shadow-md transition-all"
           >
-            <div className="h-10 w-10 rounded-xl bg-[#01579B] text-white flex items-center justify-center mb-4 group-hover:bg-[#00B0FF] transition">
+            <div className="h-10 w-10 rounded-xl bg-[#033592] text-white flex items-center justify-center mb-4 group-hover:bg-[#033592]/80 transition">
               <Icon className="h-5 w-5" />
             </div>
-            <h3 className="font-serif text-xl text-[#0D1B4C] mb-1.5">{title}</h3>
-            <p className="text-sm text-[#0D1B4C]/70 leading-relaxed">{blurb}</p>
-            <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#00B0FF] group-hover:gap-2.5 transition-all">
+            <h3 className="font-serif text-xl text-[#033592] mb-1.5">{title}</h3>
+            <p className="text-sm text-[#033592]/70 leading-relaxed">{blurb}</p>
+            <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#033592] group-hover:gap-2.5 transition-all">
               Start this path <ArrowRight className="h-4 w-4" />
             </div>
           </button>
