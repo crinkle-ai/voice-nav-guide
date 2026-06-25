@@ -99,23 +99,47 @@ export function Composer({
   const canSend = !busy && value.trim().length > 0 && rec !== "transcribing";
 
   return (
-    <div className="border border-line rounded-2xl bg-paper shadow-sm p-2">
-      <Textarea
-        ref={taRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            if (canSend) onSubmit();
-          }
-        }}
-        placeholder={placeholder ?? "Ask anything about Medicare…"}
-        className="min-h-[52px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-transparent px-3 py-2 text-[15px]"
-        disabled={busy}
-      />
-      <div className="flex items-center justify-between px-1 pt-1">
-        <div className="text-xs text-muted-2 pl-2">
+    <div className="relative">
+      <div className="flex items-center gap-2 rounded-full border border-line bg-paper shadow-sm pl-5 pr-2 py-2">
+        <Textarea
+          ref={taRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (canSend) onSubmit();
+            }
+          }}
+          placeholder={placeholder ?? "Ask anything about Medicare…"}
+          rows={1}
+          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-transparent p-0 text-[15px] leading-6 placeholder:text-muted-2"
+          disabled={busy}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={toggleDictation}
+          disabled={busy || rec === "transcribing" || voiceActive}
+          title={rec === "recording" ? "Stop dictation" : "Dictate"}
+          className="h-10 w-10 rounded-full text-ink hover:bg-muted shrink-0"
+        >
+          {rec === "recording" ? <Square className="h-4 w-4 text-red-500" /> : <Mic className="h-5 w-5" />}
+        </Button>
+        <Button
+          type="button"
+          onClick={canSend ? onSubmit : onToggleVoice}
+          disabled={busy || rec === "transcribing"}
+          size="icon"
+          className={`h-10 w-10 rounded-full shrink-0 ${voiceActive ? "bg-accent text-paper hover:bg-accent-2" : "bg-ink text-paper hover:bg-ink/90"}`}
+          title={canSend ? "Send" : "Voice conversation"}
+        >
+          {canSend ? <Send className="h-4 w-4" /> : <AudioLines className="h-5 w-5" />}
+        </Button>
+      </div>
+      {(rec === "recording" || rec === "transcribing" || voiceActive) && (
+        <div className="text-xs text-muted-2 mt-2 pl-5">
           {rec === "recording" && (
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -133,40 +157,7 @@ export function Composer({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={toggleDictation}
-            disabled={busy || rec === "transcribing" || voiceActive}
-            title={rec === "recording" ? "Stop dictation" : "Dictate"}
-            className="h-9 w-9"
-          >
-            {rec === "recording" ? <Square className="h-4 w-4 text-red-500" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button
-            type="button"
-            variant={voiceActive ? "default" : "ghost"}
-            size="icon"
-            onClick={onToggleVoice}
-            disabled={busy || rec !== "idle"}
-            title="Voice-to-voice conversation"
-            className={`h-9 w-9 ${voiceActive ? "bg-accent text-paper hover:bg-accent-2" : ""}`}
-          >
-            <AudioLines className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            onClick={onSubmit}
-            disabled={!canSend}
-            size="icon"
-            className="h-9 w-9 bg-accent hover:bg-accent-2 text-paper"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
