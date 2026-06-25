@@ -157,7 +157,7 @@ function IntakePage() {
   const enoughCaptured = pct >= 60;
 
   return (
-    <AppShell step="intake" rightSlot={undefined}>
+    <AppShell step="intake">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
