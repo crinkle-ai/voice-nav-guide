@@ -1,56 +1,73 @@
-
 ## Goal
 
-Add a new `/v4` experience that is a fork of `/v3` (Medicare Compass), differentiating the three intake modes so each tests a real hypothesis instead of being "the same chat with a different opener." `/v3` stays untouched as a reference.
+Make `/v4/intake` feel like ChatGPT/Gemini: a single primary chat column where the user types or speaks, answers stream in above the composer, and the assistant can render rich content (plan comparisons, questionnaires, diagrams) inline as part of its reply — with a clear "why we recommended this" rationale on every plan.
 
-## Approach: fork, don't refactor
+## Layout changes
 
-To keep `/v3` working as the current baseline, copy the relevant v3 surface into v4-scoped files. Shared business logic (extraction, matching, intake types, plan data, providers/medications verification functions) is reused as-is — no duplication of backend logic.
+```text
+┌──────────────────────────────────────────────────┐
+│  Header (existing)                               │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│   Conversation transcript (scrolls)              │
+│   • user bubble (right)                          │
+│   • assistant reply (left, may contain cards)    │
+│       └─ PlanComparison / Questionnaire /        │
+│          Diagram / Suggestion chips              │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│  [ Type a message…              ] [🎤] [🎙️voice] │
+└──────────────────────────────────────────────────┘
+```
 
-## New files
+- One centered column (max-w ~3xl), no side capture sidebar (Workspace drawer already covers that).
+- Composer pinned to bottom, mic + voice-to-voice buttons on the right of the input.
+- Structured wizard and Path picker modes stay, but the default Ramble mode becomes this surface.
 
-Routes (file-based, `v4.*`):
-- `src/routes/v4.tsx` — pathless layout wrapper (mirrors `v3.tsx`)
-- `src/routes/v4.index.tsx` — landing page with 3 redesigned mode cards
-- `src/routes/v4.intake.tsx` — branches on mode: ramble → chat, structured → wizard, hybrid → path-picker then chat
-- `src/routes/v4.summary.tsx`, `v4.priorities.tsx`, `v4.matches.tsx`, `v4.next-step.tsx` — thin copies of the v3 equivalents pointing at v4 routes
+## Composer
 
-New v4 components (`src/components/v4/`):
-- `app-shell.tsx` — copy of v3 shell, v4 back link / nav
-- `structured-wizard.tsx` — real stepped form: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Writes directly into `state.intake`. No chat, no extraction LLM for owned fields. Progress bar, Back / Next / Skip. Reuses existing `DoctorEditor` and `MedicationEditor` (with NPI / RxNorm verify) for the doctor/med steps.
-- `path-picker.tsx` — 4 cards for Shop Your Way: Keep my doctors / Afford my medications / Lowest cost / New to Medicare. Stores choice in v4 session.
-- `intake-chat.tsx`, `voice-intake.tsx`, `capture-sidebar.tsx` — copies of v3 components, importing v4 session + v4 prompts. Capture sidebar renders as a live preview (no extraction spinner) when mode is `structured`.
+Replace the current Send-only composer in `src/components/v4/intake-chat.tsx`:
 
-New v4 lib (`src/lib/v4/`):
-- `session-store.ts` — copy of v3 store with a new localStorage key (`v4-medicare-compass-session-v1`) and an added `path?: "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare"` field.
-- `prompts.ts` — tightened Ramble prompt; 4 path-specific Hybrid prompts that front-load the relevant fields; Structured prompt only used by the optional sidebar helper.
-- `intake.functions.ts` — re-export `extractIntake` from v3 (single source of truth for extraction).
+- Text input (auto-grow textarea).
+- 🎤 **Mic (dictation)**: press-and-hold or toggle; uses existing browser STT path from `voice-intake.tsx` (Lovable AI `openai/gpt-4o-mini-transcribe`) and drops the transcript into the textarea — user reviews and sends.
+- 🎙️ **Voice-to-voice**: opens the existing `VoiceIntake` realtime session in an inline panel above the composer (not a separate route). Toggling it back returns to text mode. Same `onMessagesChange` so transcript merges into the chat.
+- Submit on Enter; Shift+Enter newline; disabled while streaming.
 
-API:
-- `src/routes/api/v4/chat.ts` — copy of `api/v3/chat.ts` but imports `SYSTEM_PROMPTS` from `src/lib/v4/prompts.ts` and accepts an optional `path` to select a Hybrid sub-prompt.
+## Rich in-chat content (assistant "parts")
 
-## Behavior summary
+Extend the AI route at `src/routes/api/v4.chat.ts` to emit tool calls the UI renders as cards inline in the assistant message. New tools (server-side, AI SDK `tool()` with Zod input):
 
-- **Ramble**: same chat UI as v3. Tighter system prompt: one warm invitation, follow-ups only for missing critical fields. Voice + text.
-- **Structured**: no chat. Real wizard, each step a real form using existing structured shapes. "Need help?" sidebar helper is optional and does not drive flow.
-- **Shop Your Way (hybrid)**: after mode select, `/v4/intake` shows `PathPicker` if no `path` set. Once picked, renders `IntakeChat` / `VoiceIntake` with the path-specific system prompt and a "Path: …" chip at the top. Voice remains available.
+1. `askQuestionnaire` — { title, questions:[{id,label,type:'single'|'multi'|'text',options?}] } → renders an inline form; on submit, the answers post back as the next user message.
+2. `recommendPlans` — { plans:[{id,name,carrier,type,monthlyPremium,maxOOP,starRating,highlights[]}], rationale:[{planId, reasons:[{label,detail,sourceField}]}] } → renders a comparison card with a **"Why we recommended this"** section per plan that cites which intake fields drove the pick (e.g. "Keeps Dr. Patel in-network", "$0 copay on metformin", "Under your $80 budget").
+3. `showDiagram` — { kind:'coverage-gaps'|'cost-breakdown'|'timeline', data } → small SVG/Recharts viz.
+4. `suggestNext` — { chips:[string] } → quick-reply chips under the message; clicking sends as user text.
 
-## Landing page copy (`v4.index.tsx`)
+Each card is a React component under `src/components/v4/chat-cards/`. The chat renderer iterates `message.parts` and switches on `part.type` (`text` vs `tool-<name>`) per AI SDK UI conventions, so cards stream in alongside text.
 
-Three cards exactly as in the attached screenshot:
-- Open conversation — "Just tell us everything"
-- Step-by-step wizard — "Fill out a quick form"
-- Pick your path — "Shop your way" (internal key stays `hybrid`)
+## "Why this plan" rationale
 
-"How it works" section rewritten to describe the three distinct experiences.
+- Server prompt updated (`src/lib/v4/prompts.ts`) to require the model to call `recommendPlans` whenever it surfaces plan options, and to always include a `rationale[]` array tying each pick to specific captured intake values (doctors, meds, conditions, budget, Medicaid, ZIP).
+- UI surfaces rationale as a labeled list under each plan card ("Because you said…") with the source field tag visible.
+- `/v4/matches` page reuses the same `PlanComparison` card for consistency.
+
+## Files
+
+New:
+- `src/components/v4/chat-cards/plan-comparison.tsx`
+- `src/components/v4/chat-cards/questionnaire.tsx`
+- `src/components/v4/chat-cards/diagram.tsx`
+- `src/components/v4/chat-cards/suggest-next.tsx`
+- `src/components/v4/composer.tsx` (text + mic + voice-to-voice button row)
+- `src/lib/v4/dictation.ts` (thin wrapper around existing STT for press-to-talk)
+
+Edited:
+- `src/components/v4/intake-chat.tsx` — center column, render tool parts, embed new composer, inline voice panel toggle.
+- `src/routes/api/v4.chat.ts` — register the 4 tools, pass current intake snapshot into the system prompt for rationale grounding.
+- `src/lib/v4/prompts.ts` — instruct model when to call each tool and the rationale requirement.
+- `src/routes/v4.intake.tsx` — drop the text/voice tab toggle (voice now lives in the composer), keep Finish intake button.
 
 ## Out of scope
 
-- No changes to `/v3` behavior, copy, or files.
-- No schema changes; intake / matching / summary logic unchanged.
-- No new backend besides the v4 chat route (which delegates to existing AI gateway helpers).
-- Executive chooser (`/`) is not modified in this plan — happy to add a v4 tile in a follow-up if you want it surfaced there.
-
-## Open question
-
-Wizard step order defaults to: ZIP → Doctors → Medications → Health → Priorities → Budget → Extras. Say the word if you want it re-sequenced.
+- Image upload in composer (can add later).
+- Persisting cards to DB (in-memory in chat state, like existing messages).
+- Changes to Structured wizard mode.
