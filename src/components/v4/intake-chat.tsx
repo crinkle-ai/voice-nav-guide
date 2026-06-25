@@ -15,6 +15,8 @@ type Props = {
   initialMessages: UIMessage[];
   onMessagesChange: (msgs: UIMessage[]) => void;
   intake: Intake;
+  autoSend?: string;
+  skipOpener?: boolean;
 };
 
 const RAMBLE_OPENER =
