@@ -29,11 +29,10 @@ function IntakePage() {
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [finishing, setFinishing] = useState(false);
-  const [channel, setChannel] = useState<"text" | "voice">("text");
   const extractTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUserCount = useRef(0);
-  const voiceRef = useRef<VoiceIntakeHandle>(null);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
+
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
