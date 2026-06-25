@@ -4,7 +4,8 @@ import { useSession } from "@/lib/v4/session-store";
 import { rankPlans, type ScoredPlan } from "@/lib/v3/match-plans";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, X, Star } from "lucide-react";
+import { ArrowRight, Check, X, Star, Phone } from "lucide-react";
+import { SecondOpinionDialog } from "@/components/v4/second-opinion-dialog";
 
 export const Route = createFileRoute("/v4/matches")({
   head: () => ({ meta: [{ title: "Your matches — Medicare Compass v4" }] }),
