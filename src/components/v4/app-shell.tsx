@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
+import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -14,7 +14,8 @@ const STEPS: { key: StepKey; label: string; pct: number }[] = [
   { key: "next", label: "Next step", pct: 100 },
 ];
 
-const UHC_BLUE = "#002678";
+const V4_HEADER_BG = "#E0F7FA";
+const V4_HEADER_TEXT = "#01579B";
 
 export function AppShell({
   step,
@@ -27,56 +28,65 @@ export function AppShell({
 }) {
   const active = STEPS.find((s) => s.key === step);
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: UHC_BLUE }}>
+    <div className="min-h-screen bg-canvas v4-scope text-white">
+      <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-          <Link to="/v4" className="flex items-center gap-3">
-            <img
-              src={emblemAsset.url}
-              alt="UnitedHealthcare"
-              className="h-12 w-auto object-contain"
-            />
-            <div className="flex flex-col leading-none">
-              <span
-                className="text-white text-[1.05rem]"
-                style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }}
-              >
-                UnitedHealthcare
-              </span>
-              <span className="text-white/80 text-[0.95rem] tracking-tight">
-                Medicare
-              </span>
-            </div>
-          </Link>
-          <Link to="/" className="text-xs text-white/60 hover:text-white transition ml-4">
-            ← Back
-          </Link>
+            <Link to="/v4" className="flex items-center gap-3">
+              <img
+                src={emblemAsset.url}
+                alt="UnitedHealthcare"
+                className="h-12 w-auto object-contain"
+              />
+              <div className="flex flex-col leading-none">
+                <span
+                  className="text-[1.05rem]"
+                  style={{ fontFamily: '"Source Serif Pro", Georgia, serif', color: V4_HEADER_TEXT }}
+                >
+                  UnitedHealthcare
+                </span>
+                <span className="text-[0.95rem] tracking-tight" style={{ color: `${V4_HEADER_TEXT}cc` }}>
+                  Medicare
+                </span>
+              </div>
+            </Link>
+            <Link
+              to="/"
+              className="text-xs transition ml-4"
+              style={{ color: `${V4_HEADER_TEXT}99` }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}99`)}
+            >
+              ← Back
+            </Link>
           </div>
-          <div className="flex items-center gap-5 text-sm">
+          <div className="flex items-center gap-5 text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
             {rightSlot}
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 text-white/90 hover:text-white transition"
+              className="inline-flex items-center gap-1.5 transition"
+              style={{ color: `${V4_HEADER_TEXT}e6` }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
             >
-              <UserCircle2 className="h-5 w-5" />
+              <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
               <span>Sign in</span>
             </Link>
           </div>
         </div>
         {active && (
           <div className="mx-auto max-w-6xl px-6 pb-3 pt-1">
-            <div className="flex items-center justify-between text-xs text-white/75 mb-1.5">
+            <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: `${V4_HEADER_TEXT}bf` }}>
               <span>{active.label}</span>
-              <span className="font-medium text-white">Confidence {active.pct}%</span>
+              <span className="font-medium" style={{ color: V4_HEADER_TEXT }}>Confidence {active.pct}%</span>
             </div>
-            <Progress value={active.pct} className="h-1.5" />
+            <Progress value={active.pct} className="h-1.5 bg-[#01579B]/20 [&>*]:bg-[#01579B]" />
           </div>
         )}
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
-      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-muted-2">
-        © Unified Health. Medicare Advantage plans. Plan availability and benefits vary by region.
+      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
+        © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
   );
@@ -95,16 +105,16 @@ export function Stepper({ current }: { current: StepKey }) {
             <div
               className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium border ${
                 active
-                  ? "bg-accent text-paper border-accent"
+                  ? "bg-white text-[#01579B] border-white"
                   : done
-                  ? "bg-ink text-paper border-ink"
-                  : "bg-paper text-muted-2 border-line"
+                  ? "bg-[#0277BD] text-white border-[#0277BD]"
+                  : "bg-white/10 text-white/70 border-white/30"
               }`}
             >
               {stepIdx}
             </div>
-            <span className={`text-xs ${active ? "text-ink font-medium" : "text-muted-2"}`}>{s.label}</span>
-            {stepIdx < STEPS.length - 1 && <div className="flex-1 h-px bg-line" />}
+            <span className={`text-xs ${active ? "text-white font-medium" : "text-white/60"}`}>{s.label}</span>
+            {stepIdx < STEPS.length - 1 && <div className="flex-1 h-px bg-white/30" />}
           </li>
         );
       })}

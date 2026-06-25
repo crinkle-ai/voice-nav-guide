@@ -63,8 +63,8 @@ function PrioritiesPage() {
     <AppShell step="priorities">
       <Stepper current="priorities" />
       <div className="max-w-2xl">
-        <h1 className="font-serif text-3xl">What matters most to you?</h1>
-        <p className="text-muted-2 mt-2">Pick up to three. #1 is most important.</p>
+        <h1 className="font-serif text-3xl text-white">What matters most to you?</h1>
+        <p className="text-white/80 mt-2">Pick up to three. #1 is most important.</p>
 
         {ranked.length > 0 && (
           <div className="mt-8 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">

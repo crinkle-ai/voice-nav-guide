@@ -17,7 +17,7 @@ export function PromptChips({ onPick }: Props) {
           key={c}
           type="button"
           onClick={() => onPick(c)}
-          className="text-sm px-3.5 py-1.5 rounded-full border border-line bg-paper text-ink hover:border-accent hover:text-accent transition"
+          className="text-sm px-3.5 py-1.5 rounded-full border border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/50 transition"
         >
           {c}
         </button>
@@ -25,3 +25,4 @@ export function PromptChips({ onPick }: Props) {
     </div>
   );
 }
+
