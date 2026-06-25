@@ -19,7 +19,7 @@ function NextStepPage() {
     <AppShell step="next">
       <Stepper current="next" />
       <div className="max-w-2xl">
-        <div className="h-14 w-14 rounded-full bg-[#E0F7FA] text-[#01579B] flex items-center justify-center mb-6">
+        <div className="h-14 w-14 rounded-full bg-[#E5F5F8] text-[#033592] flex items-center justify-center mb-6">
           <CheckCircle2 className="h-7 w-7" />
         </div>
         <h1 className="font-serif text-4xl text-white">You're ready.</h1>
