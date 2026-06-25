@@ -69,7 +69,7 @@ export function AppShell({
               onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
               onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
             >
-              <UserCircle2 className="h-5 w-5" />
+              <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
               <span>Sign in</span>
             </Link>
           </div>
