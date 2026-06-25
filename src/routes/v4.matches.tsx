@@ -16,6 +16,7 @@ function MatchesPage() {
   const { state, ready } = useSession();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [secondOpinionOpen, setSecondOpinionOpen] = useState(false);
 
   useEffect(() => {
     if (ready && !state.finished) navigate({ to: "/v4" });
@@ -25,6 +26,11 @@ function MatchesPage() {
 
   if (!ready) return <AppShell step="matches"><p className="text-muted-2">Loading…</p></AppShell>;
 
+  const selectedPlan = scored.find((s) => s.plan.id === selectedId)?.plan;
+  const planContext = selectedPlan
+    ? `${selectedPlan.name} and ${scored.length - 1} other matches`
+    : `${scored.length} plan matches`;
+
   return (
     <AppShell step="matches">
       <Stepper current="matches" />
@@ -33,13 +39,22 @@ function MatchesPage() {
           <h1 className="font-serif text-3xl">Your top matches</h1>
           <p className="text-muted-2 mt-2 max-w-xl">Ranked against what you told us.</p>
         </div>
-        <Button
-          onClick={() => navigate({ to: "/v4/next-step" })}
-          disabled={!selectedId}
-          className="bg-accent hover:bg-accent-2 text-paper"
-        >
-          Continue with selection <ArrowRight className="ml-1 h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setSecondOpinionOpen(true)}
+            className="gap-2"
+          >
+            <Phone className="h-4 w-4" /> Get a 2nd opinion
+          </Button>
+          <Button
+            onClick={() => navigate({ to: "/v4/next-step" })}
+            disabled={!selectedId}
+            className="bg-accent hover:bg-accent-2 text-paper"
+          >
+            Continue with selection <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-5">
@@ -47,6 +62,12 @@ function MatchesPage() {
           <PlanCard key={s.plan.id} scored={s} rank={i} selected={selectedId === s.plan.id} onSelect={() => setSelectedId(s.plan.id)} />
         ))}
       </div>
+
+      <SecondOpinionDialog
+        open={secondOpinionOpen}
+        onOpenChange={setSecondOpinionOpen}
+        planContext={planContext}
+      />
     </AppShell>
   );
 }
