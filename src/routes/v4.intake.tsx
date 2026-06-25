@@ -181,12 +181,10 @@ function IntakePage() {
               <h1 className="font-serif text-3xl">Let's talk Medicare</h1>
               <p className="text-sm text-muted-2 mt-1">
                 The more you share, the better your matches.{" "}
-                {state.mode === "hybrid" ? (
+                {state.mode === "hybrid" && (
                   <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
                     Switch path
                   </button>
-                ) : (
-                  <Link to="/v4" className="underline">Switch experience</Link>
                 )}
               </p>
             </div>
