@@ -86,7 +86,7 @@ export function AppShell({
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
-        © Unified Health. Medicare Advantage plans. Plan availability and benefits vary by region.
+        © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
   );
