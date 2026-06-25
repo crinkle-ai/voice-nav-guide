@@ -23,7 +23,7 @@ function SummaryPage() {
   }, [ready, state.finished, state.intake, draft, navigate]);
 
   if (!draft) {
-    return <AppShell step="summary"><p className="text-muted-2">Loading…</p></AppShell>;
+    return <AppShell step="summary"><p className="text-white/70">Loading…</p></AppShell>;
   }
 
   const updateList = (k: keyof Intake, csv: string) => {
