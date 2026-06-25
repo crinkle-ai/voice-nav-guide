@@ -41,8 +41,8 @@ function IntakePage() {
   }, [ready]);
 
   useEffect(() => {
-    if (ready && !state.mode) navigate({ to: "/v4" });
-  }, [ready, state.mode, navigate]);
+    if (ready && !state.mode) update({ mode: "ramble" });
+  }, [ready, state.mode, update]);
 
   useEffect(() => {
     latestMessagesRef.current = state.messages;
