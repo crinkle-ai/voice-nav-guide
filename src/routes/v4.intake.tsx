@@ -76,8 +76,8 @@ function IntakePage() {
   const finishToSummary = async () => {
     setFinishing(true);
     try {
-      if (voiceRef.current) await voiceRef.current.flush();
       if (extractTimer.current) clearTimeout(extractTimer.current);
+
       const messages = latestMessagesRef.current;
       const transcript = messages.map((m) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
