@@ -108,7 +108,7 @@ function IntakePage() {
   if (!ready || !state.mode) {
     return (
       <AppShell step="intake">
-        <p className="text-muted-2">Loading…</p>
+        <p className="text-white/70">Loading…</p>
       </AppShell>
     );
   }
