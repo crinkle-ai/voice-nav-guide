@@ -24,7 +24,7 @@ function MatchesPage() {
 
   const scored = useMemo(() => (ready ? rankPlans(state.intake).slice(0, 3) : []), [ready, state.intake]);
 
-  if (!ready) return <AppShell step="matches"><p className="text-muted-2">Loading…</p></AppShell>;
+  if (!ready) return <AppShell step="matches"><p className="text-white/70">Loading…</p></AppShell>;
 
   const selectedPlan = scored.find((s) => s.plan.id === selectedId)?.plan;
   const planContext = selectedPlan
