@@ -1,5 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Compass, Sparkles, MessageSquare } from "lucide-react";
+import { ArrowRight, Compass, Sparkles, MessageSquare, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+
+function resetDemoData(label: string) {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (!k) continue;
+      if (
+        k.startsWith("v3-medicare-compass-session") ||
+        k.startsWith("v4-medicare-compass-session") ||
+        k.startsWith("persona-state-") ||
+        k.startsWith("workspace-") ||
+        k.startsWith("v2-") ||
+        k.startsWith("uhc-")
+      ) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+    window.sessionStorage.clear();
+    toast.success(`${label} demo data cleared`);
+  } catch (e) {
+    toast.error("Couldn't clear demo data");
+  }
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -107,9 +133,24 @@ function ChooserPage() {
                   >
                     <Icon className="h-6 w-6" />
                   </div>
-                  <span className="text-[10px] uppercase tracking-widest text-slate-500 font-medium">
-                    {d.eyebrow}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        resetDemoData(d.eyebrow);
+                      }}
+                      title="Reset this demo's data"
+                      aria-label={`Reset ${d.eyebrow} demo data`}
+                      className="h-7 w-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500 font-medium">
+                      {d.eyebrow}
+                    </span>
+                  </div>
                 </div>
                 <h2 className="mt-5 text-xl font-semibold text-slate-900 leading-snug">
                   {d.title}
