@@ -169,9 +169,6 @@ function IntakePage() {
     const startWith = (text: string) => {
       setAutoSend(text);
     };
-    const appendChip = (text: string) => {
-      setLandingInput((prev) => (prev ? `${prev} ${text}` : text));
-    };
     return (
       <AppShell step="intake">
         <div className="max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-160px)]">
@@ -181,7 +178,7 @@ function IntakePage() {
           </div>
           <div className="flex-1" />
           <div className="pb-8 sticky bottom-4">
-            <PromptChips onPick={appendChip} />
+            <PromptChips onPick={startWith} />
             <Composer
               value={landingInput}
               onChange={setLandingInput}
@@ -199,6 +196,7 @@ function IntakePage() {
       </AppShell>
     );
   }
+
 
   return (
     <AppShell step="intake">
