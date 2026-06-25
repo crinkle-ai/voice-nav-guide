@@ -3,6 +3,10 @@ import { AppShell } from "@/components/v4/app-shell";
 import { IntakeChat } from "@/components/v4/intake-chat";
 import { StructuredWizard } from "@/components/v4/structured-wizard";
 import { PathPicker } from "@/components/v4/path-picker";
+import { LandingHero } from "@/components/v4/landing-hero";
+import { PathCards } from "@/components/v4/path-cards";
+import { PromptChips } from "@/components/v4/prompt-chips";
+import { Composer } from "@/components/v4/composer";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
 import { extractIntake } from "@/lib/v4/intake.functions";
 import { intakeCompleteness } from "@/lib/v3/intake-types";
@@ -29,6 +33,8 @@ function IntakePage() {
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
+  const [landingInput, setLandingInput] = useState("");
   const extractTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUserCount = useRef(0);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
@@ -152,9 +158,40 @@ function IntakePage() {
     );
   }
 
-  // RAMBLE or HYBRID-with-path → chat surface
+  // RAMBLE or HYBRID-with-path → landing or chat surface
   const pct = intakeCompleteness(state.intake);
   const enoughCaptured = pct >= 60;
+  const showLanding = state.messages.length === 0 && !autoSend;
+
+  if (showLanding) {
+    const startWith = (text: string) => {
+      setAutoSend(text);
+    };
+    const appendChip = (text: string) => {
+      setLandingInput((prev) => (prev ? `${prev} ${text}` : text));
+    };
+    return (
+      <AppShell step="intake">
+        <div className="max-w-2xl mx-auto pt-8 pb-16">
+          <LandingHero />
+          <PathCards onPick={startWith} />
+          <PromptChips onPick={appendChip} />
+          <Composer
+            value={landingInput}
+            onChange={setLandingInput}
+            onSubmit={() => {
+              const v = landingInput.trim();
+              if (v) startWith(v);
+            }}
+            onToggleVoice={() => startWith(landingInput.trim() || "Let's get started.")}
+            voiceActive={false}
+            busy={false}
+            placeholder="What's on your mind?"
+          />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell step="intake">
@@ -190,13 +227,13 @@ function IntakePage() {
           initialMessages={state.messages}
           onMessagesChange={onMessagesChange}
           intake={state.intake}
+          autoSend={autoSend}
+          skipOpener={!!autoSend}
         />
         {extracting && (
           <p className="text-xs text-muted-2 mt-3">Updating workspace…</p>
         )}
       </div>
-
-
     </AppShell>
   );
 }
