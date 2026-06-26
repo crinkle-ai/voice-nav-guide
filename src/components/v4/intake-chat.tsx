@@ -337,10 +337,11 @@ function MessageRow({
   disabled: boolean;
   live?: boolean;
 }) {
-  const text = message.parts
+  const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
     .join("")
     .trim();
+  const text = message.role === "assistant" ? stripLeakedToolText(rawText) : rawText;
 
   if (message.role === "user") {
     return (
