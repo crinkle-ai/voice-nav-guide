@@ -28,6 +28,12 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   const [error, setError] = useState<string | null>(null);
   const [userLive, setUserLive] = useState("");
   const [botLive, setBotLive] = useState("");
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, userLive, botLive]);
+
 
   const sessionRef = useRef<Session | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
