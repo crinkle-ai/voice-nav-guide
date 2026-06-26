@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { verifyProvider, type VerifyProviderResult } from "@/lib/v3/providers.functions";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyProgress } from "@/components/v4/auto-verify-context";
+import { docFingerprint } from "@/components/v4/use-auto-verify-intake";
 import type { DoctorEntry, NpiVerification } from "@/lib/v3/intake-types";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, AlertTriangle, XCircle, Loader2, ShieldQuestion } from "lucide-react";
