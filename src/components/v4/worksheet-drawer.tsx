@@ -8,7 +8,7 @@ import { useAutoVerifyIntake } from "@/components/v4/use-auto-verify-intake";
 import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { ChevronLeft, ClipboardList } from "lucide-react";
 
-export function WorksheetDrawer() {
+function WorksheetDrawerInner() {
   const { state, ready } = useSession();
   const [open, setOpen] = useState(false);
   useAutoVerifyIntake();
@@ -54,5 +54,13 @@ export function WorksheetDrawer() {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+export function WorksheetDrawer() {
+  return (
+    <AutoVerifyProvider>
+      <WorksheetDrawerInner />
+    </AutoVerifyProvider>
   );
 }
