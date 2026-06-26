@@ -190,7 +190,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       assistant = [...messages].reverse().find((m) => {
         if (m.role !== "assistant") return false;
         const text = messageText(m);
-        return !!text && DEFERRED_PLAN_RE.test(text);
+        return !!text && (DEFERRED_PLAN_RE.test(text) || LEAKED_TOOL_RE.test(text));
       });
     }
     if (!assistant) return;
@@ -203,23 +203,28 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     const aText = messageText(assistant);
     if (!aText) return;
     const isDeferred = DEFERRED_PLAN_RE.test(aText);
-    if (askIdx >= 0 && !isDeferred && !PLAN_REQUEST_RE.test(aText)) return;
+    const isLeaked = LEAKED_TOOL_RE.test(aText);
+    if (askIdx >= 0 && !isDeferred && !isLeaked && !PLAN_REQUEST_RE.test(aText)) return;
     const data = buildInlinePlanRecommendations(intake);
     fallbackInjectedRef.current.add(assistant.id);
     setMessages((prev) =>
       prev.map((m) =>
-        m.id === assistant.id
+        m.id === assistant!.id
           ? {
               ...m,
               parts: [
-                ...m.parts.map((part) =>
-                  isDeferred && part.type === "text"
-                    ? { ...part, text: INLINE_PLAN_MESSAGE }
-                    : part,
-                ),
+                ...m.parts.map((part) => {
+                  if (part.type !== "text") return part;
+                  if (isDeferred) return { ...part, text: INLINE_PLAN_MESSAGE };
+                  if (isLeaked) {
+                    const cleaned = stripLeakedToolText(part.text);
+                    return { ...part, text: cleaned || INLINE_PLAN_MESSAGE };
+                  }
+                  return part;
+                }),
                 {
                   type: "tool-recommendPlans",
-                  toolCallId: `inline-${assistant.id}`,
+                  toolCallId: `inline-${assistant!.id}`,
                   state: "output-available",
                   input: data,
                   output: data,
