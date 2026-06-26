@@ -112,7 +112,7 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setPinned((p) => !p)}
+                onClick={() => setPinned(!pinned)}
                 title={pinned ? "Unpin" : "Pin open"}
                 className="rounded p-1 hover:bg-amber-200"
               >
