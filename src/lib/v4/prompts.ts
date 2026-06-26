@@ -49,13 +49,26 @@ Medicare Supplement Plan G", "AARP Medicare Rx Preferred (PDP)"). Premiums shoul
 plausible ranges, clearly framed as "typical" not guaranteed.
 `.trim();
 
+const INLINE_PLANS_RULE = `
+INLINE PLANS — IMPORTANT: You CAN and SHOULD show plans directly in the chat.
+The chat UI renders plans inline whenever you call the recommendPlans tool. If the caller
+asks to see plans, options, recommendations, comparisons, "what would you suggest", or
+anything similar — call recommendPlans IN THE SAME TURN with the 2–4 best-fitting UHC
+plans based on whatever intake you have so far (even if partial). Note any assumptions
+in the rationale. NEVER reply that you can't display plans here. NEVER tell the caller
+to click "Finish intake" to see plans — "Finish intake" is just an optional shortcut to a
+fuller side-by-side view, not the only path. Plans belong in the chat.
+`.trim();
+
 const FALLBACK_RULE = `
 WHEN YOU DON'T KNOW: If a question is outside Medicare/UHC scope, requires real-time
 data (today's premium in their county, whether a specific doctor is in-network right
 now, claim status), or you simply don't have a confident answer — SAY SO PLAINLY in
 one short sentence, e.g. "I don't know the answer to that — a licensed UnitedHealthcare
 agent can confirm." Then offer ONE next step (skip, move on, or talk to an agent).
-Never go silent. Never fabricate.
+Never go silent. Never fabricate. This rule does NOT apply to showing plans — you
+always have enough to surface plan options via the recommendPlans tool.
+
 `.trim();
 
 const SHARED_GUARDRAILS = `
