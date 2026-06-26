@@ -245,6 +245,7 @@ function IntakePage() {
               )}
             </Button>
           </div>
+        </div>
         <IntakeChat
           mode={state.mode}
           path={state.path}
