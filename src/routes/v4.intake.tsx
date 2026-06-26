@@ -180,12 +180,25 @@ function IntakePage() {
     const startWith = (text: string) => {
       setAutoSend(text);
     };
+    const loadDiabeticDemo = async () => {
+      const { diabeticMinneapolisIntake } = await import("@/lib/v4/demo-profile");
+      update({ intake: diabeticMinneapolisIntake(), finished: true });
+      navigate({ to: "/v4/matches" });
+    };
     return (
       <AppShell step="intake">
         <div className="max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-160px)]">
           <div className="pt-8">
             <LandingHero />
             <PathCards onPick={startWith} />
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={loadDiabeticDemo}
+                className="text-xs text-white/60 hover:text-white underline underline-offset-2"
+              >
+                Demo: load diabetic 55410 profile → matches
+              </button>
+            </div>
           </div>
           <div className="flex-1" />
           <div className="pb-8 sticky bottom-4">
@@ -207,6 +220,7 @@ function IntakePage() {
       </AppShell>
     );
   }
+
 
 
   return (
