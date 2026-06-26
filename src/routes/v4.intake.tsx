@@ -13,7 +13,7 @@ import { intakeCompleteness } from "@/lib/v3/intake-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, RotateCcw } from "lucide-react";
 
 
 export const Route = createFileRoute("/v4/intake")({
