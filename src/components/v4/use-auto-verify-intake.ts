@@ -20,10 +20,10 @@ const BASE_RX: RxVerification = {
   candidates: [],
 };
 
-function medFingerprint(m: MedicationEntry): string {
+export function medFingerprint(m: MedicationEntry): string {
   return [m.name, m.strength, m.doseForm].map((s) => (s ?? "").trim().toLowerCase()).join("|");
 }
-function docFingerprint(d: DoctorEntry): string {
+export function docFingerprint(d: DoctorEntry): string {
   return [d.name, d.specialty, d.city, d.zip].map((s) => (s ?? "").trim().toLowerCase()).join("|");
 }
 
