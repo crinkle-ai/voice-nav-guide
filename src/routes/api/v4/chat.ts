@@ -34,6 +34,12 @@ You can render rich content inline in the chat by calling tools:
 Use plain text for normal conversational replies. Use tools to add structure, never to
 replace your written reply. If you don't know an answer, SAY SO in one short sentence per
 the system prompt's fallback rule — never go silent, never fabricate.
+
+CRITICAL TOOL-CALL FORMAT: When you decide to use a tool, you MUST invoke it through the
+tool-call mechanism. NEVER write the tool name (e.g. "recommendPlans"), its arguments, or
+a JSON-like representation of its arguments inside your assistant text. The user sees your
+text verbatim — leaked tool syntax looks broken. If you want plans on screen, CALL
+recommendPlans; do not describe the plans in prose.
 `.trim();
 
 export const Route = createFileRoute("/api/v4/chat")({
