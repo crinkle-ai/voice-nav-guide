@@ -140,6 +140,7 @@ export const emptyIntake = (): Intake => ({
   zip: { value: null, confidence: "missing" },
   extras: { value: [], confidence: "missing" },
   medicaid: { value: null, confidence: "missing", notes: null },
+  budgetCaps: { monthlyPremiumMax: null, annualDeductibleMax: null, confidence: "missing" },
 });
 
 export const FIELD_LABELS: Record<keyof Intake, string> = {
@@ -153,6 +154,7 @@ export const FIELD_LABELS: Record<keyof Intake, string> = {
   zip: "ZIP code",
   extras: "Extra benefits",
   medicaid: "Medicaid status",
+  budgetCaps: "Budget caps",
 };
 
 export const CRITICAL_FIELDS: (keyof Intake)[] = [
