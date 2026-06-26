@@ -226,7 +226,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               live={live}
             />
           ))}
-          {inlinePlanFallback && <PlanComparisonCard data={inlinePlanFallback} />}
+          {/* inline plan fallback now injected into messages directly */}
           {busy && (
             <div className="flex items-center gap-2 text-sm text-ink/60 px-1">
               <span className="h-2 w-2 rounded-full bg-ink animate-pulse" />
