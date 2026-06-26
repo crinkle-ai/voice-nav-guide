@@ -5,6 +5,7 @@ import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-pan
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
 import { useSession } from "@/lib/v4/session-store";
 import { useAutoVerifyIntake } from "@/components/v4/use-auto-verify-intake";
+import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { ChevronLeft, ClipboardList } from "lucide-react";
 
 export function WorksheetDrawer() {
