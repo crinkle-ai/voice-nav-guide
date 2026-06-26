@@ -146,8 +146,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const fallbackInjectedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (busy) return;
-    // Find the most recent user message that asked for plans, and the assistant
-    // message that immediately follows it.
+    // Find the most recent user message that asked for plans, or an assistant
+    // deferral that says matches are ready. In either case, persist inline plan cards.
     let askIdx = -1;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       const m = messages[i];
@@ -158,8 +158,14 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
         break;
       }
     }
-    if (askIdx < 0) return;
-    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
+    let assistant = askIdx >= 0 ? messages.slice(askIdx + 1).find((m) => m.role === "assistant") : undefined;
+    if (!assistant) {
+      assistant = [...messages].reverse().find((m) => {
+        if (m.role !== "assistant") return false;
+        const text = messageText(m);
+        return !!text && DEFERRED_PLAN_RE.test(text);
+      });
+    }
     if (!assistant) return;
     if (fallbackInjectedRef.current.has(assistant.id)) return;
     const hasPlanTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
@@ -169,7 +175,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     }
     const aText = messageText(assistant);
     if (!aText) return;
-    if (!DEFERRED_PLAN_RE.test(aText) && !PLAN_REQUEST_RE.test(aText)) return;
+    const isDeferred = DEFERRED_PLAN_RE.test(aText);
+    if (askIdx >= 0 && !isDeferred && !PLAN_REQUEST_RE.test(aText)) return;
     const data = buildInlinePlanRecommendations(intake);
     fallbackInjectedRef.current.add(assistant.id);
     setMessages((prev) =>
@@ -178,7 +185,11 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           ? {
               ...m,
               parts: [
-                ...m.parts,
+                ...m.parts.map((part) =>
+                  isDeferred && part.type === "text"
+                    ? { ...part, text: "I can show those options right here — here are the strongest matches based on what you've shared so far." }
+                    : part,
+                ),
                 {
                   type: "tool-recommendPlans",
                   toolCallId: `inline-${assistant.id}`,
@@ -240,6 +251,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
             <VoiceIntake
               ref={voiceRef}
               mode={mode}
+              path={path}
+              promptVersion="v4"
               messages={messages}
               onMessagesChange={onMessagesChange}
               compact

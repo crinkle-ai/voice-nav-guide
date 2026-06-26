@@ -3,6 +3,7 @@ import { GoogleGenAI, Modality, type LiveServerMessage, type Session } from "@go
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Loader2, Pause, Play } from "lucide-react";
 import type { IntakeMode } from "@/lib/v3/intake-types";
+import type { HybridPath } from "@/lib/v4/session-store";
 import type { UIMessage } from "ai";
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
   onLiveTranscript?: (role: "user" | "assistant", text: string) => void;
   onLiveReset?: () => void;
   onAppend?: (role: "user" | "assistant", text: string) => void;
+  promptVersion?: "v3" | "v4";
+  path?: HybridPath;
 };
 
 export type VoiceIntakeHandle = {
@@ -26,7 +29,7 @@ const INPUT_SAMPLE_RATE = 16000;
 const OUTPUT_SAMPLE_RATE = 24000;
 
 export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIntake(
-  { mode, messages, onMessagesChange, compact, onLiveTranscript, onLiveReset, onAppend },
+  { mode, messages, onMessagesChange, compact, onLiveTranscript, onLiveReset, onAppend, promptVersion = "v3", path },
   ref,
 ) {
   const [status, setStatus] = useState<Status>("idle");
@@ -154,7 +157,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
       const tokRes = await fetch("/api/v3/gemini-live-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({ mode, promptVersion, path }),
       });
       if (!tokRes.ok) {
         throw new Error(`Token request failed: ${tokRes.status} ${await tokRes.text()}`);

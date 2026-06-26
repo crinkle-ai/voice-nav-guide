@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SYSTEM_PROMPTS } from "@/lib/v3/prompts";
+import { systemPromptFor as v4SystemPromptFor } from "@/lib/v4/prompts";
 import type { IntakeMode } from "@/lib/v3/intake-types";
+import type { HybridPath } from "@/lib/v4/session-store";
 
 export const Route = createFileRoute("/api/v3/gemini-live-token")({
   server: {
@@ -12,18 +14,23 @@ export const Route = createFileRoute("/api/v3/gemini-live-token")({
         }
         const body = (await request.json().catch(() => ({}))) as {
           mode?: IntakeMode;
+          promptVersion?: "v3" | "v4";
+          path?: HybridPath;
         };
         const mode: IntakeMode = body.mode ?? "hybrid";
+        const basePrompt = body.promptVersion === "v4" ? v4SystemPromptFor(mode, body.path) : SYSTEM_PROMPTS[mode];
 
         const now = Date.now();
         const newSessionExpireTime = new Date(now + 2 * 60 * 1000).toISOString();
         const expireTime = new Date(now + 30 * 60 * 1000).toISOString();
 
-        const systemInstructionText = `${SYSTEM_PROMPTS[mode]}
+        const systemInstructionText = `${basePrompt}
 
 VOICE MODE: You are speaking out loud over a phone-like voice channel.
 Keep replies tight (1-3 short sentences). Use natural spoken language, no
-markdown, no bullet lists, no headings. Pause and let the caller talk.`;
+markdown, no bullet lists, no headings. Pause and let the caller talk.
+
+For Version 4 only: never tell the caller to click or use "Finish intake" to see plans or matches. If plan options are ready, say you can show options right here in the chat.`;
 
         const tokenRes = await fetch(
           `https://generativelanguage.googleapis.com/v1alpha/auth_tokens?key=${apiKey}`,
