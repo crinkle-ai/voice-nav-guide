@@ -141,30 +141,57 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     [setMessages],
   );
 
-  const inlinePlanFallback = useMemo(() => {
-    let lastUserAskedForPlans = false;
+  // Persist inline plan fallback: once we decide to show plans, attach them to
+  // the assistant message so they stick around even after the user keeps talking.
+  const fallbackInjectedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (busy) return;
+    // Find the most recent user message that asked for plans, and the assistant
+    // message that immediately follows it.
+    let askIdx = -1;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       const m = messages[i];
-      const content = messageText(m);
-      if (!content) continue;
-      if (m.role === "user") {
-        lastUserAskedForPlans = PLAN_REQUEST_RE.test(content);
+      if (m.role !== "user") continue;
+      const t = messageText(m);
+      if (t && PLAN_REQUEST_RE.test(t)) {
+        askIdx = i;
         break;
       }
     }
-
-    if (!lastUserAskedForPlans) return null;
-    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant) return null;
-    const hasPlanTool = lastAssistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
-    if (hasPlanTool) return null;
-    const assistantText = messageText(lastAssistant);
-    if (!assistantText || busy) return null;
-    if (!DEFERRED_PLAN_RE.test(assistantText) && !PLAN_REQUEST_RE.test(assistantText)) {
-      return null;
+    if (askIdx < 0) return;
+    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
+    if (!assistant) return;
+    if (fallbackInjectedRef.current.has(assistant.id)) return;
+    const hasPlanTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
+    if (hasPlanTool) {
+      fallbackInjectedRef.current.add(assistant.id);
+      return;
     }
-    return buildInlinePlanRecommendations(intake);
-  }, [busy, intake, messages]);
+    const aText = messageText(assistant);
+    if (!aText) return;
+    if (!DEFERRED_PLAN_RE.test(aText) && !PLAN_REQUEST_RE.test(aText)) return;
+    const data = buildInlinePlanRecommendations(intake);
+    fallbackInjectedRef.current.add(assistant.id);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistant.id
+          ? {
+              ...m,
+              parts: [
+                ...m.parts,
+                {
+                  type: "tool-recommendPlans",
+                  toolCallId: `inline-${assistant.id}`,
+                  state: "output-available",
+                  input: data,
+                  output: data,
+                } as UIMessage["parts"][number],
+              ],
+            }
+          : m,
+      ),
+    );
+  }, [busy, intake, messages, setMessages]);
 
   const chatItems: ChatItem[] = useMemo(
     () => [
@@ -185,8 +212,9 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-280px)]">
+    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[600px]">
       <div className="flex-1 rounded-2xl border border-line bg-paper shadow-xl overflow-hidden flex flex-col min-h-0">
+
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
           {chatItems.map(({ message, live }) => (
             <MessageRow
@@ -198,7 +226,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               live={live}
             />
           ))}
-          {inlinePlanFallback && <PlanComparisonCard data={inlinePlanFallback} />}
+          {/* inline plan fallback now injected into messages directly */}
           {busy && (
             <div className="flex items-center gap-2 text-sm text-ink/60 px-1">
               <span className="h-2 w-2 rounded-full bg-ink animate-pulse" />
