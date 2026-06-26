@@ -29,7 +29,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 };
 
 function IntakePage() {
-  const { state, update, ready } = useSession();
+  const { state, update, reset, ready } = useSession();
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [finishing, setFinishing] = useState(false);
