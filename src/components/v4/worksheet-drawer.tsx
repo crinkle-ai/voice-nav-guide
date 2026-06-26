@@ -4,11 +4,13 @@ import { CaptureSidebar } from "@/components/v3/capture-sidebar";
 import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyIntake } from "@/components/v4/use-auto-verify-intake";
 import { ChevronLeft, ClipboardList } from "lucide-react";
 
 export function WorksheetDrawer() {
   const { state, ready } = useSession();
   const [open, setOpen] = useState(false);
+  useAutoVerifyIntake();
 
   if (!ready || !state.mode) return null;
 
