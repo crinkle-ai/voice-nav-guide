@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { verifyMedication, type VerifyMedicationResult } from "@/lib/v3/medications.functions";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyProgress } from "@/components/v4/auto-verify-context";
+import { medFingerprint } from "@/components/v4/use-auto-verify-intake";
 import type { MedicationEntry, RxVerification } from "@/lib/v3/intake-types";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, AlertTriangle, XCircle, Loader2, ShieldQuestion, HelpCircle } from "lucide-react";
