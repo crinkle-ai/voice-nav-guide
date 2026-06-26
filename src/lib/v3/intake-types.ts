@@ -118,6 +118,13 @@ export const IntakeSchema = z.object({
       notes: z.string().nullable().optional(),
     })
     .default({ value: null, confidence: "missing", notes: null }),
+  budgetCaps: z
+    .object({
+      monthlyPremiumMax: z.number().nullable(),
+      annualDeductibleMax: z.number().nullable(),
+      confidence: ConfidenceEnum,
+    })
+    .default({ monthlyPremiumMax: null, annualDeductibleMax: null, confidence: "missing" }),
 });
 
 export type Intake = z.infer<typeof IntakeSchema>;
