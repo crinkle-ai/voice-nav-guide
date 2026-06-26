@@ -28,6 +28,7 @@ type ChatItem = {
 
 const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
 const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
+const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
 
 const RAMBLE_OPENER =
   "Hi — I'm here to help you find the right Medicare plan. In your own words, tell me what's going on with your health coverage and what you're hoping a plan will do for you. Take your time.";
@@ -116,12 +117,13 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   };
 
   const onLiveTranscript = useCallback((role: "user" | "assistant", text: string) => {
+    const displayText = role === "assistant" && DEFERRED_PLAN_RE.test(text) ? INLINE_PLAN_MESSAGE : text;
     setVoiceLive((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.role === role) {
-        return [...prev.slice(0, -1), { ...last, text }];
+        return [...prev.slice(0, -1), { ...last, text: displayText }];
       }
-      return [...prev, { id: `live-${role}-${Date.now()}`, role, text }];
+      return [...prev, { id: `live-${role}-${Date.now()}`, role, text: displayText }];
     });
   }, []);
 
@@ -129,12 +131,27 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   const onVoiceAppend = useCallback(
     (role: "user" | "assistant", text: string) => {
+      const isDeferredAssistant = role === "assistant" && DEFERRED_PLAN_RE.test(text);
+      const planData = isDeferredAssistant ? buildInlinePlanRecommendations(intakeRef.current) : null;
       setMessages((prev) => [
         ...prev,
         {
           id: `voice-${role}-${Date.now()}`,
           role,
-          parts: [{ type: "text", text }],
+          parts: [
+            { type: "text", text: isDeferredAssistant ? INLINE_PLAN_MESSAGE : text },
+            ...(planData
+              ? [
+                  {
+                    type: "tool-recommendPlans",
+                    toolCallId: `inline-voice-${Date.now()}`,
+                    state: "output-available",
+                    input: planData,
+                    output: planData,
+                  } as UIMessage["parts"][number],
+                ]
+              : []),
+          ],
         },
       ]);
     },
@@ -146,8 +163,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const fallbackInjectedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (busy) return;
-    // Find the most recent user message that asked for plans, and the assistant
-    // message that immediately follows it.
+    // Find the most recent user message that asked for plans, or an assistant
+    // deferral that says matches are ready. In either case, persist inline plan cards.
     let askIdx = -1;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       const m = messages[i];
@@ -158,8 +175,14 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
         break;
       }
     }
-    if (askIdx < 0) return;
-    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
+    let assistant = askIdx >= 0 ? messages.slice(askIdx + 1).find((m) => m.role === "assistant") : undefined;
+    if (!assistant) {
+      assistant = [...messages].reverse().find((m) => {
+        if (m.role !== "assistant") return false;
+        const text = messageText(m);
+        return !!text && DEFERRED_PLAN_RE.test(text);
+      });
+    }
     if (!assistant) return;
     if (fallbackInjectedRef.current.has(assistant.id)) return;
     const hasPlanTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
@@ -169,7 +192,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     }
     const aText = messageText(assistant);
     if (!aText) return;
-    if (!DEFERRED_PLAN_RE.test(aText) && !PLAN_REQUEST_RE.test(aText)) return;
+    const isDeferred = DEFERRED_PLAN_RE.test(aText);
+    if (askIdx >= 0 && !isDeferred && !PLAN_REQUEST_RE.test(aText)) return;
     const data = buildInlinePlanRecommendations(intake);
     fallbackInjectedRef.current.add(assistant.id);
     setMessages((prev) =>
@@ -178,7 +202,11 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           ? {
               ...m,
               parts: [
-                ...m.parts,
+                ...m.parts.map((part) =>
+                  isDeferred && part.type === "text"
+                    ? { ...part, text: INLINE_PLAN_MESSAGE }
+                    : part,
+                ),
                 {
                   type: "tool-recommendPlans",
                   toolCallId: `inline-${assistant.id}`,
@@ -240,6 +268,8 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
             <VoiceIntake
               ref={voiceRef}
               mode={mode}
+              path={path}
+              promptVersion="v4"
               messages={messages}
               onMessagesChange={onMessagesChange}
               compact
