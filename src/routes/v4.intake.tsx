@@ -242,7 +242,7 @@ function IntakePage() {
             <Button
               onClick={resetConversation}
               variant="outline"
-              className="border-white/30 text-white hover:bg-white/10"
+              className="bg-white text-[#033592] border-transparent hover:bg-white/90"
             >
               <RotateCcw className="mr-1 h-4 w-4" /> Reset
             </Button>
@@ -250,7 +250,7 @@ function IntakePage() {
               onClick={finishToSummary}
               disabled={finishing}
               variant={enoughCaptured ? "default" : "outline"}
-              className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
+              className={enoughCaptured ? "bg-white text-[#033592] hover:bg-white/90" : "bg-white text-[#033592] border-transparent hover:bg-white/90"}
             >
               {finishing ? (
                 <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
