@@ -96,6 +96,7 @@ export function DoctorVerificationPanel() {
         {doctors.map((d, i) => {
           const row = rows[i] ?? { loading: false };
           const v = d.npiVerification;
+          const autoVerifying = isDocVerifying(docFingerprint(d));
           return (
             <li key={i} className="rounded-lg border border-line bg-canvas/40 p-3">
               <div className="flex items-start justify-between gap-2">
@@ -107,15 +108,27 @@ export function DoctorVerificationPanel() {
                   <div className="text-xs text-muted-2">
                     {[d.specialty, d.city, d.zip].filter(Boolean).join(" · ") || "No details yet"}
                   </div>
+                  {!row.loading && autoVerifying && (
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-accent font-medium">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Auto-verifying against NPPES…
+                    </div>
+                  )}
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={row.loading || !d.name}
+                  disabled={row.loading || autoVerifying || !d.name}
                   onClick={() => runVerify(i, d)}
                   className="shrink-0"
                 >
-                  {row.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : v ? "Re-check" : "Verify"}
+                  {row.loading || autoVerifying ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : v ? (
+                    "Re-check"
+                  ) : (
+                    "Verify"
+                  )}
                 </Button>
               </div>
 
