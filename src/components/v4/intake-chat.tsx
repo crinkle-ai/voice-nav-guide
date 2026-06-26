@@ -9,6 +9,7 @@ import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questio
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
+import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 
 type Props = {
   mode: IntakeMode;
@@ -24,6 +25,9 @@ type ChatItem = {
   message: UIMessage;
   live: boolean;
 };
+
+const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
+const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
 
 const RAMBLE_OPENER =
   "Hi — I'm here to help you find the right Medicare plan. In your own words, tell me what's going on with your health coverage and what you're hoping a plan will do for you. Take your time.";
@@ -45,6 +49,7 @@ function openerFor(mode: IntakeMode, path?: HybridPath): string {
 
 export function IntakeChat({ mode, path, initialMessages, onMessagesChange, intake, autoSend, skipOpener }: Props) {
   const intakeRef = useRef(intake);
+  const [inlinePlanFallback, setInlinePlanFallback] = useState<RecommendPlansInput | null>(null);
   useEffect(() => {
     intakeRef.current = intake;
   }, [intake]);
@@ -137,6 +142,31 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     [setMessages],
   );
 
+  const shouldShowPlanFallback = useMemo(() => {
+    let lastUserAskedForPlans = false;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const m = messages[i];
+      const content = messageText(m);
+      if (!content) continue;
+      if (m.role === "user") {
+        lastUserAskedForPlans = PLAN_REQUEST_RE.test(content);
+        break;
+      }
+    }
+
+    if (!lastUserAskedForPlans) return false;
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!lastAssistant) return false;
+    const hasPlanTool = lastAssistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
+    if (hasPlanTool) return false;
+    return DEFERRED_PLAN_RE.test(messageText(lastAssistant));
+  }, [messages]);
+
+  useEffect(() => {
+    if (!shouldShowPlanFallback) return;
+    setInlinePlanFallback(buildInlinePlanRecommendations(intakeRef.current));
+  }, [shouldShowPlanFallback, intake]);
+
   const chatItems: ChatItem[] = useMemo(
     () => [
       ...messages.map((m) => ({ message: m, live: false })),
@@ -169,6 +199,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               live={live}
             />
           ))}
+          {inlinePlanFallback && <PlanComparisonCard data={inlinePlanFallback} />}
           {busy && (
             <div className="flex items-center gap-2 text-sm text-ink/60 px-1">
               <span className="h-2 w-2 rounded-full bg-ink animate-pulse" />
@@ -213,6 +244,10 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       </div>
     </div>
   );
+}
+
+function messageText(m: UIMessage): string {
+  return m.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim();
 }
 
 type AnyPart = UIMessage["parts"][number] & { type: string; state?: string; input?: unknown };
