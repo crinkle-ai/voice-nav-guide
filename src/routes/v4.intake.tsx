@@ -13,7 +13,7 @@ import { intakeCompleteness } from "@/lib/v3/intake-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, RotateCcw } from "lucide-react";
 
 
 export const Route = createFileRoute("/v4/intake")({
@@ -29,7 +29,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 };
 
 function IntakePage() {
-  const { state, update, ready } = useSession();
+  const { state, update, reset, ready } = useSession();
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [finishing, setFinishing] = useState(false);
@@ -103,6 +103,17 @@ function IntakePage() {
     } finally {
       setFinishing(false);
     }
+  };
+
+  const resetConversation = () => {
+    if (typeof window !== "undefined" && !window.confirm("Start over? This clears your conversation and captured info.")) return;
+    if (extractTimer.current) clearTimeout(extractTimer.current);
+    lastUserCount.current = 0;
+    latestMessagesRef.current = [];
+    setAutoSend(undefined);
+    setLandingInput("");
+    reset();
+    update({ mode: "ramble" });
   };
 
   if (!ready || !state.mode) {
@@ -213,18 +224,27 @@ function IntakePage() {
               )}
             </p>
           </div>
-          <Button
-            onClick={finishToSummary}
-            disabled={finishing}
-            variant={enoughCaptured ? "default" : "outline"}
-            className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
-          >
-            {finishing ? (
-              <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
-            ) : (
-              <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={resetConversation}
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10"
+            >
+              <RotateCcw className="mr-1 h-4 w-4" /> Reset
+            </Button>
+            <Button
+              onClick={finishToSummary}
+              disabled={finishing}
+              variant={enoughCaptured ? "default" : "outline"}
+              className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
+            >
+              {finishing ? (
+                <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
+              ) : (
+                <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
+              )}
+            </Button>
+          </div>
         </div>
         <IntakeChat
           mode={state.mode}
