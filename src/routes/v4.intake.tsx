@@ -105,6 +105,17 @@ function IntakePage() {
     }
   };
 
+  const resetConversation = () => {
+    if (typeof window !== "undefined" && !window.confirm("Start over? This clears your conversation and captured info.")) return;
+    if (extractTimer.current) clearTimeout(extractTimer.current);
+    lastUserCount.current = 0;
+    latestMessagesRef.current = [];
+    setAutoSend(undefined);
+    setLandingInput("");
+    reset();
+    update({ mode: "ramble" });
+  };
+
   if (!ready || !state.mode) {
     return (
       <AppShell step="intake">
