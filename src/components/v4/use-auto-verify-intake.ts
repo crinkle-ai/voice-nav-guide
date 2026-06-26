@@ -35,6 +35,7 @@ function docFingerprint(d: DoctorEntry): string {
  */
 export function useAutoVerifyIntake() {
   const { state, update, ready } = useSession();
+  const { startDoc, finishDoc, startMed, finishMed } = useAutoVerifyProgress();
   const verifyDoc = useServerFn(verifyProvider);
   const verifyMed = useServerFn(verifyMedication);
 
