@@ -28,6 +28,12 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   const [error, setError] = useState<string | null>(null);
   const [userLive, setUserLive] = useState("");
   const [botLive, setBotLive] = useState("");
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, userLive, botLive]);
+
 
   const sessionRef = useRef<Session | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -286,7 +292,7 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
 
   return (
     <div className="flex flex-col h-[70vh] rounded-2xl border border-line bg-paper overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+      <div ref={scrollerRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
         {messages.length === 0 && (
           <p className="text-sm text-muted-2">
             Press <strong>Start talking</strong> below — you'll have a real spoken conversation
