@@ -155,7 +155,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
     if (!lastUserAskedForPlans) return null;
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant || messages[messages.length - 1]?.role !== "assistant") return null;
+    if (!lastAssistant) return null;
     const hasPlanTool = lastAssistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
     if (hasPlanTool) return null;
     const assistantText = messageText(lastAssistant);
