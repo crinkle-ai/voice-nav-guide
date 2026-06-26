@@ -75,6 +75,8 @@
   --color-line: var(--line);
   --color-accent-2: var(--accent-2);
   --color-accent-soft: var(--accent-soft);
+  --color-surface-soft: var(--surface-soft);
+
   --font-serif: "Fraunces", ui-serif, Georgia, serif;
 }
 
