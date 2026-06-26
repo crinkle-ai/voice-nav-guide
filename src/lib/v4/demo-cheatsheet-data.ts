@@ -23,7 +23,7 @@ export const SCRIPT_LINES: { label: string; value: string }[] = [
   { label: "Medicaid", value: "No" },
 ];
 
-export const READ_ALOUD = `I live in 55410. I have type 2 diabetes and high blood pressure. My PCP is Dr. Bruley, and I see Dr. Schuster for endocrinology. I take Lantus 100 units per mL, Ozempic 1 mg, and metformin 500 mg. I want my premium under $50 a month and my deductible under $300. Dental and vision matter. I'm not on Medicaid.`;
+export const READ_ALOUD = `I live in 55410. I have type 2 diabetes and high blood pressure. My primary care doctor is Dr. Robert Bruley over on West 43rd Street in Minneapolis — he's family medicine. For my diabetes I see Dr. Lawrence Schuster, an endocrinologist on France Avenue South in Minneapolis. I take Lantus 100 units per mL, Ozempic 1 mg, and metformin 500 mg. I want my premium under $50 a month and my deductible under $300. Dental and vision matter. I'm not on Medicaid.`;
 
 export const EXPECTED_RANKING: { rank: number; plan: string; why: string }[] = [
   { rank: 1, plan: "AARP MA Plan 2 (PPO)", why: "Covers Ozempic, best extras + MOOP" },
