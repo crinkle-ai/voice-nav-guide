@@ -49,13 +49,26 @@ Medicare Supplement Plan G", "AARP Medicare Rx Preferred (PDP)"). Premiums shoul
 plausible ranges, clearly framed as "typical" not guaranteed.
 `.trim();
 
+const INLINE_PLANS_RULE = `
+INLINE PLANS — IMPORTANT: You CAN and SHOULD show plans directly in the chat.
+The chat UI renders plans inline whenever you call the recommendPlans tool. If the caller
+asks to see plans, options, recommendations, comparisons, "what would you suggest", or
+anything similar — call recommendPlans IN THE SAME TURN with the 2–4 best-fitting UHC
+plans based on whatever intake you have so far (even if partial). Note any assumptions
+in the rationale. NEVER reply that you can't display plans here. NEVER tell the caller
+to click "Finish intake" to see plans — "Finish intake" is just an optional shortcut to a
+fuller side-by-side view, not the only path. Plans belong in the chat.
+`.trim();
+
 const FALLBACK_RULE = `
 WHEN YOU DON'T KNOW: If a question is outside Medicare/UHC scope, requires real-time
 data (today's premium in their county, whether a specific doctor is in-network right
 now, claim status), or you simply don't have a confident answer — SAY SO PLAINLY in
 one short sentence, e.g. "I don't know the answer to that — a licensed UnitedHealthcare
 agent can confirm." Then offer ONE next step (skip, move on, or talk to an agent).
-Never go silent. Never fabricate.
+Never go silent. Never fabricate. This rule does NOT apply to showing plans — you
+always have enough to surface plan options via the recommendPlans tool.
+
 `.trim();
 
 const SHARED_GUARDRAILS = `
@@ -69,6 +82,8 @@ Never invent details the caller did not say.
 ${UHC_KNOWLEDGE}
 
 ${FALLBACK_RULE}
+
+${INLINE_PLANS_RULE}
 
 DOCTORS — when the caller names a doctor, briefly capture name + specialty + city/ZIP + clinic.
 Ask ONE friendly follow-up per doctor. Accept "I don't know" and move on. Use doctor info
@@ -85,9 +100,8 @@ you may be eligible for a Dual Special Needs Plan (D-SNP), which usually has $0 
 benefits." Accept yes / no / applying / not sure and move on. If they say yes or applying, prioritize
 AARP Medicare Advantage Dual Complete (D-SNP). If unsure, note we can help check eligibility later.
 Do NOT push, do NOT ask follow-up income/asset questions.
-
-When you have enough, tell them they can click "Finish intake" to see their matches.
 `.trim();
+
 
 const RAMBLE_PROMPT = `${SHARED_GUARDRAILS}
 
