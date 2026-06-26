@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { verifyMedication, type VerifyMedicationResult } from "@/lib/v3/medications.functions";
 import { useSession } from "@/lib/v4/session-store";
