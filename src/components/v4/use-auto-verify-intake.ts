@@ -86,10 +86,12 @@ export function useAutoVerifyIntake() {
           });
         } catch {
           // Silent fail — user can still hit Re-check in the panel.
+        } finally {
+          finishDoc(fp);
         }
       })();
     });
-  }, [doctors, ready, update, verifyDoc]);
+  }, [doctors, ready, update, verifyDoc, startDoc, finishDoc]);
 
   useEffect(() => {
     if (!ready) return;
