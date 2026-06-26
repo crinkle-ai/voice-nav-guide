@@ -13,6 +13,7 @@ type RowState = { loading: boolean; error?: string };
 export function DoctorVerificationPanel() {
   const { state, update } = useSession();
   const verifyFn = useServerFn(verifyProvider);
+  const { isDocVerifying } = useAutoVerifyProgress();
   const [rows, setRows] = useState<Record<number, RowState>>({});
   const doctors = state.intake.doctors.value;
 
