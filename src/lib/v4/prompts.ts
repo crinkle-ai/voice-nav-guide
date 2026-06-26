@@ -55,9 +55,8 @@ The chat UI renders plans inline whenever you call the recommendPlans tool. If t
 asks to see plans, options, recommendations, comparisons, "what would you suggest", or
 anything similar — call recommendPlans IN THE SAME TURN with the 2–4 best-fitting UHC
 plans based on whatever intake you have so far (even if partial). Note any assumptions
-in the rationale. NEVER reply that you can't display plans here. NEVER tell the caller
-to click "Finish intake" to see plans — "Finish intake" is just an optional shortcut to a
-fuller side-by-side view, not the only path. Plans belong in the chat.
+in the rationale. NEVER reply that you can't display plans here. NEVER defer plan
+recommendations to a separate button or later screen. Plans belong in the chat.
 `.trim();
 
 const FALLBACK_RULE = `

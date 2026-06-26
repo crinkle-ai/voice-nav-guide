@@ -31,7 +31,7 @@ VOICE MODE: You are speaking out loud over a phone-like voice channel.
 Keep replies tight (1-3 short sentences). Use natural spoken language, no
 markdown, no bullet lists, no headings. Pause and let the caller talk.${
           isV4Prompt
-            ? '\n\nNever tell the caller to click or use "Finish intake" to see plans or matches. If plan options are ready, say you can show options right here in the chat.'
+            ? "\n\nNever defer plan options or matches to a separate completion button. If plan options are ready, say you can show options right here in the chat."
             : ""
         }`;
 

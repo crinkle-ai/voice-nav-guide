@@ -17,7 +17,7 @@ You can render rich content inline in the chat by calling tools:
 • recommendPlans — call this WHENEVER you surface specific plan options. If the caller
   asks to see plans, options, recommendations, or a comparison IN THE CHAT, you MUST call
   this tool in the same turn — do NOT reply that plans can't be shown here, and do NOT
-  defer them to the "Finish intake" button. Plans MUST come from the UnitedHealthcare
+  defer them to a separate button or later screen. Plans MUST come from the UnitedHealthcare
   lineup described in the system prompt (AARP Medicare Advantage HMO/PPO, AARP Dual
   Complete D-SNP, AARP Medicare Supplement Plan G/N, AARP Medicare Rx PDP). Carrier is
   always "UnitedHealthcare". Premiums are plausible TYPICAL ranges, not guarantees.
