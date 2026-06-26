@@ -26,9 +26,19 @@ type ChatItem = {
   live: boolean;
 };
 
-const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
+const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches|them|those)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
 const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
+// Detect when the model emitted a tool invocation as plain text instead of calling the tool.
+const LEAKED_TOOL_RE = /\brecommendPlans\b/;
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
+
+function stripLeakedToolText(text: string): string {
+  // Cut off everything from the leaked "recommendPlans" token onward; keep
+  // the prose lead-in so the bubble still reads naturally.
+  const idx = text.search(LEAKED_TOOL_RE);
+  if (idx === -1) return text;
+  return text.slice(0, idx).replace(/[\s.\-—:]+$/, "").trim();
+}
 
 const RAMBLE_OPENER =
   "Hi — I'm here to help you find the right Medicare plan. In your own words, tell me what's going on with your health coverage and what you're hoping a plan will do for you. Take your time.";
