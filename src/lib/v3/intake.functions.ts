@@ -25,7 +25,8 @@ Return ONLY a JSON object (no prose, no markdown fences) matching this exact sha
   "budgetSensitivity": { "value": "low" | "medium" | "high" | null, "confidence": "captured" | "needs_confirmation" | "missing" },
   "zip":               { "value": string | null, "confidence": "captured" | "needs_confirmation" | "missing" },
   "extras":            { "value": ("dental" | "vision" | "hearing" | "fitness" | "transportation" | "otc")[], "confidence": "captured" | "needs_confirmation" | "missing" },
-  "medicaid":          { "value": "yes" | "no" | "applying" | "unsure" | null, "confidence": "captured" | "needs_confirmation" | "missing", "notes": string | null }
+  "medicaid":          { "value": "yes" | "no" | "applying" | "unsure" | null, "confidence": "captured" | "needs_confirmation" | "missing", "notes": string | null },
+  "budgetCaps":        { "monthlyPremiumMax": number | null, "annualDeductibleMax": number | null, "confidence": "captured" | "needs_confirmation" | "missing" }
 }
 
 Every field MUST be present. Use empty array [] for missing list fields and null for missing string fields.
