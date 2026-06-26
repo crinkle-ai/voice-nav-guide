@@ -224,19 +224,27 @@ function IntakePage() {
               )}
             </p>
           </div>
-          <Button
-            onClick={finishToSummary}
-            disabled={finishing}
-            variant={enoughCaptured ? "default" : "outline"}
-            className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
-          >
-            {finishing ? (
-              <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
-            ) : (
-              <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
-            )}
-          </Button>
-        </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={resetConversation}
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10"
+            >
+              <RotateCcw className="mr-1 h-4 w-4" /> Reset
+            </Button>
+            <Button
+              onClick={finishToSummary}
+              disabled={finishing}
+              variant={enoughCaptured ? "default" : "outline"}
+              className={enoughCaptured ? "bg-[#033592] hover:bg-[#033592]/90 text-white" : "border-white/30 text-white hover:bg-white/10"}
+            >
+              {finishing ? (
+                <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
+              ) : (
+                <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
+              )}
+            </Button>
+          </div>
         <IntakeChat
           mode={state.mode}
           path={state.path}
