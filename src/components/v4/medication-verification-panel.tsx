@@ -65,6 +65,7 @@ function parseProduct(name: string): { strength?: string; doseForm?: string } {
 export function MedicationVerificationPanel() {
   const { state, update } = useSession();
   const verifyFn = useServerFn(verifyMedication);
+  const { isMedVerifying } = useAutoVerifyProgress();
   const [rows, setRows] = useState<Record<number, RowState>>({});
   const meds = state.intake.medications.value;
 
