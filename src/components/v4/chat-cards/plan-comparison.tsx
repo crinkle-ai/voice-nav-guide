@@ -44,18 +44,19 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
           <div><span className="text-muted-2">Max out-of-pocket</span> <span className="font-medium text-ink">${p.maxOOP.toLocaleString()}</span></div>
         </div>
 
-            {p.highlights && p.highlights.length > 0 && (
-              <ul className="px-4 py-3 text-sm space-y-1 border-b border-line">
-                {p.highlights.map((h, i) => (
-                  <li key={i} className="text-ink">• {h}</li>
-                ))}
-              </ul>
-            )}
-            {r && r.reasons.length > 0 && (
-              <div className="px-4 py-3 bg-accent-soft/40">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-accent mb-2 uppercase tracking-wide">
-                  <Sparkles className="h-3.5 w-3.5" /> Why we recommend this for you
-                </div>
+        {p.highlights && p.highlights.length > 0 && (
+          <ul className="px-4 py-3 text-sm space-y-1 border-b border-ink/10">
+            {p.highlights.map((h, i) => (
+              <li key={i} className="text-ink">• {h}</li>
+            ))}
+          </ul>
+        )}
+        {r && r.reasons.length > 0 && (
+          <div className="px-4 py-3 bg-surface-soft/40">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-ink mb-2 uppercase tracking-wide">
+              <Sparkles className="h-3.5 w-3.5" /> Why we recommend this for you
+            </div>
+
                 <ul className="space-y-1.5 text-sm">
                   {r.reasons.map((reason, i) => (
                     <li key={i} className="leading-snug">
