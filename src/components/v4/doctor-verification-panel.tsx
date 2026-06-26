@@ -52,11 +52,12 @@ export function DoctorVerificationPanel() {
           postalCode: d.zip ?? undefined,
         },
       });
+      const matches = result.matches.map(({ score: _score, ...rest }) => rest);
       const verification: NpiVerification = {
         status: result.status,
         checkedAt: new Date().toISOString(),
-        matches: result.matches,
-        selectedNpi: result.status === "verified" && result.matches[0] ? result.matches[0].npi : null,
+        matches,
+        selectedNpi: result.status === "verified" && matches[0] ? matches[0].npi : null,
         message: result.status === "error" ? result.message : undefined,
       };
       const flag: DoctorEntry["verification"] =
