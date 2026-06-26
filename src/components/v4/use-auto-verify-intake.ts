@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { verifyProvider } from "@/lib/v3/providers.functions";
 import { verifyMedication } from "@/lib/v3/medications.functions";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyProgress } from "@/components/v4/auto-verify-context";
 import type { DoctorEntry, MedicationEntry, NpiVerification, RxVerification } from "@/lib/v3/intake-types";
 
 const BASE_RX: RxVerification = {
@@ -19,10 +20,10 @@ const BASE_RX: RxVerification = {
   candidates: [],
 };
 
-function medFingerprint(m: MedicationEntry): string {
+export function medFingerprint(m: MedicationEntry): string {
   return [m.name, m.strength, m.doseForm].map((s) => (s ?? "").trim().toLowerCase()).join("|");
 }
-function docFingerprint(d: DoctorEntry): string {
+export function docFingerprint(d: DoctorEntry): string {
   return [d.name, d.specialty, d.city, d.zip].map((s) => (s ?? "").trim().toLowerCase()).join("|");
 }
 
@@ -34,6 +35,7 @@ function docFingerprint(d: DoctorEntry): string {
  */
 export function useAutoVerifyIntake() {
   const { state, update, ready } = useSession();
+  const { startDoc, finishDoc, startMed, finishMed } = useAutoVerifyProgress();
   const verifyDoc = useServerFn(verifyProvider);
   const verifyMed = useServerFn(verifyMedication);
 
@@ -51,6 +53,7 @@ export function useAutoVerifyIntake() {
       const fp = docFingerprint(d);
       if (attemptedDocs.current.has(fp)) return;
       attemptedDocs.current.add(fp);
+      startDoc(fp);
 
       void (async () => {
         try {
@@ -83,10 +86,12 @@ export function useAutoVerifyIntake() {
           });
         } catch {
           // Silent fail — user can still hit Re-check in the panel.
+        } finally {
+          finishDoc(fp);
         }
       })();
     });
-  }, [doctors, ready, update, verifyDoc]);
+  }, [doctors, ready, update, verifyDoc, startDoc, finishDoc]);
 
   useEffect(() => {
     if (!ready) return;
@@ -96,6 +101,7 @@ export function useAutoVerifyIntake() {
       const fp = medFingerprint(m);
       if (attemptedMeds.current.has(fp)) return;
       attemptedMeds.current.add(fp);
+      startMed(fp);
 
       void (async () => {
         try {
@@ -144,8 +150,10 @@ export function useAutoVerifyIntake() {
           });
         } catch {
           // Silent fail.
+        } finally {
+          finishMed(fp);
         }
       })();
     });
-  }, [medications, ready, update, verifyMed]);
+  }, [medications, ready, update, verifyMed, startMed, finishMed]);
 }

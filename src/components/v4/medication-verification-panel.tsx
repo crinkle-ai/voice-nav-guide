@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { verifyMedication, type VerifyMedicationResult } from "@/lib/v3/medications.functions";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyProgress } from "@/components/v4/auto-verify-context";
+import { medFingerprint } from "@/components/v4/use-auto-verify-intake";
 import type { MedicationEntry, RxVerification } from "@/lib/v3/intake-types";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, AlertTriangle, XCircle, Loader2, ShieldQuestion, HelpCircle } from "lucide-react";
@@ -63,6 +65,7 @@ function parseProduct(name: string): { strength?: string; doseForm?: string } {
 export function MedicationVerificationPanel() {
   const { state, update } = useSession();
   const verifyFn = useServerFn(verifyMedication);
+  const { isMedVerifying } = useAutoVerifyProgress();
   const [rows, setRows] = useState<Record<number, RowState>>({});
   const meds = state.intake.medications.value;
 
@@ -140,6 +143,7 @@ export function MedicationVerificationPanel() {
         {meds.map((m, i) => {
           const row = rows[i] ?? { loading: false };
           const v = m.rxVerification;
+          const autoVerifying = isMedVerifying(medFingerprint(m));
           return (
             <li key={i} className="rounded-lg border border-line bg-canvas/40 p-3">
               <div className="flex items-start justify-between gap-2">
@@ -151,15 +155,27 @@ export function MedicationVerificationPanel() {
                   <div className="text-xs text-muted-2">
                     {[m.strength, m.doseForm, m.frequency].filter(Boolean).join(" · ") || "No details yet"}
                   </div>
+                  {!row.loading && autoVerifying && (
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-accent font-medium">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Auto-verifying against RxNorm…
+                    </div>
+                  )}
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={row.loading || !m.name}
+                  disabled={row.loading || autoVerifying || !m.name}
                   onClick={() => runVerify(i)}
                   className="shrink-0"
                 >
-                  {row.loading ? <Loader2 className="h-3 w-3 animate-spin" /> : v ? "Re-check" : "Verify"}
+                  {row.loading || autoVerifying ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : v ? (
+                    "Re-check"
+                  ) : (
+                    "Verify"
+                  )}
                 </Button>
               </div>
 
