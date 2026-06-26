@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      demo_plans_55410: {
+        Row: {
+          annual_deductible: number
+          carrier: string
+          created_at: string
+          extras: string[]
+          highlights: string[]
+          id: string
+          monthly_premium: number
+          moop: number
+          name: string
+          network_id: string
+          pcp_copay: number
+          requires_medicaid: boolean
+          sort_order: number
+          specialist_copay: number
+          star_rating: number | null
+          summary: string
+          type: string
+        }
+        Insert: {
+          annual_deductible?: number
+          carrier?: string
+          created_at?: string
+          extras?: string[]
+          highlights?: string[]
+          id: string
+          monthly_premium: number
+          moop: number
+          name: string
+          network_id: string
+          pcp_copay?: number
+          requires_medicaid?: boolean
+          sort_order?: number
+          specialist_copay?: number
+          star_rating?: number | null
+          summary: string
+          type: string
+        }
+        Update: {
+          annual_deductible?: number
+          carrier?: string
+          created_at?: string
+          extras?: string[]
+          highlights?: string[]
+          id?: string
+          monthly_premium?: number
+          moop?: number
+          name?: string
+          network_id?: string
+          pcp_copay?: number
+          requires_medicaid?: boolean
+          sort_order?: number
+          specialist_copay?: number
+          star_rating?: number | null
+          summary?: string
+          type?: string
+        }
+        Relationships: []
+      }
       doctors: {
         Row: {
           accepting_new_patients: boolean
@@ -61,6 +121,62 @@ export type Database = {
           zip?: string
         }
         Relationships: []
+      }
+      plan_formulary_55410: {
+        Row: {
+          covered: boolean
+          created_at: string
+          drug_label: string
+          id: string
+          notes: string | null
+          plan_id: string
+          preferred_copay: number | null
+          prior_auth: boolean
+          quantity_limit: string | null
+          rxcui: string
+          standard_copay: number | null
+          step_therapy: boolean
+          tier: number | null
+        }
+        Insert: {
+          covered?: boolean
+          created_at?: string
+          drug_label: string
+          id?: string
+          notes?: string | null
+          plan_id: string
+          preferred_copay?: number | null
+          prior_auth?: boolean
+          quantity_limit?: string | null
+          rxcui: string
+          standard_copay?: number | null
+          step_therapy?: boolean
+          tier?: number | null
+        }
+        Update: {
+          covered?: boolean
+          created_at?: string
+          drug_label?: string
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          preferred_copay?: number | null
+          prior_auth?: boolean
+          quantity_limit?: string | null
+          rxcui?: string
+          standard_copay?: number | null
+          step_therapy?: boolean
+          tier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_formulary_55410_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "demo_plans_55410"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plans: {
         Row: {
@@ -113,6 +229,57 @@ export type Database = {
           summary?: string
           type?: string
           vision?: boolean
+        }
+        Relationships: []
+      }
+      providers_55410: {
+        Row: {
+          address_line1: string | null
+          city: string | null
+          created_at: string
+          credential: string | null
+          first_name: string
+          id: string
+          in_network_plans: string[]
+          last_name: string
+          npi: string
+          phone: string | null
+          primary_taxonomy: string | null
+          specialty_label: string
+          state: string | null
+          zip: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          city?: string | null
+          created_at?: string
+          credential?: string | null
+          first_name: string
+          id?: string
+          in_network_plans?: string[]
+          last_name: string
+          npi: string
+          phone?: string | null
+          primary_taxonomy?: string | null
+          specialty_label: string
+          state?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          city?: string | null
+          created_at?: string
+          credential?: string | null
+          first_name?: string
+          id?: string
+          in_network_plans?: string[]
+          last_name?: string
+          npi?: string
+          phone?: string | null
+          primary_taxonomy?: string | null
+          specialty_label?: string
+          state?: string | null
+          zip?: string | null
         }
         Relationships: []
       }
