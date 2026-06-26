@@ -154,7 +154,7 @@ export function Composer({
             </span>
           )}
           {voiceActive && rec === "idle" && (
-            <span className="inline-flex items-center gap-1.5 text-[#033592]">
+            <span className="inline-flex items-center gap-1.5 text-ink">
               <AudioLines className="h-3 w-3" /> Voice conversation active
             </span>
           )}
