@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { CaptureSidebar } from "@/components/v3/capture-sidebar";
+import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { useSession } from "@/lib/v4/session-store";
 import { ChevronLeft, ClipboardList } from "lucide-react";
 
@@ -41,7 +42,10 @@ export function WorksheetDrawer() {
               Captured from your {modeLabel.toLowerCase()} intake. Updates as you go.
             </SheetDescription>
           </SheetHeader>
-          <CaptureSidebar intake={state.intake} loading={false} />
+          <div className="space-y-4">
+            <CaptureSidebar intake={state.intake} loading={false} />
+            <DoctorVerificationPanel />
+          </div>
         </SheetContent>
       </Sheet>
     </>
