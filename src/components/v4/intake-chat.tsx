@@ -49,7 +49,6 @@ function openerFor(mode: IntakeMode, path?: HybridPath): string {
 
 export function IntakeChat({ mode, path, initialMessages, onMessagesChange, intake, autoSend, skipOpener }: Props) {
   const intakeRef = useRef(intake);
-  const [inlinePlanFallback, setInlinePlanFallback] = useState<RecommendPlansInput | null>(null);
   useEffect(() => {
     intakeRef.current = intake;
   }, [intake]);
@@ -142,7 +141,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     [setMessages],
   );
 
-  const shouldShowPlanFallback = useMemo(() => {
+  const inlinePlanFallback = useMemo(() => {
     let lastUserAskedForPlans = false;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       const m = messages[i];
@@ -154,18 +153,18 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       }
     }
 
-    if (!lastUserAskedForPlans) return false;
+    if (!lastUserAskedForPlans) return null;
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant) return false;
+    if (!lastAssistant || messages[messages.length - 1]?.role !== "assistant") return null;
     const hasPlanTool = lastAssistant.parts.some((p) => (p as AnyPart).type === "tool-recommendPlans");
-    if (hasPlanTool) return false;
-    return DEFERRED_PLAN_RE.test(messageText(lastAssistant));
-  }, [messages]);
-
-  useEffect(() => {
-    if (!shouldShowPlanFallback) return;
-    setInlinePlanFallback(buildInlinePlanRecommendations(intakeRef.current));
-  }, [shouldShowPlanFallback, intake]);
+    if (hasPlanTool) return null;
+    const assistantText = messageText(lastAssistant);
+    if (!assistantText || busy) return null;
+    if (!DEFERRED_PLAN_RE.test(assistantText) && !PLAN_REQUEST_RE.test(assistantText)) {
+      return null;
+    }
+    return buildInlinePlanRecommendations(intake);
+  }, [busy, intake, messages]);
 
   const chatItems: ChatItem[] = useMemo(
     () => [
