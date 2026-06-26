@@ -150,8 +150,7 @@ export function DoctorVerificationPanel() {
                                 {addr ? ` · ${addr}` : ""}
                               </div>
                               <div className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-2">
-                                Match score {m.score}
-                                {selected ? " · selected" : ""}
+                                {selected ? "Selected" : "Tap to select"}
                               </div>
                             </button>
                           </li>
