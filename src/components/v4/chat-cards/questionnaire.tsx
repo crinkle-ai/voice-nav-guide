@@ -41,19 +41,19 @@ export function QuestionnaireCard({ data, onSubmit, disabled }: Props) {
   };
 
   return (
-    <div className="mt-3 rounded-xl border border-line bg-canvas/40 p-4">
-      <div className="font-serif text-base mb-3">{data.title}</div>
+    <div className="mt-3 rounded-xl border border-ink/10 bg-surface-soft/40 p-4">
+      <div className="font-serif text-base mb-3 text-ink">{data.title}</div>
       <div className="space-y-4">
         {data.questions.map((q) => (
           <div key={q.id}>
-            <div className="text-sm font-medium mb-1.5">{q.label}</div>
+            <div className="text-sm font-medium mb-1.5 text-ink">{q.label}</div>
             {q.type === "text" ? (
               <input
                 type="text"
                 value={(answers[q.id] as string) ?? ""}
                 onChange={(e) => setSingle(q.id, e.target.value)}
                 disabled={submitted || disabled}
-                className="w-full rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
+                className="w-full rounded-md border border-ink/10 bg-paper px-3 py-1.5 text-sm text-ink"
               />
             ) : (
               <div className="flex flex-wrap gap-1.5">
@@ -70,10 +70,9 @@ export function QuestionnaireCard({ data, onSubmit, disabled }: Props) {
                       onClick={() => (q.type === "multi" ? toggleMulti(q.id, opt) : setSingle(q.id, opt))}
                       className={`text-xs px-2.5 py-1 rounded-full border transition ${
                         selected
-                          ? "border-accent bg-accent text-paper"
-                          : "border-[#E5F5F8]/30 bg-[#E5F5F8]/15 text-[#E5F5F8] hover:bg-[#E5F5F8]/25 hover:border-[#E5F5F8]/50"
+                          ? "border-ink bg-ink text-paper"
+                          : "border-ink/10 bg-surface-soft/40 text-ink hover:bg-surface-soft hover:border-ink/20"
                       }`}
-
                     >
                       {opt}
                     </button>
@@ -89,7 +88,7 @@ export function QuestionnaireCard({ data, onSubmit, disabled }: Props) {
           size="sm"
           onClick={submit}
           disabled={submitted || disabled}
-          className="bg-accent hover:bg-accent-2 text-paper"
+          className="bg-ink hover:bg-ink/90 text-paper"
         >
           {submitted ? "Sent" : "Send answers"}
         </Button>

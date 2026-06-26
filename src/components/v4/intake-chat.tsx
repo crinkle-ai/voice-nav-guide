@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IntakeMode, Intake } from "@/lib/v3/intake-types";
 import type { HybridPath } from "@/lib/v4/session-store";
 import { Composer } from "./composer";
@@ -20,6 +20,11 @@ type Props = {
   skipOpener?: boolean;
 };
 
+type ChatItem = {
+  message: UIMessage;
+  live: boolean;
+};
+
 const RAMBLE_OPENER =
   "Hi — I'm here to help you find the right Medicare plan. In your own words, tell me what's going on with your health coverage and what you're hoping a plan will do for you. Take your time.";
 
@@ -28,8 +33,7 @@ const PATH_OPENERS: Record<HybridPath, string> = {
     "Got it — keeping your doctors is the priority. Let's start with the providers you want to keep. Who's the first one, and what do you see them for?",
   "drug-first":
     "Got it — let's make sure your medications stay affordable. What's the first one you take? If you know the strength and how often, share that too.",
-  "budget-first":
-    "Got it — let's find the lowest total cost. First, what ZIP code do you live in?",
+  "budget-first": "Got it — let's find the lowest total cost. First, what ZIP code do you live in?",
   "new-to-medicare":
     "Welcome — Medicare can feel like a lot, but I'll keep this simple. To start: are you turning 65 soon, already 65, or helping someone else figure it out?",
 };
@@ -69,7 +73,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     [],
   );
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     id: `v4-intake-${mode}-${path ?? "none"}`,
     messages: seeded,
     transport: transport.current,
@@ -77,6 +81,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   const [input, setInput] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceLive, setVoiceLive] = useState<{ id: string; role: "user" | "assistant"; text: string }[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<VoiceIntakeHandle>(null);
   const autoSentRef = useRef(false);
@@ -93,6 +98,10 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, onMessagesChange]);
 
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+  }, [voiceLive]);
+
   const busy = status === "submitted" || status === "streaming";
 
   const submit = (override?: string) => {
@@ -102,60 +111,105 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     if (!override) setInput("");
   };
 
+  const onLiveTranscript = useCallback((role: "user" | "assistant", text: string) => {
+    setVoiceLive((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.role === role) {
+        return [...prev.slice(0, -1), { ...last, text }];
+      }
+      return [...prev, { id: `live-${role}-${Date.now()}`, role, text }];
+    });
+  }, []);
+
+  const onLiveReset = useCallback(() => setVoiceLive([]), []);
+
+  const onVoiceAppend = useCallback(
+    (role: "user" | "assistant", text: string) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `voice-${role}-${Date.now()}`,
+          role,
+          parts: [{ type: "text", text }],
+        },
+      ]);
+    },
+    [setMessages],
+  );
+
+  const chatItems: ChatItem[] = useMemo(
+    () => [
+      ...messages.map((m) => ({ message: m, live: false })),
+      ...voiceLive.map(
+        (e) =>
+          ({
+            message: {
+              id: e.id,
+              role: e.role,
+              parts: [{ type: "text", text: e.text }],
+            } as UIMessage,
+            live: true,
+          }) as ChatItem,
+      ),
+    ],
+    [messages, voiceLive],
+  );
+
   return (
-    <div className="flex flex-col min-h-[calc(100vh-220px)]">
-      <div ref={scrollerRef} className="flex-1 overflow-y-auto px-1 py-6 space-y-6">
-        {messages.map((m) => (
-          <MessageRow
-            key={m.id}
-            message={m}
-            onPickChip={(c) => submit(c)}
-            onQuestionnaireSubmit={(text) => submit(text)}
-            disabled={busy}
-          />
-        ))}
-        {busy && (
-          <div className="flex items-center gap-2 text-sm text-white/70 px-1">
-            <span className="h-2 w-2 rounded-full bg-[#033592] animate-pulse" />
-            <span>Thinking…</span>
+    <div className="flex flex-col h-[calc(100vh-280px)]">
+      <div className="flex-1 rounded-2xl border border-line bg-paper shadow-xl overflow-hidden flex flex-col min-h-0">
+        <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          {chatItems.map(({ message, live }) => (
+            <MessageRow
+              key={message.id}
+              message={message}
+              onPickChip={(c) => submit(c)}
+              onQuestionnaireSubmit={(text) => submit(text)}
+              disabled={busy}
+              live={live}
+            />
+          ))}
+          {busy && (
+            <div className="flex items-center gap-2 text-sm text-ink/60 px-1">
+              <span className="h-2 w-2 rounded-full bg-ink animate-pulse" />
+              <span>Thinking…</span>
+            </div>
+          )}
+        </div>
+
+        {voiceActive && (
+          <div className="border-t border-line bg-canvas/5 px-5 py-3">
+            <VoiceIntake
+              ref={voiceRef}
+              mode={mode}
+              messages={messages}
+              onMessagesChange={onMessagesChange}
+              compact
+              onLiveTranscript={onLiveTranscript}
+              onLiveReset={onLiveReset}
+              onAppend={onVoiceAppend}
+            />
           </div>
         )}
 
-      </div>
-
-      {voiceActive && (
-        <div className="my-3">
-          <VoiceIntake
-            ref={voiceRef}
-            mode={mode}
-            messages={messages}
-            onMessagesChange={onMessagesChange}
-          />
-          <div className="text-right mt-2">
-            <button
-              type="button"
-              onClick={async () => {
-                if (voiceRef.current) await voiceRef.current.flush();
+        <div className="border-t border-line p-4 bg-paper">
+          <Composer
+            value={input}
+            onChange={setInput}
+            onSubmit={() => submit()}
+            onToggleVoice={async () => {
+              if (voiceActive) {
+                await voiceRef.current?.flush();
                 setVoiceActive(false);
-              }}
-              className="text-xs underline text-white/70 hover:text-white"
-            >
-              Close voice conversation
-            </button>
-          </div>
-
+              } else {
+                setVoiceActive(true);
+                setTimeout(() => voiceRef.current?.start(), 50);
+              }
+            }}
+            voiceActive={voiceActive}
+            busy={busy}
+          />
         </div>
-      )}
-
-      <div className="sticky bottom-4 mt-4">
-        <Composer
-          value={input}
-          onChange={setInput}
-          onSubmit={() => submit()}
-          onToggleVoice={() => setVoiceActive((v) => !v)}
-          voiceActive={voiceActive}
-          busy={busy}
-        />
       </div>
     </div>
   );
@@ -168,11 +222,13 @@ function MessageRow({
   onPickChip,
   onQuestionnaireSubmit,
   disabled,
+  live,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
   onQuestionnaireSubmit: (text: string) => void;
   disabled: boolean;
+  live?: boolean;
 }) {
   const text = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
@@ -182,7 +238,11 @@ function MessageRow({
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-white text-[#033592] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+        <div
+          className={`max-w-[80%] rounded-2xl rounded-br-md bg-paper text-ink border border-ink/10 px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
+            live ? "opacity-70 italic" : ""
+          }`}
+        >
           {text}
         </div>
       </div>
@@ -190,13 +250,13 @@ function MessageRow({
   }
 
   return (
-      <div className="flex gap-3">
-      <div className="h-8 w-8 shrink-0 rounded-full bg-white flex items-center justify-center p-1">
+    <div className="flex gap-3">
+      <div className="h-8 w-8 shrink-0 rounded-full bg-paper flex items-center justify-center p-1">
         <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-5 w-5 object-contain" />
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">
         {text && (
-          <div className="text-[15px] leading-relaxed text-white whitespace-pre-wrap">{text}</div>
+          <div className={`text-[15px] leading-relaxed text-ink whitespace-pre-wrap ${live ? "opacity-70 italic" : ""}`}>{text}</div>
         )}
 
         {message.parts.map((p, i) => {

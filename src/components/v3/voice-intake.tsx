@@ -9,10 +9,15 @@ type Props = {
   mode: IntakeMode;
   messages: UIMessage[];
   onMessagesChange: (msgs: UIMessage[]) => void;
+  compact?: boolean;
+  onLiveTranscript?: (role: "user" | "assistant", text: string) => void;
+  onLiveReset?: () => void;
+  onAppend?: (role: "user" | "assistant", text: string) => void;
 };
 
 export type VoiceIntakeHandle = {
   flush: () => Promise<void>;
+  start: () => void;
 };
 
 type Status = "idle" | "connecting" | "live" | "paused" | "error";
@@ -21,7 +26,7 @@ const INPUT_SAMPLE_RATE = 16000;
 const OUTPUT_SAMPLE_RATE = 24000;
 
 export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIntake(
-  { mode, messages, onMessagesChange },
+  { mode, messages, onMessagesChange, compact, onLiveTranscript, onLiveReset, onAppend },
   ref,
 ) {
   const [status, setStatus] = useState<Status>("idle");
@@ -98,6 +103,9 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
       if (sessionRef.current) await stop();
       else flushTurns(true);
     },
+    start: () => {
+      if (status === "idle") void start();
+    },
   }));
 
   const appendMessage = (role: "user" | "assistant", text: string) => {
@@ -117,16 +125,25 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
     const u = userTurnRef.current.trim();
     const b = botTurnRef.current.trim();
     if (u) {
-      appendMessage("user", u);
+      if (onAppend) {
+        onAppend("user", u);
+      } else {
+        appendMessage("user", u);
+      }
       userTurnRef.current = "";
     }
     if (b) {
-      appendMessage("assistant", b);
+      if (onAppend) {
+        onAppend("assistant", b);
+      } else {
+        appendMessage("assistant", b);
+      }
       botTurnRef.current = "";
     }
     if (finalize) {
       setUserLive("");
       setBotLive("");
+      onLiveReset?.();
     }
   };
 
@@ -245,11 +262,13 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
     if (inputTx) {
       userTurnRef.current += inputTx;
       setUserLive(userTurnRef.current);
+      onLiveTranscript?.("user", userTurnRef.current);
     }
     const outputTx = sc.outputTranscription?.text;
     if (outputTx) {
       botTurnRef.current += outputTx;
       setBotLive(botTurnRef.current);
+      onLiveTranscript?.("assistant", botTurnRef.current);
     }
 
     if (sc.turnComplete || sc.generationComplete) {
@@ -283,6 +302,52 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
   const isPaused = status === "paused";
   const isConnecting = status === "connecting";
   const isActive = isLive || isPaused || isConnecting;
+  const statusText = isLive
+    ? "Live — mic is open"
+    : isPaused
+      ? "Paused — mic is muted"
+      : isConnecting
+        ? "Connecting…"
+        : error
+          ? `Error: ${error}`
+          : "Voice ready";
+
+  if (compact) {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-full border border-ink/10 bg-paper px-4 py-2 shadow-sm">
+        <div className="flex items-center gap-2 text-sm text-ink">
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${
+              isLive ? "bg-ink animate-pulse" : isPaused ? "bg-amber-500" : isConnecting ? "bg-ink animate-pulse" : "bg-ink/30"
+            }`}
+          />
+          <span>{statusText}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isLive && (
+            <Button onClick={pause} variant="outline" className="gap-2 border-ink/20 text-ink hover:bg-surface-soft">
+              <Pause className="h-4 w-4" /> Pause
+            </Button>
+          )}
+          {isPaused && (
+            <Button onClick={resume} className="gap-2 bg-ink text-paper hover:bg-ink/90">
+              <Play className="h-4 w-4" /> Resume
+            </Button>
+          )}
+          {isActive ? (
+            <Button onClick={stop} variant="outline" className="gap-2 border-ink/20 text-ink hover:bg-surface-soft">
+              <MicOff className="h-4 w-4" /> Stop
+            </Button>
+          ) : (
+            <Button onClick={start} className="gap-2 bg-ink text-paper hover:bg-ink/90">
+              {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+              Start talking
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[70vh] rounded-2xl border border-line bg-paper overflow-hidden">
@@ -303,26 +368,10 @@ export const VoiceIntake = forwardRef<VoiceIntakeHandle, Props>(function VoiceIn
         <div className="flex items-center gap-2 text-sm">
           <span
             className={`h-2.5 w-2.5 rounded-full ${
-              isLive
-                ? "bg-accent animate-pulse"
-                : isPaused
-                ? "bg-amber-500"
-                : isConnecting
-                ? "bg-amber-500 animate-pulse"
-                : "bg-muted-2/40"
+              isLive ? "bg-accent animate-pulse" : isPaused ? "bg-amber-500" : isConnecting ? "bg-amber-500 animate-pulse" : "bg-muted-2/40"
             }`}
           />
-          <span className="text-muted-2">
-            {isLive
-              ? "Live — mic is open"
-              : isPaused
-              ? "Paused — mic is muted"
-              : isConnecting
-              ? "Connecting…"
-              : error
-              ? `Error: ${error}`
-              : "Voice off"}
-          </span>
+          <span className="text-muted-2">{statusText}</span>
         </div>
         {isActive ? (
           <div className="flex items-center gap-2">

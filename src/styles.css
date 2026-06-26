@@ -75,6 +75,8 @@
   --color-line: var(--line);
   --color-accent-2: var(--accent-2);
   --color-accent-soft: var(--accent-soft);
+  --color-surface-soft: var(--surface-soft);
+
   --font-serif: "Fraunces", ui-serif, Georgia, serif;
 }
 
@@ -88,7 +90,9 @@
   --line: rgba(255, 255, 255, 0.25);
   --muted-2: rgba(3, 53, 146, 0.6);
   --ink: #033592;
+  --surface-soft: #E5F5F8;
 }
+
 :root {
   --canvas: oklch(0.985 0.008 85);
   --paper: oklch(1 0 0);
