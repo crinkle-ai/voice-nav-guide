@@ -312,6 +312,18 @@ function BudgetStep({ intake, onChange }: { intake: Intake; onChange: (n: Intake
     { key: "medium", label: "Balanced", desc: "I want a fair price for solid coverage." },
     { key: "high", label: "Tight budget", desc: "Keep premiums and copays as low as possible." },
   ];
+  const caps = intake.budgetCaps;
+  const setCap = (field: "monthlyPremiumMax" | "annualDeductibleMax", raw: string) => {
+    const n = raw === "" ? null : Number(raw);
+    onChange({
+      ...intake,
+      budgetCaps: {
+        monthlyPremiumMax: field === "monthlyPremiumMax" ? n : caps.monthlyPremiumMax,
+        annualDeductibleMax: field === "annualDeductibleMax" ? n : caps.annualDeductibleMax,
+        confidence: "captured",
+      },
+    });
+  };
   return (
     <div>
       <h2 className="font-serif text-2xl mb-2">How tight is your budget?</h2>
@@ -330,9 +342,41 @@ function BudgetStep({ intake, onChange }: { intake: Intake; onChange: (n: Intake
           </button>
         ))}
       </div>
+      <div className="mt-6 grid sm:grid-cols-2 gap-4">
+        <label className="block">
+          <span className="text-xs uppercase tracking-wider text-muted-2">Max monthly premium</span>
+          <div className="mt-1 flex items-center rounded-lg border border-line bg-paper px-3">
+            <span className="text-muted-2">$</span>
+            <input
+              type="number"
+              min={0}
+              value={caps.monthlyPremiumMax ?? ""}
+              onChange={(e) => setCap("monthlyPremiumMax", e.target.value)}
+              className="flex-1 bg-transparent py-2.5 px-2 outline-none"
+              placeholder="e.g. 50"
+            />
+            <span className="text-muted-2 text-sm">/mo</span>
+          </div>
+        </label>
+        <label className="block">
+          <span className="text-xs uppercase tracking-wider text-muted-2">Max annual deductible</span>
+          <div className="mt-1 flex items-center rounded-lg border border-line bg-paper px-3">
+            <span className="text-muted-2">$</span>
+            <input
+              type="number"
+              min={0}
+              value={caps.annualDeductibleMax ?? ""}
+              onChange={(e) => setCap("annualDeductibleMax", e.target.value)}
+              className="flex-1 bg-transparent py-2.5 px-2 outline-none"
+              placeholder="e.g. 300"
+            />
+          </div>
+        </label>
+      </div>
     </div>
   );
 }
+
 
 function ExtrasStep({ intake, onChange }: { intake: Intake; onChange: (n: Intake) => void }) {
   const value = intake.extras.value;
