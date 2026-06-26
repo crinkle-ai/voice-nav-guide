@@ -53,6 +53,7 @@ export function useAutoVerifyIntake() {
       const fp = docFingerprint(d);
       if (attemptedDocs.current.has(fp)) return;
       attemptedDocs.current.add(fp);
+      startDoc(fp);
 
       void (async () => {
         try {
