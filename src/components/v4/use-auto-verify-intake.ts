@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { verifyProvider } from "@/lib/v3/providers.functions";
 import { verifyMedication } from "@/lib/v3/medications.functions";
 import { useSession } from "@/lib/v4/session-store";
+import { useAutoVerifyProgress } from "@/components/v4/auto-verify-context";
 import type { DoctorEntry, MedicationEntry, NpiVerification, RxVerification } from "@/lib/v3/intake-types";
 
 const BASE_RX: RxVerification = {
