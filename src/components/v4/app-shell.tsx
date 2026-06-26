@@ -4,6 +4,7 @@ import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 import { HeaderIndicators } from "./header-indicators";
+import { useDemoCheatsheet } from "./demo-cheatsheet";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
