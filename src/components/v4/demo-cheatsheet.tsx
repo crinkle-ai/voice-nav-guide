@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import {
@@ -15,8 +15,21 @@ const SHOW_DEMO_CHEATSHEET = true;
 const OPEN_KEY = "v4-demo-cheatsheet-open";
 const PIN_KEY = "v4-demo-cheatsheet-pinned";
 
-export function DemoCheatsheet() {
-  const { update, reset } = useSession();
+const CHEATSHEET_WIDTH = 260; // px
+
+interface DemoCheatsheetContextType {
+  open: boolean;
+  pinned: boolean;
+  width: number;
+}
+
+const DemoCheatsheetContext = createContext<DemoCheatsheetContextType>({
+  open: false,
+  pinned: false,
+  width: CHEATSHEET_WIDTH,
+});
+
+export function DemoCheatsheetProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -44,7 +57,29 @@ export function DemoCheatsheet() {
     } catch {}
   }, [pinned, mounted]);
 
-  if (!SHOW_DEMO_CHEATSHEET || !mounted) return null;
+  return (
+    <DemoCheatsheetContext.Provider value={{ open, pinned, width: CHEATSHEET_WIDTH }}>
+      {children}
+      {mounted && SHOW_DEMO_CHEATSHEET && (
+        <DemoCheatsheet open={open} pinned={pinned} setOpen={setOpen} setPinned={setPinned} />
+      )}
+    </DemoCheatsheetContext.Provider>
+  );
+}
+
+export function useDemoCheatsheet() {
+  return useContext(DemoCheatsheetContext);
+}
+
+interface DemoCheatsheetProps {
+  open: boolean;
+  pinned: boolean;
+  setOpen: (open: boolean) => void;
+  setPinned: (pinned: boolean) => void;
+}
+
+function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProps) {
+  const { update, reset } = useSession();
 
   async function loadDemo() {
     const { diabeticMinneapolisIntake } = await import("@/lib/v4/demo-profile");
@@ -58,16 +93,16 @@ export function DemoCheatsheet() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open demo cheat sheet"
-          className="fixed right-0 top-1/3 z-[60] flex items-center gap-1 rounded-l-md border border-r-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
+          className="fixed left-0 top-1/3 z-[60] flex items-center gap-1 rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
         >
           <FlaskConical className="h-3 w-3" />
-          <span className="[writing-mode:vertical-rl] rotate-180">Demo</span>
+          <span className="[writing-mode:vertical-rl]">Demo</span>
         </button>
       )}
 
       {open && (
         <aside
-          className="fixed right-0 top-0 z-[60] h-screen w-[320px] border-l border-amber-300 bg-amber-50/98 backdrop-blur shadow-2xl flex flex-col text-[12px] text-amber-950"
+          className="fixed left-0 top-0 z-[60] h-screen w-[260px] border-r border-amber-300 bg-amber-50/98 backdrop-blur shadow-2xl flex flex-col text-[12px] text-amber-950"
           role="complementary"
           aria-label="Demo cheat sheet"
         >
