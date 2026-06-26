@@ -101,6 +101,7 @@ export function useAutoVerifyIntake() {
       const fp = medFingerprint(m);
       if (attemptedMeds.current.has(fp)) return;
       attemptedMeds.current.add(fp);
+      startMed(fp);
 
       void (async () => {
         try {
