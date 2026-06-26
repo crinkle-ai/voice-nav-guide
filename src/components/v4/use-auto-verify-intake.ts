@@ -150,8 +150,10 @@ export function useAutoVerifyIntake() {
           });
         } catch {
           // Silent fail.
+        } finally {
+          finishMed(fp);
         }
       })();
     });
-  }, [medications, ready, update, verifyMed]);
+  }, [medications, ready, update, verifyMed, startMed, finishMed]);
 }
