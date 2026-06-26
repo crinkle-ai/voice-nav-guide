@@ -4,6 +4,7 @@ import { UserCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 import { HeaderIndicators } from "./header-indicators";
+import { useDemoCheatsheet } from "./demo-cheatsheet";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -28,8 +29,10 @@ export function AppShell({
   rightSlot?: ReactNode;
 }) {
   const active = STEPS.find((s) => s.key === step);
+  const { open: cheatOpen, width: cheatWidth } = useDemoCheatsheet();
+  const leftPad = cheatOpen ? `${cheatWidth}px` : undefined;
   return (
-    <div className="min-h-screen bg-canvas v4-scope text-white">
+    <div className="min-h-screen bg-canvas v4-scope text-white" style={{ paddingLeft: leftPad }}>
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
