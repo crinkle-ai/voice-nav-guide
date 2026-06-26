@@ -20,6 +20,55 @@ const wantsTravel = (i: Intake) =>
 const budgetLow = (i: Intake) => i.budgetSensitivity?.value === "high"; // high sensitivity = low budget
 const hasDrugs = (i: Intake) => (i.medications?.value || []).length > 0;
 
+const PLAN_DETAILS: Record<
+  string,
+  { monthlyPremium: number; maxOOP: number; starRating?: number; highlights: string[] }
+> = {
+  "aarp-ma-hmo": {
+    monthlyPremium: 0,
+    maxOOP: 4900,
+    starRating: 4.2,
+    highlights: ["Built-in drug coverage", "Dental, vision, hearing and fitness extras", "Lower costs when you stay in network"],
+  },
+  "aarp-ma-ppo": {
+    monthlyPremium: 0,
+    maxOOP: 6500,
+    starRating: 4.1,
+    highlights: ["More provider flexibility", "No referrals for specialists", "Works well for travel or split-state living"],
+  },
+  "aarp-dual-complete": {
+    monthlyPremium: 0,
+    maxOOP: 0,
+    starRating: 4.0,
+    highlights: ["For people with Medicare and Medicaid", "Extra support for OTC, transportation or everyday needs", "Usually $0 premium"],
+  },
+  "aarp-medigap-g": {
+    monthlyPremium: 165,
+    maxOOP: 240,
+    highlights: ["Predictable medical costs", "Any doctor who accepts Medicare", "Pairs with a standalone Part D plan"],
+  },
+  "aarp-medigap-n": {
+    monthlyPremium: 120,
+    maxOOP: 240,
+    highlights: ["Lower premium than Plan G", "Nationwide Medicare doctor access", "Small office or ER copays may apply"],
+  },
+  "aarp-rx-walgreens": {
+    monthlyPremium: 35,
+    maxOOP: 0,
+    highlights: ["Standalone Part D coverage", "Preferred Walgreens pricing", "Good fit alongside Original Medicare or Medigap"],
+  },
+  "aarp-rx-preferred": {
+    monthlyPremium: 82,
+    maxOOP: 0,
+    highlights: ["Broad drug formulary", "Standalone Part D coverage", "Useful when prescriptions are a priority"],
+  },
+  "aarp-rx-saver": {
+    monthlyPremium: 18,
+    maxOOP: 0,
+    highlights: ["Lowest-premium standalone Part D option", "Good fit for budget-sensitive shoppers", "Pairs with Original Medicare or Medigap"],
+  },
+};
+
 export const PLAN_CATALOG: CatalogPlan[] = [
   {
     id: "aarp-ma-hmo",
@@ -97,4 +146,45 @@ export function computeMatches(intake: Intake): CatalogPlan[] {
       return true;
     }
   });
+}
+
+export function buildInlinePlanRecommendations(intake: Intake) {
+  const matches = computeMatches(intake).slice(0, 4);
+  const fallback = PLAN_CATALOG.slice(0, 3);
+  const selected = matches.length > 0 ? matches : fallback;
+
+  return {
+    plans: selected.map((plan) => {
+      const details = PLAN_DETAILS[plan.id] ?? {
+        monthlyPremium: 0,
+        maxOOP: 6700,
+        highlights: [plan.blurb],
+      };
+      return {
+        id: plan.id,
+        name: plan.name,
+        carrier: "UnitedHealthcare",
+        type: plan.type,
+        monthlyPremium: details.monthlyPremium,
+        maxOOP: details.maxOOP,
+        starRating: details.starRating,
+        highlights: details.highlights,
+      };
+    }),
+    rationale: selected.map((plan) => ({
+      planId: plan.id,
+      reasons: [
+        {
+          label: "Current fit",
+          detail: plan.rationale(intake),
+          sourceField: intake.zip?.value ? "zip" : intake.medicaid?.value ? "medicaid" : "priorities",
+        },
+        {
+          label: "Plan type",
+          detail: plan.blurb,
+          sourceField: "priorities",
+        },
+      ],
+    })),
+  };
 }
