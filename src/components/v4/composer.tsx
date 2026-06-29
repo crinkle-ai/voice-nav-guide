@@ -115,7 +115,7 @@ export function Composer({
           }}
           placeholder={placeholder ?? "Ask anything about Medicare…"}
           rows={1}
-          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-[#FCF6F1] p-0 text-[15px] leading-6 text-ink placeholder:text-ink/50"
+          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-white p-0 text-[15px] leading-6 text-ink placeholder:text-ink/50"
           disabled={busy}
         />
         <Button
