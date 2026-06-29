@@ -82,6 +82,7 @@ export const Route = createFileRoute("/api/v4/chat")({
                 }),
               ).min(1).max(6),
             }),
+            execute: async (input) => ({ ok: true, rendered: input }),
           }),
           recommendPlans: tool({
             description: "Render plan recommendations with per-plan rationale tied to intake.",
@@ -111,12 +112,14 @@ export const Route = createFileRoute("/api/v4/chat")({
                 }),
               ),
             }),
+            execute: async (input) => ({ ok: true, rendered: input }),
           }),
           suggestNext: tool({
             description: "Show 2-4 quick-reply chips under the assistant reply.",
             inputSchema: z.object({
               chips: z.array(z.string()).min(2).max(4),
             }),
+            execute: async (input) => ({ ok: true, rendered: input }),
           }),
         };
 
