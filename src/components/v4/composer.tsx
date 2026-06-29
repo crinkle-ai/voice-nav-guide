@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Mic, Square, AudioLines, Loader2 } from "lucide-react";
+import { Send, Mic, Square, AudioLines, Loader2, Phone } from "lucide-react";
 
 type Props = {
   value: string;
@@ -11,6 +11,7 @@ type Props = {
   voiceActive: boolean;
   busy: boolean;
   placeholder?: string;
+  onCall?: () => void;
 };
 
 type RecState = "idle" | "recording" | "transcribing";
