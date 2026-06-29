@@ -319,7 +319,7 @@ function WorksheetDrawerInner() {
             <WorkspaceCard
               cardKey="personal"
               status={intake.zip.value ? "Captured" : "Add info"}
-              primary={intake.reasonForCall.value ?? "Tell us about you"}
+              primary="Your Information"
               secondary={
                 [intake.zip.value && `ZIP ${intake.zip.value}`, intake.currentPlan.value]
                   .filter(Boolean)
