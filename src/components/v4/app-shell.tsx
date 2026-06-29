@@ -77,9 +77,6 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl px-6 pt-3 flex justify-end">
-        <HeaderIndicators />
-      </div>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
