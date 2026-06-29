@@ -8,7 +8,7 @@ import { VoiceIntake, type VoiceIntakeHandle } from "./voice-intake";
 import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questionnaire";
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
-import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
+import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { CallDialog } from "./call-dialog";
 
