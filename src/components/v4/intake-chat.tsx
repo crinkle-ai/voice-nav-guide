@@ -348,6 +348,9 @@ function MessageRow({
   const text = message.role === "assistant" ? stripLeakedToolText(rawText) : rawText;
 
   if (message.role === "user") {
+    // Hide auto-generated user bubbles from inline questionnaire submissions —
+    // the questionnaire card already shows the user's own selections.
+    if (rawText.startsWith("__FORM_RESPONSE__")) return null;
     return (
       <div className="flex justify-end">
         <div
@@ -363,8 +366,8 @@ function MessageRow({
 
   return (
     <div className="flex gap-3">
-      <div className="h-8 w-8 shrink-0 rounded-full bg-paper flex items-center justify-center p-1">
-        <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-5 w-5 object-contain" />
+      <div className="h-8 w-8 shrink-0 rounded-full bg-[#033592] flex items-center justify-center p-1.5">
+        <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-full w-full object-contain" />
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">
         {text && (
