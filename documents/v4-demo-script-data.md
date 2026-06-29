@@ -18,24 +18,24 @@ All 20 are seeded in `providers_55410` with real NPIs from the Twin Cities.
 Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 
 ### Primary care (PCP) — in network on **every** plan
-| Name | Specialty | Clinic | NPI |
-|---|---|---|---|
-| Dr. Robert **Bruley** | Family Medicine | 2826 W 43rd St, Minneapolis 55410 | 1841403912 |
-| Dr. Rachel **Agneberg** | Family Medicine | Park Nicollet, St Louis Park | 1831453786 |
-| Dr. Stephanie **Aldrin** | Family Medicine | 1665 Utica Ave S, St Louis Park | 1144718917 |
-| Dr. Sean **Anderson** | Family Medicine | Park Nicollet, St Louis Park | 1548247190 |
-| Dr. Irvin **Goldenberg** | Internal Medicine | 3640 Zenith Ave S, Minneapolis 55410 | 1235241787 |
-| Dr. Patti **Albright** | Internal Medicine | Park Nicollet, St Louis Park | 1467437368 |
-| Dr. Alaa **Ali** | Internal Medicine | Park Nicollet, St Louis Park | 1366974933 |
-| Dr. Deborah **Fletcher** | Internal Medicine | 5012 Queen Ave S, Minneapolis 55410 | 1699738898 |
+| Name | Specialty | Clinic | Address | NPI |
+|---|---|---|---|---|
+| Dr. Robert **Bruley** | Family Medicine | Park Nicollet | 2826 W 43rd St, Minneapolis 55410 | 1841403912 |
+| Dr. Rachel **Agneberg** | Family Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1831453786 |
+| Dr. Stephanie **Aldrin** | Family Medicine | Park Nicollet | 1665 Utica Ave S, St Louis Park | 1144718917 |
+| Dr. Sean **Anderson** | Family Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1548247190 |
+| Dr. Irvin **Goldenberg** | Internal Medicine | Park Nicollet | 3640 Zenith Ave S, Minneapolis 55410 | 1235241787 |
+| Dr. Patti **Albright** | Internal Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1467437368 |
+| Dr. Alaa **Ali** | Internal Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1366974933 |
+| Dr. Deborah **Fletcher** | Internal Medicine | Park Nicollet | 5012 Queen Ave S, Minneapolis 55410 | 1699738898 |
 
 ### Endocrinology — Diabetes specialists (in network on all plans **except Patriot HMO**)
-| Name | Clinic | NPI |
-|---|---|---|
-| Dr. Lawrence **Schuster** | 4999 France Ave S, Minneapolis 55410 | 1861547382 |
-| Dr. Richard **Bergenstal** | Park Nicollet (Intl. Diabetes Center) | 1669459061 |
-| Dr. Molly **Carlson** | Park Nicollet, St Louis Park | 1932149176 |
-| Dr. Anders **Carlson** | 1665 Utica Ave S, St Louis Park | 1720254725 |
+| Name | Clinic | Address | NPI |
+|---|---|---|---|
+| Dr. Lawrence **Schuster** | Park Nicollet | 4999 France Ave S, Minneapolis 55410 | 1861547382 |
+| Dr. Richard **Bergenstal** | Park Nicollet (Intl. Diabetes Center) | Park Nicollet (Intl. Diabetes Center) | 1669459061 |
+| Dr. Molly **Carlson** | Park Nicollet | Park Nicollet, St Louis Park | 1932149176 |
+| Dr. Anders **Carlson** | Park Nicollet | 1665 Utica Ave S, St Louis Park | 1720254725 |
 
 ### Diabetes-related specialists
 | Name | Specialty | In-network on | NPI |
@@ -59,11 +59,11 @@ Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 
 ## 2. Medications to mention (all verify against RxNorm)
 
-| Drug to say | RxCUI | Notes |
-|---|---|---|
-| **Lantus 100 unit/mL** (insulin glargine) | 261551 | Long-acting insulin |
-| **Ozempic 1 mg** pen (semaglutide) | 1991302 | GLP-1; the differentiator drug |
-| **metformin 500 mg** tablet | 860975 | Tier 1 everywhere; cheap baseline |
+| Drug to say | RxCUI | Route | Notes |
+|---|---|---|---|
+| **Lantus 100 unit/mL** (insulin glargine) | 261551 | injection | Long-acting insulin |
+| **Ozempic 1 mg** pen (semaglutide) | 1991302 | injection | GLP-1; the differentiator drug |
+| **metformin 500 mg** tablet | 860975 | tablet | Tier 1 everywhere; cheap baseline |
 
 ### Formulary matrix (what the matcher sees)
 
@@ -97,8 +97,8 @@ Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 ## 4. Demo profile to read aloud (recommended script)
 
 > "I live in **55410**. I have **type 2 diabetes** and **high blood pressure**.
-> My PCP is **Dr. Bruley**, and I see **Dr. Schuster** for endocrinology.
-> I take **Lantus 100 units per mL**, **Ozempic 1 mg**, and **metformin 500 mg**.
+> My PCP is **Dr. Bruley at Park Nicollet**, and I see **Dr. Schuster at Park Nicollet** for endocrinology.
+> I take **Lantus 100 units per mL injection**, **Ozempic 1 mg injection**, and **metformin 500 mg tablets**.
 > I want to keep my premium under **$50 a month** and my deductible under
 > **$300**. **Dental and vision** matter to me. I'm **not on Medicaid**."
 
