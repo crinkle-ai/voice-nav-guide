@@ -258,7 +258,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[600px]">
-      <div className="flex-1 rounded-2xl border border-line bg-paper shadow-xl overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 rounded-2xl border border-line bg-[#FCF6F1] shadow-xl overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
           {chatItems.map(({ message, live }) => (
