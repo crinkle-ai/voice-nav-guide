@@ -13,8 +13,7 @@ import { extractIntake } from "@/lib/v4/intake.functions";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
-import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { HeaderIndicators } from "@/components/v4/header-indicators";
 
 
 export const Route = createFileRoute("/v4/intake")({
