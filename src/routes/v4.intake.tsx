@@ -250,18 +250,6 @@ function IntakePage() {
             >
               <RotateCcw className="mr-1 h-4 w-4" /> Reset
             </Button>
-            <Button
-              onClick={finishToSummary}
-              disabled={finishing}
-              variant={enoughCaptured ? "default" : "outline"}
-              className={enoughCaptured ? "bg-white text-[#033592] hover:bg-white/90" : "bg-white text-[#033592] border-transparent hover:bg-white/90"}
-            >
-              {finishing ? (
-                <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Finishing…</>
-              ) : (
-                <>Finish intake <ArrowRight className="ml-1 h-4 w-4" /></>
-              )}
-            </Button>
           </div>
         </div>
         <IntakeChat
