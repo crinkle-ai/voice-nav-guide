@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
-import { HeaderIndicators } from "./header-indicators";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
@@ -79,9 +77,6 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl px-6 pt-3 flex justify-end">
-        <HeaderIndicators />
-      </div>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.

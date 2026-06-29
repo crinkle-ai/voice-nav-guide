@@ -1,5 +1,5 @@
 import { useEffect, useState, createContext, useContext } from "react";
-import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import {
   SCRIPT_LINES,
@@ -89,15 +89,29 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
   return (
     <>
       {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open demo cheat sheet"
-          className="fixed left-0 top-1/3 z-[60] flex items-center gap-1 rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
-        >
-          <FlaskConical className="h-3 w-3" />
-          <span className="[writing-mode:vertical-rl]">Demo</span>
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Open demo cheat sheet"
+            className="fixed left-0 top-1/3 z-[60] flex items-center gap-1 rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
+          >
+            <FlaskConical className="h-3 w-3" />
+            <span className="[writing-mode:vertical-rl]">Demo</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("Reset the conversation?")) reset();
+            }}
+            aria-label="Reset conversation"
+            title="Reset conversation"
+            className="fixed left-0 z-[60] flex items-center justify-center rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-2 py-2 text-amber-900 shadow-md hover:bg-amber-200 transition"
+            style={{ top: "calc(33.33% + 72px)" }}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </>
       )}
 
       {open && (
@@ -131,21 +145,13 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
             {/* Quick load */}
             <section className="space-y-1.5">
-              <button
-                onClick={loadDemo}
-                className="w-full rounded-md bg-amber-900 px-2.5 py-1.5 text-[11px] font-medium text-amber-50 hover:bg-amber-800 inline-flex items-center justify-center gap-1.5"
-              >
-                Load 55410 profile → matches <ChevronRight className="h-3 w-3" />
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm("Reset the conversation?")) reset();
-                }}
-                className="w-full rounded-md border border-amber-400 px-2.5 py-1.5 text-[11px] font-medium hover:bg-amber-100"
-              >
-                Reset conversation
-              </button>
-            </section>
+            <button
+              onClick={loadDemo}
+              className="w-full rounded-md bg-amber-900 px-2.5 py-1.5 text-[11px] font-medium text-amber-50 hover:bg-amber-800 inline-flex items-center justify-center gap-1.5"
+            >
+              Load 55410 profile → matches <ChevronRight className="h-3 w-3" />
+            </button>
+          </section>
 
             <Section title="Profile to give the AI">
               <dl className="space-y-1">

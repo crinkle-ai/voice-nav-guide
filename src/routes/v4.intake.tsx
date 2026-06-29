@@ -13,8 +13,7 @@ import { extractIntake } from "@/lib/v4/intake.functions";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
-import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { HeaderIndicators } from "@/components/v4/header-indicators";
 
 
 export const Route = createFileRoute("/v4/intake")({
@@ -30,7 +29,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 };
 
 function IntakePage() {
-  const { state, update, reset, ready } = useSession();
+  const { state, update, ready } = useSession();
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
@@ -81,16 +80,6 @@ function IntakePage() {
   );
 
 
-  const resetConversation = () => {
-    if (typeof window !== "undefined" && !window.confirm("Start over? This clears your conversation and captured info.")) return;
-    if (extractTimer.current) clearTimeout(extractTimer.current);
-    lastUserCount.current = 0;
-    latestMessagesRef.current = [];
-    setAutoSend(undefined);
-    setLandingInput("");
-    reset();
-    update({ mode: "ramble" });
-  };
 
   if (!ready || !state.mode) {
     return (
@@ -214,15 +203,7 @@ function IntakePage() {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={resetConversation}
-              variant="outline"
-              className="bg-white text-[#033592] border-transparent hover:bg-white/90"
-            >
-              <RotateCcw className="mr-1 h-4 w-4" /> Reset
-            </Button>
-          </div>
+          <HeaderIndicators />
         </div>
         <IntakeChat
           mode={state.mode}
