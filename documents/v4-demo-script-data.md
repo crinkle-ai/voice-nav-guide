@@ -97,8 +97,8 @@ Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 ## 4. Demo profile to read aloud (recommended script)
 
 > "I live in **55410**. I have **type 2 diabetes** and **high blood pressure**.
-> My PCP is **Dr. Bruley**, and I see **Dr. Schuster** for endocrinology.
-> I take **Lantus 100 units per mL**, **Ozempic 1 mg**, and **metformin 500 mg**.
+> My PCP is **Dr. Bruley at Park Nicollet**, and I see **Dr. Schuster at Park Nicollet** for endocrinology.
+> I take **Lantus 100 units per mL injection**, **Ozempic 1 mg injection**, and **metformin 500 mg tablets**.
 > I want to keep my premium under **$50 a month** and my deductible under
 > **$300**. **Dental and vision** matter to me. I'm **not on Medicaid**."
 
