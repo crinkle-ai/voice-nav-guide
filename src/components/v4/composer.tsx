@@ -24,6 +24,7 @@ export function Composer({
   voiceActive,
   busy,
   placeholder,
+  onCall,
 }: Props) {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const [rec, setRec] = useState<RecState>("idle");
