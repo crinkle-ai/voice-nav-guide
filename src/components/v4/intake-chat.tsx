@@ -10,6 +10,7 @@ import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
+import { CallDialog } from "./call-dialog";
 
 type Props = {
   mode: IntakeMode;
