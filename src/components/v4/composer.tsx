@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Mic, Square, AudioLines, Loader2 } from "lucide-react";
+import { Send, Mic, Square, AudioLines, Loader2, Phone } from "lucide-react";
 
 type Props = {
   value: string;
@@ -11,6 +11,7 @@ type Props = {
   voiceActive: boolean;
   busy: boolean;
   placeholder?: string;
+  onCall?: () => void;
 };
 
 type RecState = "idle" | "recording" | "transcribing";
@@ -23,6 +24,7 @@ export function Composer({
   voiceActive,
   busy,
   placeholder,
+  onCall,
 }: Props) {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const [rec, setRec] = useState<RecState>("idle");
@@ -127,6 +129,19 @@ export function Composer({
         >
           {rec === "recording" ? <Square className="h-4 w-4 text-red-500" /> : <Mic className="h-5 w-5" />}
         </Button>
+        {onCall && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onCall}
+            disabled={busy || rec === "transcribing"}
+            title="Call a licensed agent"
+            className="h-10 w-10 rounded-full text-ink hover:bg-surface-soft shrink-0"
+          >
+            <Phone className="h-5 w-5" />
+          </Button>
+        )}
         <Button
           type="button"
           onClick={canSend ? onSubmit : onToggleVoice}

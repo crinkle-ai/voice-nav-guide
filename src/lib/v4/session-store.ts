@@ -4,6 +4,15 @@ import { emptyIntake, type Intake, type IntakeMode } from "@/lib/v3/intake-types
 
 export type HybridPath = "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare";
 
+export type PermanentAgent = {
+  name: string;
+  title: string;
+  npn: string;
+  location: string;
+  facts: string[];
+  avatar: string;
+};
+
 export type SessionState = {
   mode: IntakeMode | null;
   path?: HybridPath;
@@ -11,6 +20,7 @@ export type SessionState = {
   intake: Intake;
   finalPriorities: string[];
   finished: boolean;
+  permanentAgent?: PermanentAgent;
 };
 
 const KEY = "v4-medicare-compass-session-v1";

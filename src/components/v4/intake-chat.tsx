@@ -10,6 +10,7 @@ import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
+import { CallDialog } from "./call-dialog";
 
 type Props = {
   mode: IntakeMode;
@@ -100,6 +101,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const scrollerRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<VoiceIntakeHandle>(null);
   const autoSentRef = useRef(false);
+  const [callOpen, setCallOpen] = useState(false);
 
   useEffect(() => {
     if (autoSend && !autoSentRef.current) {
@@ -311,9 +313,11 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
             }}
             voiceActive={voiceActive}
             busy={busy}
+            onCall={() => setCallOpen(true)}
           />
         </div>
       </div>
+      <CallDialog open={callOpen} onOpenChange={setCallOpen} />
     </div>
   );
 }

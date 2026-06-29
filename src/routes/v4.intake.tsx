@@ -7,6 +7,7 @@ import { LandingHero } from "@/components/v4/landing-hero";
 import { PathCards } from "@/components/v4/path-cards";
 import { PromptChips } from "@/components/v4/prompt-chips";
 import { Composer } from "@/components/v4/composer";
+import { CallDialog } from "@/components/v4/call-dialog";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
 import { extractIntake } from "@/lib/v4/intake.functions";
 import { intakeCompleteness } from "@/lib/v3/intake-types";
@@ -35,6 +36,7 @@ function IntakePage() {
   const [finishing, setFinishing] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
   const [landingInput, setLandingInput] = useState("");
+  const [landingCallOpen, setLandingCallOpen] = useState(false);
   const extractTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUserCount = useRef(0);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
@@ -214,9 +216,11 @@ function IntakePage() {
               voiceActive={false}
               busy={false}
               placeholder="Ask anything"
+              onCall={() => setLandingCallOpen(true)}
             />
           </div>
         </div>
+        <CallDialog open={landingCallOpen} onOpenChange={setLandingCallOpen} />
       </AppShell>
     );
   }
