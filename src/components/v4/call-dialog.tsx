@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,21 +45,10 @@ export function CallDialog({
   const [justPinned, setJustPinned] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [minimized, setMinimized] = useState(false);
-  const [shareError, setShareError] = useState<string | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const previewRef = useRef<HTMLVideoElement | null>(null);
-  const floatingPreviewRef = useRef<HTMLVideoElement | null>(null);
 
   const pinned = state.permanentAgent?.name === AGENT.name;
 
   const stopShare = () => {
-    const s = streamRef.current;
-    if (s) {
-      s.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    if (previewRef.current) previewRef.current.srcObject = null;
-    if (floatingPreviewRef.current) floatingPreviewRef.current.srcObject = null;
     setSharing(false);
     setMinimized(false);
   };
@@ -71,7 +60,6 @@ export function CallDialog({
       setSecs(0);
       setJustPinned(false);
       setMinimized(false);
-      setShareError(null);
       stopShare();
       return;
     }
@@ -85,17 +73,6 @@ export function CallDialog({
     return () => clearInterval(i);
   }, [status]);
 
-  // Attach stream to whichever preview video is currently mounted
-  useEffect(() => {
-    const stream = streamRef.current;
-    if (!sharing || !stream) return;
-    const target = minimized ? floatingPreviewRef.current : previewRef.current;
-    if (target && target.srcObject !== stream) {
-      target.srcObject = stream;
-      target.play().catch(() => {});
-    }
-  }, [sharing, minimized]);
-
   useEffect(() => stopShare, []);
 
   const mmss = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
@@ -105,24 +82,9 @@ export function CallDialog({
     setJustPinned(true);
   };
 
-  const startShare = async () => {
-    setShareError(null);
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false,
-      });
-      streamRef.current = stream;
-      setSharing(true);
-      // Auto-minimize so user can actually browse the shared app
-      setMinimized(true);
-      stream.getVideoTracks()[0]?.addEventListener("ended", () => {
-        stopShare();
-      });
-    } catch (err: any) {
-      if (err?.name === "NotAllowedError") return;
-      setShareError("Screen sharing unavailable in this browser.");
-    }
+  const startShare = () => {
+    setSharing(true);
+    setMinimized(true);
   };
 
   const endCall = () => {
@@ -134,20 +96,24 @@ export function CallDialog({
   // ============ Minimized floating widget ============
   if (open && minimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-[60] w-[260px] rounded-2xl border-2 border-emerald-500/50 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-        <div className="relative bg-black">
-          <video
-            ref={floatingPreviewRef}
-            muted
-            playsInline
-            className="block w-full h-[140px] object-cover bg-black"
-          />
+      <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-emerald-500/50 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+        <div className="relative h-[146px] overflow-hidden bg-[#033592]">
+          <div className="absolute inset-3 rounded-xl border border-white/25 bg-white/10 p-3 text-left text-white shadow-inner">
+            <div className="h-2 w-20 rounded-full bg-white/80" />
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="h-12 rounded-lg bg-white/85" />
+              <div className="h-12 rounded-lg bg-[#E5F5F8]" />
+              <div className="h-9 rounded-lg bg-white/55" />
+              <div className="h-9 rounded-lg bg-white/35" />
+            </div>
+            <div className="mt-3 h-2 w-32 rounded-full bg-emerald-300" />
+          </div>
           <div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
             </span>
-            Sharing screen
+            Demo sharing
           </div>
           <button
             onClick={() => setMinimized(false)}
@@ -174,7 +140,7 @@ export function CallDialog({
             onClick={stopShare}
             className="flex-1 h-8 gap-1 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-700 text-xs"
           >
-            <MonitorOff className="h-3.5 w-3.5" /> Stop sharing
+              <MonitorOff className="h-3.5 w-3.5" /> Stop demo
           </Button>
           <Button
             variant="destructive"
@@ -256,13 +222,15 @@ export function CallDialog({
 
         {sharing && (
           <div className="mt-3 flex flex-col items-end gap-2">
-            <div className="rounded-lg border border-line overflow-hidden shadow-sm bg-black">
-              <video
-                ref={previewRef}
-                muted
-                playsInline
-                className="block w-[180px] h-auto"
-              />
+            <div className="w-[180px] rounded-lg border border-emerald-200 bg-[#033592] p-3 text-left text-white shadow-sm">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-emerald-200">Demo share active</div>
+              <div className="mt-2 h-2 w-20 rounded-full bg-white/80" />
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <div className="h-8 rounded bg-white/80" />
+                <div className="h-8 rounded bg-[#E5F5F8]" />
+                <div className="h-6 rounded bg-white/50" />
+                <div className="h-6 rounded bg-white/30" />
+              </div>
             </div>
             <Button
               size="sm"
@@ -270,13 +238,9 @@ export function CallDialog({
               onClick={() => setMinimized(true)}
               className="gap-1.5 text-xs"
             >
-              Minimize so I can browse
+              Minimize call so I can browse
             </Button>
           </div>
-        )}
-
-        {shareError && (
-          <p className="mt-2 text-center text-xs text-muted-2">{shareError}</p>
         )}
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
