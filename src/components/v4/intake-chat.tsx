@@ -32,6 +32,13 @@ const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plan
 // Detect when the model emitted a tool invocation as plain text instead of calling the tool.
 const LEAKED_TOOL_RE = /\brecommendPlans\b/;
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
+const VERIFYING_MESSAGE = "Before I show plans, I'm verifying your doctor against the NPI Registry — one moment.";
+
+function hasPendingVerification(intake: Intake): boolean {
+  const doctorsPending = (intake.doctors?.value ?? []).some((d) => !d.npiVerification);
+  const medsPending = (intake.medications?.value ?? []).some((m) => !m.rxVerification);
+  return doctorsPending || medsPending;
+}
 
 function stripLeakedToolText(text: string): string {
   // Cut off everything from the leaked "recommendPlans" token onward; keep
@@ -207,6 +214,26 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     const isDeferred = DEFERRED_PLAN_RE.test(aText);
     const isLeaked = LEAKED_TOOL_RE.test(aText);
     if (askIdx >= 0 && !isDeferred && !isLeaked && !PLAN_REQUEST_RE.test(aText)) return;
+    // Don't show plans while NPI / RxNorm verification is still pending.
+    // We deliberately do NOT mark this assistant as injected, so once
+    // verification finishes the effect re-runs and the cards appear.
+    if (hasPendingVerification(intake)) {
+      if (isDeferred || isLeaked) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistant!.id
+              ? {
+                  ...m,
+                  parts: m.parts.map((part) =>
+                    part.type === "text" ? { ...part, text: VERIFYING_MESSAGE } : part,
+                  ),
+                }
+              : m,
+          ),
+        );
+      }
+      return;
+    }
     const data = buildInlinePlanRecommendations(intake);
     fallbackInjectedRef.current.add(assistant.id);
     setMessages((prev) =>
