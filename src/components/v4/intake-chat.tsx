@@ -214,6 +214,26 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     const isDeferred = DEFERRED_PLAN_RE.test(aText);
     const isLeaked = LEAKED_TOOL_RE.test(aText);
     if (askIdx >= 0 && !isDeferred && !isLeaked && !PLAN_REQUEST_RE.test(aText)) return;
+    // Don't show plans while NPI / RxNorm verification is still pending.
+    // We deliberately do NOT mark this assistant as injected, so once
+    // verification finishes the effect re-runs and the cards appear.
+    if (hasPendingVerification(intake)) {
+      if (isDeferred || isLeaked) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistant!.id
+              ? {
+                  ...m,
+                  parts: m.parts.map((part) =>
+                    part.type === "text" ? { ...part, text: VERIFYING_MESSAGE } : part,
+                  ),
+                }
+              : m,
+          ),
+        );
+      }
+      return;
+    }
     const data = buildInlinePlanRecommendations(intake);
     fallbackInjectedRef.current.add(assistant.id);
     setMessages((prev) =>
