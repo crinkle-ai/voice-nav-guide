@@ -10,11 +10,11 @@ import { Composer } from "@/components/v4/composer";
 import { CallDialog } from "@/components/v4/call-dialog";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
 import { extractIntake } from "@/lib/v4/intake.functions";
-import { intakeCompleteness } from "@/lib/v3/intake-types";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 
 export const Route = createFileRoute("/v4/intake")({
@@ -32,8 +32,6 @@ const PATH_LABELS: Record<HybridPath, string> = {
 function IntakePage() {
   const { state, update, reset, ready } = useSession();
   const navigate = useNavigate();
-  const [extracting, setExtracting] = useState(false);
-  const [finishing, setFinishing] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
   const [landingInput, setLandingInput] = useState("");
   const [landingCallOpen, setLandingCallOpen] = useState(false);
@@ -81,31 +79,6 @@ function IntakePage() {
     [update],
   );
 
-  const finishToSummary = async () => {
-    setFinishing(true);
-    try {
-      if (extractTimer.current) clearTimeout(extractTimer.current);
-
-      const messages = latestMessagesRef.current;
-      const transcript = messages.map((m) => ({
-        role: m.role === "user" ? ("user" as const) : ("assistant" as const),
-        content: m.parts.map((p) => (p.type === "text" ? p.text : "")).join(""),
-      }));
-      if (transcript.some((t) => t.role === "user" && t.content.trim())) {
-        try {
-          const intake = await extractIntake({ data: { messages: transcript } });
-          update({ intake, finished: true });
-        } catch {
-          update({ finished: true });
-        }
-      } else {
-        update({ finished: true });
-      }
-      navigate({ to: "/v4/summary" });
-    } finally {
-      setFinishing(false);
-    }
-  };
 
   const resetConversation = () => {
     if (typeof window !== "undefined" && !window.confirm("Start over? This clears your conversation and captured info.")) return;
@@ -174,8 +147,6 @@ function IntakePage() {
   }
 
   // RAMBLE or HYBRID-with-path → landing or chat surface
-  const pct = intakeCompleteness(state.intake);
-  const enoughCaptured = pct >= 60;
   const showLanding = state.messages.length === 0 && !autoSend;
 
   if (showLanding) {
