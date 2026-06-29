@@ -32,6 +32,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 function IntakePage() {
   const { state, update, reset, ready } = useSession();
   const navigate = useNavigate();
+  const [extracting, setExtracting] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
   const [landingInput, setLandingInput] = useState("");
   const [landingCallOpen, setLandingCallOpen] = useState(false);
