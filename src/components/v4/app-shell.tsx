@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
-import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
+import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
@@ -14,8 +14,9 @@ const STEPS: { key: StepKey; label: string; pct: number }[] = [
   { key: "next", label: "Next step", pct: 100 },
 ];
 
-const V4_HEADER_BG = "#E5F5F8";
-const V4_HEADER_TEXT = "#033592";
+const V4_HEADER_BG = "#131F69";
+const V4_HEADER_TEXT = "#ffffff";
+const V4_INK = "#131F69";
 
 export function AppShell({
   step,
@@ -26,21 +27,20 @@ export function AppShell({
   children: ReactNode;
   rightSlot?: ReactNode;
 }) {
-  const active = STEPS.find((s) => s.key === step);
   const { open: cheatOpen, width: cheatWidth } = useDemoCheatsheet();
   const leftPad = cheatOpen ? `${cheatWidth}px` : undefined;
   return (
-    <div className="min-h-screen bg-canvas v4-scope text-white" style={{ paddingLeft: leftPad }}>
+    <div className="min-h-screen bg-canvas v4-scope" style={{ paddingLeft: leftPad, color: V4_INK }}>
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/v4" className="flex items-center gap-3">
+            <Link to="/v4" className="flex items-center gap-1.5">
               <img
                 src={emblemAsset.url}
                 alt="UnitedHealthcare"
                 className="h-12 w-auto object-contain"
               />
-              <div className="flex flex-col leading-none">
+              <div className="flex flex-col leading-none -ml-1">
                 <span
                   className="text-[1.05rem]"
                   style={{ fontFamily: '"Source Serif Pro", Georgia, serif', color: V4_HEADER_TEXT }}
@@ -55,21 +55,19 @@ export function AppShell({
             <Link
               to="/"
               className="text-xs transition ml-4"
-              style={{ color: `${V4_HEADER_TEXT}99` }}
+              style={{ color: `${V4_HEADER_TEXT}b3` }}
               onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}99`)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}b3`)}
             >
               ← Back
             </Link>
           </div>
-          <div className="flex items-center gap-5 text-sm" style={{ color: `${V4_HEADER_TEXT}e6` }}>
+          <div className="flex items-center gap-5 text-sm" style={{ color: V4_HEADER_TEXT }}>
             {rightSlot}
             <Link
               to="/login"
               className="inline-flex items-center gap-1.5 transition"
-              style={{ color: `${V4_HEADER_TEXT}e6` }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}e6`)}
+              style={{ color: V4_HEADER_TEXT }}
             >
               <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
               <span>Sign in</span>
@@ -78,7 +76,7 @@ export function AppShell({
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
-      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs text-white/70">
+      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs" style={{ color: `${V4_INK}99` }}>
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
@@ -98,16 +96,16 @@ export function Stepper({ current }: { current: StepKey }) {
             <div
               className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium border ${
                 active
-                  ? "bg-white text-[#033592] border-white"
+                  ? "bg-white text-[#131F69] border-[#131F69]"
                   : done
-                  ? "bg-[#033592] text-white border-[#033592]"
-                  : "bg-white/10 text-white/70 border-white/30"
+                  ? "bg-[#131F69] text-white border-[#131F69]"
+                  : "bg-white text-[#131F69]/60 border-[#131F69]/30"
               }`}
             >
               {stepIdx}
             </div>
-            <span className={`text-xs ${active ? "text-white font-medium" : "text-white/60"}`}>{s.label}</span>
-            {stepIdx < STEPS.length - 1 && <div className="flex-1 h-px bg-white/30" />}
+            <span className={`text-xs ${active ? "text-[#131F69] font-medium" : "text-[#131F69]/60"}`}>{s.label}</span>
+            {stepIdx < STEPS.length - 1 && <div className="flex-1 h-px bg-[#131F69]/20" />}
           </li>
         );
       })}

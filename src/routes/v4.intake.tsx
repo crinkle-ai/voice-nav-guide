@@ -193,8 +193,8 @@ function IntakePage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl text-white">Let's talk Medicare</h1>
-            <p className="text-sm text-white/80 mt-1">
+            <h1 className="font-serif text-3xl text-[#131F69]">Let's talk Medicare</h1>
+            <p className="text-sm text-[#131F69]/70 mt-1">
               Type, dictate, or have a live voice conversation.{" "}
               {state.mode === "hybrid" && (
                 <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
