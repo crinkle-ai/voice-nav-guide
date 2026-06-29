@@ -18,24 +18,24 @@ All 20 are seeded in `providers_55410` with real NPIs from the Twin Cities.
 Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 
 ### Primary care (PCP) — in network on **every** plan
-| Name | Specialty | Clinic | NPI |
-|---|---|---|---|
-| Dr. Robert **Bruley** | Family Medicine | 2826 W 43rd St, Minneapolis 55410 | 1841403912 |
-| Dr. Rachel **Agneberg** | Family Medicine | Park Nicollet, St Louis Park | 1831453786 |
-| Dr. Stephanie **Aldrin** | Family Medicine | 1665 Utica Ave S, St Louis Park | 1144718917 |
-| Dr. Sean **Anderson** | Family Medicine | Park Nicollet, St Louis Park | 1548247190 |
-| Dr. Irvin **Goldenberg** | Internal Medicine | 3640 Zenith Ave S, Minneapolis 55410 | 1235241787 |
-| Dr. Patti **Albright** | Internal Medicine | Park Nicollet, St Louis Park | 1467437368 |
-| Dr. Alaa **Ali** | Internal Medicine | Park Nicollet, St Louis Park | 1366974933 |
-| Dr. Deborah **Fletcher** | Internal Medicine | 5012 Queen Ave S, Minneapolis 55410 | 1699738898 |
+| Name | Specialty | Clinic | Address | NPI |
+|---|---|---|---|---|
+| Dr. Robert **Bruley** | Family Medicine | Park Nicollet | 2826 W 43rd St, Minneapolis 55410 | 1841403912 |
+| Dr. Rachel **Agneberg** | Family Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1831453786 |
+| Dr. Stephanie **Aldrin** | Family Medicine | Park Nicollet | 1665 Utica Ave S, St Louis Park | 1144718917 |
+| Dr. Sean **Anderson** | Family Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1548247190 |
+| Dr. Irvin **Goldenberg** | Internal Medicine | Park Nicollet | 3640 Zenith Ave S, Minneapolis 55410 | 1235241787 |
+| Dr. Patti **Albright** | Internal Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1467437368 |
+| Dr. Alaa **Ali** | Internal Medicine | Park Nicollet | Park Nicollet, St Louis Park | 1366974933 |
+| Dr. Deborah **Fletcher** | Internal Medicine | Park Nicollet | 5012 Queen Ave S, Minneapolis 55410 | 1699738898 |
 
 ### Endocrinology — Diabetes specialists (in network on all plans **except Patriot HMO**)
-| Name | Clinic | NPI |
-|---|---|---|
-| Dr. Lawrence **Schuster** | 4999 France Ave S, Minneapolis 55410 | 1861547382 |
-| Dr. Richard **Bergenstal** | Park Nicollet (Intl. Diabetes Center) | 1669459061 |
-| Dr. Molly **Carlson** | Park Nicollet, St Louis Park | 1932149176 |
-| Dr. Anders **Carlson** | 1665 Utica Ave S, St Louis Park | 1720254725 |
+| Name | Clinic | Address | NPI |
+|---|---|---|---|
+| Dr. Lawrence **Schuster** | Park Nicollet | 4999 France Ave S, Minneapolis 55410 | 1861547382 |
+| Dr. Richard **Bergenstal** | Park Nicollet (Intl. Diabetes Center) | Park Nicollet (Intl. Diabetes Center) | 1669459061 |
+| Dr. Molly **Carlson** | Park Nicollet | Park Nicollet, St Louis Park | 1932149176 |
+| Dr. Anders **Carlson** | Park Nicollet | 1665 Utica Ave S, St Louis Park | 1720254725 |
 
 ### Diabetes-related specialists
 | Name | Specialty | In-network on | NPI |
