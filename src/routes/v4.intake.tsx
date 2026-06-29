@@ -214,6 +214,7 @@ function IntakePage() {
               voiceActive={false}
               busy={false}
               placeholder="Ask anything"
+              onCall={() => setLandingCallOpen(true)}
             />
           </div>
         </div>
