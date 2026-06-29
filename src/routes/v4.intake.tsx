@@ -203,15 +203,7 @@ function IntakePage() {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={resetConversation}
-              variant="outline"
-              className="bg-white text-[#033592] border-transparent hover:bg-white/90"
-            >
-              <RotateCcw className="mr-1 h-4 w-4" /> Reset
-            </Button>
-          </div>
+          <HeaderIndicators />
         </div>
         <IntakeChat
           mode={state.mode}
