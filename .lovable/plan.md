@@ -1,28 +1,52 @@
-## Short answer
+## V4 Theme Overhaul: Dark Blue Header on White Canvas
 
-No — this project isn't wired to a real live-agent service. Both the V1 "Talk to an agent" flow (`LiveAdviseContext`) and the V4 `CallDialog` (Sarah Chen) are fully simulated: timers, fake "Connected" status, and scripted copy. There's no Twilio/Zoom/LiveKit/Daily/Agora SDK or backend session.
+Switch V4 from a full-blue canvas to a white canvas with a dark blue header, and tune accent colors on the landing surface.
 
-That's actually perfect for what you want — we can fake the agent side and still trigger a real browser screen-share for the demo.
+### 1. Header (`src/components/v4/app-shell.tsx`)
+- Header background: `#131F69` (replaces current `#E5F5F8`).
+- All header text + sign-in icon: white.
+- Swap `emblemAsset` (blue mark) → `uhc-emblem-white.png` (white mark).
+- Tighten "UnitedHealthcare" wordmark to the logo: reduce `gap-3` → `gap-1.5` and trim the logo's right whitespace via `-ml-1` on the text block.
+- "← Back" link: white at ~70% opacity, white on hover.
 
-## What I'll add
+### 2. Canvas + body text
+- `.v4-scope` in `src/styles.css`: change `--canvas` from `#033592` → `#ffffff`. Keep `--ink` and `--accent` as `#033592` so text/icons directly on the canvas invert to blue.
+- `AppShell` root: `text-white` → `text-[#033592]` (so default body text on the white canvas is blue). Footer text → blue at reduced opacity.
+- `v4.intake.tsx`: replace `text-white`/`text-white/80` on the "Let's talk Medicare" heading + subhead with the blue ink color.
 
-In `src/components/v4/call-dialog.tsx`, once `status === "connected"`:
+### 3. Landing path cards (`src/components/v4/path-cards.tsx`)
+- "I'm just starting Medicare" card icon tile: background `#DADADA`, icon stays blue (for contrast on grey).
+- "I want to see plans" card icon tile: background `#59D1E2`, icon blue.
+- Card surface stays white; titles stay blue.
 
-1. **"Share my screen" button** appears next to Mute / End call (icon: `MonitorUp`).
-2. Clicking it calls the real browser API `navigator.mediaDevices.getDisplayMedia({ video: true })` — this triggers the native OS picker so the user actually picks a window/tab/screen. Feels real in a demo.
-3. While sharing:
-   - Button swaps to "Stop sharing" (red outline, `MonitorOff` icon).
-   - A small pill under Sarah's avatar shows "Sharing your screen with Sarah" with a pulsing green dot.
-   - A tiny self-preview thumbnail (live `<video>` of the captured stream, muted, ~120px wide) appears in the bottom-right of the dialog so the user can see what Sarah "sees".
-   - Add a scripted Sarah line into the blue quote box: *"Great — I can see your screen now. Scroll down to the plan comparison and I'll walk you through it."*
-4. Stop sharing when:
-   - User clicks "Stop sharing", or
-   - User ends the OS-level share (listen for `track.onended`), or
-   - Call ends / dialog closes (cleanup `stream.getTracks().forEach(t => t.stop())`).
-5. Graceful failure: if `getDisplayMedia` rejects (user cancels picker or unsupported browser), silently reset state; show a small muted "Screen sharing unavailable" hint only on real errors, not on user cancel (`NotAllowedError` with no prior interaction logged differently from explicit deny is fine to just reset).
+### 4. Prompt chips (`src/components/v4/prompt-chips.tsx`)
+- Now sit on white instead of blue. Restyle to a light grey pill:
+  - background `#F1F1F1` (slight grey to stand out on white)
+  - border `#E2E2E2`
+  - text blue `#033592`
+  - hover: background `#E8E8E8`
 
-## Out of scope
+### 5. Composer (`src/components/v4/composer.tsx`)
+- Field stays white (already is).
+- Vertically center the "Ask anything" placeholder + typed text. Switch the textarea from top-aligned multi-line to a single-row flex item: set a fixed line height matching the field height, remove top padding asymmetry, and use `flex items-center` on the wrapping row so placeholder sits on the vertical midline. (Auto-grow on multi-line stays.)
 
-- No real WebRTC peer connection (no one to send the stream to).
-- No recording or uploading of the captured stream.
-- No changes to V1's `LiveAdviseContext` or the `SecondOpinionDialog` — just the V4 `CallDialog`. Easy to port later if you like it.
+### 6. Chat surface (`src/components/v4/intake-chat.tsx`)
+- Main scroll area: background already `#FCF6F1` per prior change → switch to white (`#ffffff`).
+- Remove the card border/ring around the chat container (no border, no shadow).
+- Assistant bubbles: keep as-is (white background, blue text, UHC emblem avatar on blue circle).
+- User bubbles: keep the existing blue bubble with white text (the "bubble as it currently is").
+
+### 7. Workspace drawer
+- No changes. `worksheet-drawer.tsx` stays exactly as it is.
+
+### Files touched
+- `src/styles.css`
+- `src/components/v4/app-shell.tsx`
+- `src/components/v4/path-cards.tsx`
+- `src/components/v4/prompt-chips.tsx`
+- `src/components/v4/composer.tsx`
+- `src/components/v4/intake-chat.tsx`
+- `src/routes/v4.intake.tsx`
+
+### Out of scope
+- Workspace drawer styling, chat logic, header indicators behavior, matches/summary/priorities pages (only the intake + landing surface and global shell are restyled here; downstream pages can follow in a separate pass if needed).
