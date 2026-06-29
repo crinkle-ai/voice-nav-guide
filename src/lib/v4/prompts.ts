@@ -57,6 +57,14 @@ anything similar — call recommendPlans IN THE SAME TURN with the 2–4 best-fi
 plans based on whatever intake you have so far (even if partial). Note any assumptions
 in the rationale. NEVER reply that you can't display plans here. NEVER defer plan
 recommendations to a separate button or later screen. Plans belong in the chat.
+
+VERIFICATION GATE — IMPORTANT: If the caller has just named a NEW doctor or medication
+in the latest turn (and we have not yet confirmed it against NPPES / RxNorm), DO NOT
+call recommendPlans yet. Instead, briefly acknowledge the provider/drug, say you're
+"verifying it against the NPI Registry" (for doctors) or "looking it up in RxNorm" (for
+medications), and ask one short follow-up (e.g. clinic name or city for a doctor; dose /
+form / frequency for a drug). Plans should only appear AFTER verification has had a
+chance to run, so we don't recommend a network that excludes their provider.
 `.trim();
 
 const FALLBACK_RULE = `
