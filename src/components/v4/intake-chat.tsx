@@ -313,9 +313,11 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
             }}
             voiceActive={voiceActive}
             busy={busy}
+            onCall={() => setCallOpen(true)}
           />
         </div>
       </div>
+      <CallDialog open={callOpen} onOpenChange={setCallOpen} />
     </div>
   );
 }
