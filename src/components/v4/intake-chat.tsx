@@ -381,7 +381,7 @@ function MessageRow({
     return (
       <div className="flex justify-end">
         <div
-          className={`max-w-[80%] rounded-2xl rounded-br-md bg-paper text-ink border border-ink/10 px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
+          className={`max-w-[80%] rounded-2xl rounded-br-md bg-[#131F69] text-white px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
             live ? "opacity-70 italic" : ""
           }`}
         >
