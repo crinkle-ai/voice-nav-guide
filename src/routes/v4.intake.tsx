@@ -220,6 +220,7 @@ function IntakePage() {
             />
           </div>
         </div>
+        <CallDialog open={landingCallOpen} onOpenChange={setLandingCallOpen} />
       </AppShell>
     );
   }
