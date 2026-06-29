@@ -102,7 +102,7 @@ export function Composer({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-paper shadow-sm pl-5 pr-2 py-2">
+      <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-paper shadow-sm pl-5 pr-2 py-2 min-h-[56px]">
         <Textarea
           ref={taRef}
           value={value}
@@ -115,7 +115,7 @@ export function Composer({
           }}
           placeholder={placeholder ?? "Ask anything about Medicare…"}
           rows={1}
-          className="flex-1 min-h-[44px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-white p-0 text-[15px] leading-6 text-ink placeholder:text-ink/50"
+          className="flex-1 h-10 min-h-[40px] max-h-40 resize-none border-0 focus-visible:ring-0 shadow-none bg-white px-0 py-2 text-[15px] leading-6 text-ink placeholder:text-ink/50 self-center"
           disabled={busy}
         />
         <Button

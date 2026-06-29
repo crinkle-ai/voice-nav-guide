@@ -285,7 +285,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[600px]">
-      <div className="flex-1 rounded-2xl border border-line bg-[#FCF6F1] shadow-xl overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-white overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
           {chatItems.map(({ message, live }) => (
@@ -324,7 +324,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           </div>
         )}
 
-        <div className="border-t border-line p-4 bg-paper">
+        <div className="p-4 bg-white">
           <Composer
             value={input}
             onChange={setInput}
@@ -381,7 +381,7 @@ function MessageRow({
     return (
       <div className="flex justify-end">
         <div
-          className={`max-w-[80%] rounded-2xl rounded-br-md bg-paper text-ink border border-ink/10 px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
+          className={`max-w-[80%] rounded-2xl rounded-br-md bg-[#131F69] text-white px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
             live ? "opacity-70 italic" : ""
           }`}
         >

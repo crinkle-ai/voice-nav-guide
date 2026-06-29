@@ -84,7 +84,7 @@ function IntakePage() {
   if (!ready || !state.mode) {
     return (
       <AppShell step="intake">
-        <p className="text-white/70">Loading…</p>
+        <p className="text-[#131F69]/70">Loading…</p>
       </AppShell>
     );
   }
@@ -97,8 +97,8 @@ function IntakePage() {
         rightSlot={<span className="text-xs px-2.5 py-1 rounded-full bg-[#033592]/10 text-[#033592] font-medium">Step-by-step wizard</span>}
       >
         <div className="mb-6">
-          <h1 className="font-serif text-3xl text-white">Fill out a quick form</h1>
-          <p className="text-sm text-white/80 mt-1">
+          <h1 className="font-serif text-3xl text-[#131F69]">Fill out a quick form</h1>
+          <p className="text-sm text-[#131F69]/70 mt-1">
             Predictable and fast. <Link to="/v4" className="underline">Switch experience</Link>
           </p>
         </div>
@@ -157,7 +157,7 @@ function IntakePage() {
             <div className="mt-4 flex justify-center">
               <button
                 onClick={loadDiabeticDemo}
-                className="text-xs text-white/60 hover:text-white underline underline-offset-2"
+                className="text-xs text-[#131F69]/60 hover:text-[#131F69] underline underline-offset-2"
               >
                 Demo: load diabetic 55410 profile → matches
               </button>
@@ -193,8 +193,8 @@ function IntakePage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl text-white">Let's talk Medicare</h1>
-            <p className="text-sm text-white/80 mt-1">
+            <h1 className="font-serif text-3xl text-[#131F69]">Let's talk Medicare</h1>
+            <p className="text-sm text-[#131F69]/70 mt-1">
               Type, dictate, or have a live voice conversation.{" "}
               {state.mode === "hybrid" && (
                 <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
@@ -215,7 +215,7 @@ function IntakePage() {
           skipOpener={!!autoSend}
         />
         {extracting && (
-          <p className="text-xs text-white/70 mt-3">Updating workspace…</p>
+          <p className="text-xs text-[#131F69]/70 mt-3">Updating workspace…</p>
         )}
       </div>
     </AppShell>
