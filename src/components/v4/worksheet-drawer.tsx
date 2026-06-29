@@ -47,6 +47,27 @@ function WorksheetDrawerInner() {
             </SheetDescription>
           </SheetHeader>
           <div className="space-y-4">
+            {state.permanentAgent && (
+              <div className="rounded-xl border border-line bg-paper p-4">
+                <div className="text-xs uppercase tracking-wider text-muted-2 mb-2">Your agent</div>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={state.permanentAgent.avatar}
+                    alt={state.permanentAgent.name}
+                    className="h-12 w-12 rounded-full object-cover border border-line"
+                  />
+                  <div className="min-w-0">
+                    <div className="font-medium text-ink truncate">{state.permanentAgent.name}</div>
+                    <div className="text-xs text-muted-2 truncate">
+                      {state.permanentAgent.title} · {state.permanentAgent.location}
+                    </div>
+                  </div>
+                </div>
+                {state.permanentAgent.facts[0] && (
+                  <p className="mt-2 text-xs text-ink/70 italic">“{state.permanentAgent.facts[0]}”</p>
+                )}
+              </div>
+            )}
             <CaptureSidebar intake={state.intake} loading={false} />
             <DoctorVerificationPanel />
             <MedicationVerificationPanel />
