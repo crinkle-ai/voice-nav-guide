@@ -1,5 +1,5 @@
 import { useEffect, useState, createContext, useContext } from "react";
-import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import {
   SCRIPT_LINES,
