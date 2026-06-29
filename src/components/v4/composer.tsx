@@ -129,6 +129,19 @@ export function Composer({
         >
           {rec === "recording" ? <Square className="h-4 w-4 text-red-500" /> : <Mic className="h-5 w-5" />}
         </Button>
+        {onCall && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onCall}
+            disabled={busy || rec === "transcribing"}
+            title="Call a licensed agent"
+            className="h-10 w-10 rounded-full text-ink hover:bg-surface-soft shrink-0"
+          >
+            <Phone className="h-5 w-5" />
+          </Button>
+        )}
         <Button
           type="button"
           onClick={canSend ? onSubmit : onToggleVoice}
