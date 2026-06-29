@@ -82,15 +82,15 @@
 
 /* V4 (UnitedHealthcare Medicare Compass) blue palette */
 .v4-scope {
-  --canvas: #033592;
+  --canvas: #ffffff;
   --paper: #ffffff;
-  --accent: #033592;
-  --accent-2: #033592;
-  --accent-soft: rgba(3, 53, 146, 0.15);
-  --line: rgba(255, 255, 255, 0.25);
-  --muted-2: rgba(3, 53, 146, 0.6);
-  --ink: #033592;
-  --surface-soft: #E5F5F8;
+  --accent: #131F69;
+  --accent-2: #131F69;
+  --accent-soft: rgba(19, 31, 105, 0.12);
+  --line: rgba(19, 31, 105, 0.12);
+  --muted-2: rgba(19, 31, 105, 0.6);
+  --ink: #131F69;
+  --surface-soft: #F1F1F1;
 }
 
 :root {
