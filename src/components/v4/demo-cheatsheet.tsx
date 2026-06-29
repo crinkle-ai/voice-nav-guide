@@ -89,15 +89,29 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
   return (
     <>
       {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open demo cheat sheet"
-          className="fixed left-0 top-1/3 z-[60] flex items-center gap-1 rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
-        >
-          <FlaskConical className="h-3 w-3" />
-          <span className="[writing-mode:vertical-rl]">Demo</span>
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Open demo cheat sheet"
+            className="fixed left-0 top-1/3 z-[60] flex items-center gap-1 rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-md hover:bg-amber-200 transition"
+          >
+            <FlaskConical className="h-3 w-3" />
+            <span className="[writing-mode:vertical-rl]">Demo</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("Reset the conversation?")) reset();
+            }}
+            aria-label="Reset conversation"
+            title="Reset conversation"
+            className="fixed left-0 z-[60] flex items-center justify-center rounded-r-md border border-l-0 border-amber-300 bg-amber-100/95 backdrop-blur px-2 py-2 text-amber-900 shadow-md hover:bg-amber-200 transition"
+            style={{ top: "calc(33.33% + 72px)" }}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </>
       )}
 
       {open && (
