@@ -101,6 +101,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const scrollerRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<VoiceIntakeHandle>(null);
   const autoSentRef = useRef(false);
+  const [callOpen, setCallOpen] = useState(false);
 
   useEffect(() => {
     if (autoSend && !autoSentRef.current) {
