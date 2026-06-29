@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import type { UIMessage } from "ai";
 import { emptyIntake, type Intake, type IntakeMode } from "@/lib/v3/intake-types";
 
-export type HybridPath = "doctor-first" | "drug-first" | "budget-first" | "new-to-memory" | "new-to-medicare";
+export type HybridPath = "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare";
 
 export type PermanentAgent = {
   name: string;
