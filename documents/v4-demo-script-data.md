@@ -59,11 +59,11 @@ Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 
 ## 2. Medications to mention (all verify against RxNorm)
 
-| Drug to say | RxCUI | Notes |
-|---|---|---|
-| **Lantus 100 unit/mL** (insulin glargine) | 261551 | Long-acting insulin |
-| **Ozempic 1 mg** pen (semaglutide) | 1991302 | GLP-1; the differentiator drug |
-| **metformin 500 mg** tablet | 860975 | Tier 1 everywhere; cheap baseline |
+| Drug to say | RxCUI | Route | Notes |
+|---|---|---|---|
+| **Lantus 100 unit/mL** (insulin glargine) | 261551 | injection | Long-acting insulin |
+| **Ozempic 1 mg** pen (semaglutide) | 1991302 | injection | GLP-1; the differentiator drug |
+| **metformin 500 mg** tablet | 860975 | tablet | Tier 1 everywhere; cheap baseline |
 
 ### Formulary matrix (what the matcher sees)
 
