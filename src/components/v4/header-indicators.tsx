@@ -5,9 +5,9 @@ import { useSession } from "@/lib/v4/session-store";
 import { computeProgress } from "@/lib/v4/profile-progress";
 import { PLAN_CATALOG, computeMatches } from "@/lib/v4/plan-catalog";
 
-const HEADER_TEXT = "#033592";
-const ON_DARK = "rgba(255,255,255,0.85)";
-const ON_DARK_MUTED = "rgba(255,255,255,0.6)";
+const HEADER_TEXT = "#131F69";
+const ON_DARK = "rgba(19,31,105,0.9)";
+const ON_DARK_MUTED = "rgba(19,31,105,0.6)";
 
 export function HeaderIndicators() {
   const { state, ready } = useSession();
@@ -29,10 +29,10 @@ export function HeaderIndicators() {
       <div className="flex flex-col items-end gap-2 select-none">
         <div className="flex items-center gap-2" style={{ color: ON_DARK_MUTED }}>
           <span className="text-sm leading-none">Profile {pct}%</span>
-          <div className="h-2 w-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+          <div className="h-2 w-36 rounded-full" style={{ backgroundColor: "rgba(19,31,105,0.15)" }}>
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${pct}%`, backgroundColor: "#fff" }}
+              style={{ width: `${pct}%`, backgroundColor: HEADER_TEXT }}
             />
           </div>
         </div>
