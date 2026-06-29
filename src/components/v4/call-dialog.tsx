@@ -12,6 +12,7 @@ import {
   MapPin,
   MonitorUp,
   MonitorOff,
+  Maximize2,
 } from "lucide-react";
 import agentAvatar from "@/assets/agent-sarah.jpg";
 import { useSession, type PermanentAgent } from "@/lib/v4/session-store";
@@ -43,9 +44,11 @@ export function CallDialog({
   const [secs, setSecs] = useState(0);
   const [justPinned, setJustPinned] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const previewRef = useRef<HTMLVideoElement | null>(null);
+  const floatingPreviewRef = useRef<HTMLVideoElement | null>(null);
 
   const pinned = state.permanentAgent?.name === AGENT.name;
 
@@ -56,7 +59,9 @@ export function CallDialog({
       streamRef.current = null;
     }
     if (previewRef.current) previewRef.current.srcObject = null;
+    if (floatingPreviewRef.current) floatingPreviewRef.current.srcObject = null;
     setSharing(false);
+    setMinimized(false);
   };
 
   useEffect(() => {
@@ -65,6 +70,7 @@ export function CallDialog({
       setMuted(false);
       setSecs(0);
       setJustPinned(false);
+      setMinimized(false);
       setShareError(null);
       stopShare();
       return;
@@ -79,7 +85,17 @@ export function CallDialog({
     return () => clearInterval(i);
   }, [status]);
 
-  // Cleanup on unmount
+  // Attach stream to whichever preview video is currently mounted
+  useEffect(() => {
+    const stream = streamRef.current;
+    if (!sharing || !stream) return;
+    const target = minimized ? floatingPreviewRef.current : previewRef.current;
+    if (target && target.srcObject !== stream) {
+      target.srcObject = stream;
+      target.play().catch(() => {});
+    }
+  }, [sharing, minimized]);
+
   useEffect(() => stopShare, []);
 
   const mmss = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
@@ -98,24 +114,81 @@ export function CallDialog({
       });
       streamRef.current = stream;
       setSharing(true);
-      // Attach to preview after render
-      setTimeout(() => {
-        if (previewRef.current) {
-          previewRef.current.srcObject = stream;
-          previewRef.current.play().catch(() => {});
-        }
-      }, 0);
+      // Auto-minimize so user can actually browse the shared app
+      setMinimized(true);
       stream.getVideoTracks()[0]?.addEventListener("ended", () => {
         stopShare();
       });
     } catch (err: any) {
-      if (err?.name === "NotAllowedError") {
-        // User cancelled — silent
-        return;
-      }
+      if (err?.name === "NotAllowedError") return;
       setShareError("Screen sharing unavailable in this browser.");
     }
   };
+
+  const endCall = () => {
+    stopShare();
+    setStatus("ended");
+    setTimeout(() => onOpenChange(false), 300);
+  };
+
+  // ============ Minimized floating widget ============
+  if (open && minimized) {
+    return (
+      <div className="fixed bottom-6 right-6 z-[60] w-[260px] rounded-2xl border-2 border-emerald-500/50 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+        <div className="relative bg-black">
+          <video
+            ref={floatingPreviewRef}
+            muted
+            playsInline
+            className="block w-full h-[140px] object-cover bg-black"
+          />
+          <div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            </span>
+            Sharing screen
+          </div>
+          <button
+            onClick={() => setMinimized(false)}
+            className="absolute top-2 right-2 rounded-md bg-black/60 p-1 text-white backdrop-blur hover:bg-black/80"
+            aria-label="Expand call"
+            title="Expand call"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2 p-2.5">
+          <img src={AGENT.avatar} alt={AGENT.name} className="h-8 w-8 rounded-full object-cover" />
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-ink truncate">{AGENT.name}</div>
+            <div className="text-[10px] text-emerald-700 font-medium">
+              <Volume2 className="inline h-2.5 w-2.5 mr-0.5" /> {mmss}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 border-t border-line p-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={stopShare}
+            className="flex-1 h-8 gap-1 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-700 text-xs"
+          >
+            <MonitorOff className="h-3.5 w-3.5" /> Stop sharing
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={endCall}
+            className="h-8 gap-1 text-xs"
+            aria-label="End call"
+          >
+            <PhoneOff className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,7 +239,7 @@ export function CallDialog({
         <div className="mt-4 rounded-xl bg-[#E5F5F8] border border-[#033592]/10 px-4 py-3 text-sm text-ink">
           <p className="font-medium">
             {sharing
-              ? "“Great — I can see your screen now. Scroll down to the plan comparison and I'll walk you through it.”"
+              ? "“Great — I can see your screen now. Go ahead and scroll around — I'll follow along and walk you through the plan comparison.”"
               : "“Hey! I'll be on the call in just a second. I'm already up to speed on everything you've been reviewing on our website, so we can jump right in.”"}
           </p>
           {!sharing && (
@@ -182,7 +255,7 @@ export function CallDialog({
         </div>
 
         {sharing && (
-          <div className="mt-3 flex justify-end">
+          <div className="mt-3 flex flex-col items-end gap-2">
             <div className="rounded-lg border border-line overflow-hidden shadow-sm bg-black">
               <video
                 ref={previewRef}
@@ -191,6 +264,14 @@ export function CallDialog({
                 className="block w-[180px] h-auto"
               />
             </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setMinimized(true)}
+              className="gap-1.5 text-xs"
+            >
+              Minimize so I can browse
+            </Button>
           </div>
         )}
 
@@ -232,11 +313,7 @@ export function CallDialog({
           <Button
             variant="destructive"
             className="gap-2"
-            onClick={() => {
-              stopShare();
-              setStatus("ended");
-              setTimeout(() => onOpenChange(false), 500);
-            }}
+            onClick={endCall}
           >
             <PhoneOff className="h-4 w-4" /> End call
           </Button>
