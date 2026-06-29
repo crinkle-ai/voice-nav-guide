@@ -266,7 +266,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               key={message.id}
               message={message}
               onPickChip={(c) => submit(c)}
-              onQuestionnaireSubmit={(text) => submit(text)}
+              onQuestionnaireSubmit={(text) => submit(`__FORM_RESPONSE__\n${text}`)}
               disabled={busy}
               live={live}
             />
