@@ -7,6 +7,7 @@ import { LandingHero } from "@/components/v4/landing-hero";
 import { PathCards } from "@/components/v4/path-cards";
 import { PromptChips } from "@/components/v4/prompt-chips";
 import { Composer } from "@/components/v4/composer";
+import { CallDialog } from "@/components/v4/call-dialog";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
 import { extractIntake } from "@/lib/v4/intake.functions";
 import { intakeCompleteness } from "@/lib/v3/intake-types";
