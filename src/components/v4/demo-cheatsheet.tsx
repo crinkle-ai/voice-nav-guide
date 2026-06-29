@@ -145,21 +145,13 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
             {/* Quick load */}
             <section className="space-y-1.5">
-              <button
-                onClick={loadDemo}
-                className="w-full rounded-md bg-amber-900 px-2.5 py-1.5 text-[11px] font-medium text-amber-50 hover:bg-amber-800 inline-flex items-center justify-center gap-1.5"
-              >
-                Load 55410 profile → matches <ChevronRight className="h-3 w-3" />
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm("Reset the conversation?")) reset();
-                }}
-                className="w-full rounded-md border border-amber-400 px-2.5 py-1.5 text-[11px] font-medium hover:bg-amber-100"
-              >
-                Reset conversation
-              </button>
-            </section>
+            <button
+              onClick={loadDemo}
+              className="w-full rounded-md bg-amber-900 px-2.5 py-1.5 text-[11px] font-medium text-amber-50 hover:bg-amber-800 inline-flex items-center justify-center gap-1.5"
+            >
+              Load 55410 profile → matches <ChevronRight className="h-3 w-3" />
+            </button>
+          </section>
 
             <Section title="Profile to give the AI">
               <dl className="space-y-1">
