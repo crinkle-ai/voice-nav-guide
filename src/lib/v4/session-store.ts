@@ -74,7 +74,8 @@ export function useSession() {
   const reset = useCallback(() => {
     write(initial);
     setState(initial);
+    setResetKey((k) => k + 1);
   }, []);
 
-  return { state, update, reset, ready };
+  return { state, update, reset, ready, resetKey };
 }
