@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import type { UIMessage } from "ai";
 import { emptyIntake, type Intake, type IntakeMode } from "@/lib/v3/intake-types";
 
@@ -50,30 +50,69 @@ function write(s: SessionState) {
   window.localStorage.setItem(KEY, JSON.stringify(s));
 }
 
+// Module-level shared store so every useSession() consumer stays in sync.
+let current: SessionState = initial;
+let resetKey = 0;
+let hydrated = false;
+const listeners = new Set<() => void>();
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") return;
+  current = read();
+  hydrated = true;
+}
+
+function subscribe(l: () => void) {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
+function getSnapshot() {
+  ensureHydrated();
+  return current;
+}
+
+function getServerSnapshot() {
+  return initial;
+}
+
+function getResetKeySnapshot() {
+  return resetKey;
+}
+
+function setState(patch: Partial<SessionState> | ((s: SessionState) => Partial<SessionState>)) {
+  ensureHydrated();
+  const next = { ...current, ...(typeof patch === "function" ? patch(current) : patch) };
+  current = next;
+  write(next);
+  emit();
+}
+
+function resetState() {
+  current = initial;
+  write(initial);
+  resetKey += 1;
+  emit();
+}
+
 export function useSession() {
-  const [state, setState] = useState<SessionState>(initial);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const key = useSyncExternalStore(subscribe, getResetKeySnapshot, () => 0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setState(read());
+    ensureHydrated();
     setReady(true);
   }, []);
 
-  const update = useCallback(
-    (patch: Partial<SessionState> | ((s: SessionState) => Partial<SessionState>)) => {
-      setState((prev) => {
-        const next = { ...prev, ...(typeof patch === "function" ? patch(prev) : patch) };
-        write(next);
-        return next;
-      });
-    },
-    [],
-  );
+  const update = useCallback(setState, []);
+  const reset = useCallback(resetState, []);
 
-  const reset = useCallback(() => {
-    write(initial);
-    setState(initial);
-  }, []);
-
-  return { state, update, reset, ready };
+  return { state, update, reset, ready, resetKey: key };
 }

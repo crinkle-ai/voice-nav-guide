@@ -30,7 +30,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 };
 
 function IntakePage() {
-  const { state, update, ready } = useSession();
+  const { state, update, ready, resetKey } = useSession();
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
@@ -207,6 +207,7 @@ function IntakePage() {
           <HeaderIndicators />
         </div>
         <IntakeChat
+          key={`chat-${resetKey}`}
           mode={state.mode}
           path={state.path}
           initialMessages={state.messages}
