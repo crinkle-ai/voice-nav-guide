@@ -466,7 +466,11 @@ function MessageRow({
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">
         {text && (
-          <div className={`text-[15px] leading-relaxed text-ink whitespace-pre-wrap ${live ? "opacity-70 italic" : ""}`}>{text}</div>
+          live ? (
+            <div className="text-[15px] leading-relaxed text-ink whitespace-pre-wrap opacity-70 italic">{text}</div>
+          ) : (
+            <AssistantMarkdown text={text} />
+          )
         )}
 
         {message.parts.map((p, i) => {
