@@ -1,5 +1,5 @@
 import { useEffect, useState, createContext, useContext } from "react";
-import { ChevronRight, X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
+import { X, Pin, PinOff, FlaskConical, Check, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import {
   SCRIPT_LINES,
@@ -79,12 +79,7 @@ interface DemoCheatsheetProps {
 }
 
 function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProps) {
-  const { update, reset } = useSession();
-
-  async function loadDemo() {
-    const { diabeticMinneapolisIntake } = await import("@/lib/v4/demo-profile");
-    update({ intake: diabeticMinneapolisIntake(), finished: true });
-  }
+  const { reset } = useSession();
 
   return (
     <>
@@ -149,16 +144,6 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
           </header>
 
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-            {/* Quick load */}
-            <section className="space-y-1.5">
-            <button
-              onClick={loadDemo}
-              className="w-full rounded-md bg-amber-900 px-2.5 py-1.5 text-[11px] font-medium text-amber-50 hover:bg-amber-800 inline-flex items-center justify-center gap-1.5"
-            >
-              Load 55410 profile → matches <ChevronRight className="h-3 w-3" />
-            </button>
-          </section>
-
             <Section title="Profile to give the AI">
               <dl className="space-y-1">
                 {SCRIPT_LINES.map((l) => (
