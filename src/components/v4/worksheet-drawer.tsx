@@ -1,10 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
-import { useSession } from "@/lib/v4/session-store";
+import { useSession, type PermanentAgent } from "@/lib/v4/session-store";
 import { useAutoVerifyIntake } from "@/components/v4/use-auto-verify-intake";
 import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { formatMedication } from "@/lib/v3/intake-types";
+import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
+import { CallDialog } from "@/components/v4/call-dialog";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles } from "lucide-react";
+
 import {
   Bookmark,
   Minus,
