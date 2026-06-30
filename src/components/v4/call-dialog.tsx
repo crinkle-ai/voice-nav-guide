@@ -34,11 +34,14 @@ type Status = "ringing" | "connected" | "ended";
 export function CallDialog({
   open,
   onOpenChange,
+  agent,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  agent?: PermanentAgent;
 }) {
   const { state, update } = useSession();
+  const ACTIVE_AGENT: PermanentAgent = agent ?? AGENT;
   const [status, setStatus] = useState<Status>("ringing");
   const [muted, setMuted] = useState(false);
   const [secs, setSecs] = useState(0);
@@ -46,7 +49,8 @@ export function CallDialog({
   const [sharing, setSharing] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
-  const pinned = state.permanentAgent?.name === AGENT.name;
+  const pinned = state.permanentAgent?.name === ACTIVE_AGENT.name;
+
 
   const stopShare = () => {
     setSharing(false);
