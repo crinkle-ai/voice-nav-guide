@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
+import { useSession } from "@/lib/v4/session-store";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -27,10 +28,18 @@ export function AppShell({
   children: ReactNode;
   rightSlot?: ReactNode;
 }) {
+  const { state } = useSession();
+  const sharingActive = !!state.sharingActive;
   const { open: cheatOpen, width: cheatWidth } = useDemoCheatsheet();
   const leftPad = cheatOpen ? `${cheatWidth}px` : undefined;
   return (
-    <div className="min-h-screen bg-canvas v4-scope" style={{ paddingLeft: leftPad, color: V4_INK }}>
+    <div className="min-h-screen bg-canvas v4-scope relative" style={{ paddingLeft: leftPad, color: V4_INK }}>
+      {sharingActive && (
+        <div
+          className="fixed inset-0 z-[100] border-4 border-red-600 pointer-events-none"
+          aria-hidden="true"
+        />
+      )}
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
