@@ -460,12 +460,14 @@ function MessageRow({
   onQuestionnaireSubmit,
   disabled,
   live,
+  intake,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
   onQuestionnaireSubmit: (text: string) => void;
   disabled: boolean;
   live?: boolean;
+  intake?: Intake;
 }) {
   const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
