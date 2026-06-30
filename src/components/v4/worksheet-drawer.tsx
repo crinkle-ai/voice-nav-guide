@@ -315,17 +315,9 @@ function WorksheetDrawerInner() {
   };
 
   return (
-    <>
-      {(size === "half" || size === "full") && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-          onClick={() => { setCard(null); setSize("min"); }}
-          aria-hidden="true"
-        />
-      )}
-      <aside
-        className={`fixed right-0 top-0 z-50 h-screen ${widthClass} flex flex-col border-l border-[#033592]/15 bg-white shadow-[-12px_0_40px_-20px_rgb(3_53_146/0.35)]`}
-      >
+    <aside
+      className={`fixed right-0 top-0 z-50 h-screen ${widthClass} flex flex-col border-l border-[#033592]/15 bg-white shadow-[-12px_0_40px_-20px_rgb(3_53_146/0.35)]`}
+    >
       {/* Header */}
       <header className="flex items-center justify-between gap-2 border-b border-[#033592]/10 px-4 py-3 bg-gradient-to-r from-white to-[#E5F5F8]">
         <div className="flex items-center gap-2 min-w-0">
@@ -489,7 +481,6 @@ function WorksheetDrawerInner() {
         agent={callAgent ?? undefined}
       />
     </aside>
-    </>
   );
 }
 
