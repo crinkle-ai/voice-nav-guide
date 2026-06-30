@@ -9,6 +9,7 @@ import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questio
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import { LearningPathsCard } from "./chat-cards/learning-paths";
+import { ShortVideosCard } from "./chat-cards/short-videos";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { CallDialog } from "./call-dialog";
