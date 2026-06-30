@@ -1,4 +1,5 @@
 import type { Intake } from "@/lib/v3/intake-types";
+import { computeProgress } from "./profile-progress";
 
 export type CatalogPlan = {
   id: string;
