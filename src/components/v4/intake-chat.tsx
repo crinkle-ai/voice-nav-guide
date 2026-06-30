@@ -591,6 +591,9 @@ function MessageRow({
           if (part.type === "tool-learningPaths") {
             return <LearningPathsCard key={i} onPick={onPickChip} disabled={disabled} />;
           }
+          if (part.type === "tool-shortVideos") {
+            return <ShortVideosCard key={i} onPick={onPickChip} disabled={disabled} />;
+          }
           return null;
         })}
       </div>
