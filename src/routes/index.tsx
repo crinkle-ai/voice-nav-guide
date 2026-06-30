@@ -85,7 +85,7 @@ const DEMOS: DemoCard[] = [
   },
   {
     to: "/v4",
-    eyebrow: "Version 3",
+    eyebrow: "Version 4",
     title: "Medicare Compass — Shop Your Way",
     blurb:
       "Three genuinely different experiences: open conversation, a real step-by-step wizard, or a path-picker that tailors the conversation to what matters most.",
