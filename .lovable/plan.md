@@ -1,41 +1,35 @@
 ## Goal
+When the user picks "Short Videos" (or asks for video explainers), show actual playable video tiles inside the chat — not a raw JSON dump like the screenshot.
 
-Redesign `PlanComparisonCard` so 5+ plan cards fit horizontally across the chat surface in a single comparison view, instead of stacking vertically.
+## What's wrong today
+- `LearningPathsCard` "Short Videos" sends the plain prompt `"Show me short videos that explain Medicare."` to the model.
+- The model improvises a `learningPaths` JSON payload in the text body, which renders as a literal JSON blob in the assistant bubble.
+- There is no card component that embeds videos and no client-side interception to inject one.
 
-## Approach
+## Changes
 
-Convert the current vertical list into a horizontal compare strip with compact, scannable cards. Each card stays self-contained (carrier, name, price, key facts, favorite, "why") but is condensed for width-efficiency.
+### 1. New `ShortVideosCard` (`src/components/v4/chat-cards/short-videos.tsx`)
+- Curated list of 3 short Medicare explainers (YouTube IDs already referenced in the leaked JSON: `613nssXuek4`, `q1Yn1xHw_iY`, `8U-alid6h1A`).
+- Each tile shows the YouTube thumbnail (`https://img.youtube.com/vi/<id>/hqdefault.jpg`), title, duration, and a play overlay.
+- Clicking a tile expands it inline into a responsive 16:9 `<iframe>` (`https://www.youtube.com/embed/<id>?autoplay=1&rel=0`) with a "Close" control. Only one video plays at a time.
+- Lightweight follow-up chips below the grid ("Let's look at plans", "I have more questions") wired via the same `onPick` callback the learning paths card already uses.
 
-### `src/components/v4/chat-cards/plan-comparison.tsx`
+### 2. Inject the card from the chat client (`src/components/v4/intake-chat.tsx`)
+- Add a regex like `SHORT_VIDEOS_RE` matching prompts about short Medicare videos / "Show me videos".
+- Mirror the existing `learningInjectedRef` pattern: after a matching user message, find the next assistant message and append a `tool-shortVideos` part (with no input payload — the card is self-contained), then replace the leaked JSON-laden assistant text with a clean lead-in such as: "Here are a few short videos that walk through the basics. Pick one to watch right here, or tell me which topic to dig into."
+- Render the part in `MessageRow` (new branch for `tool-shortVideos`) using `ShortVideosCard`.
 
-Replace the wrapping `<div className="mt-3 space-y-3">` with a responsive grid:
+### 3. Stop the model from emitting the JSON in prose
+- Extend `src/lib/v4/prompts.ts` so the system prompt explicitly forbids inlining `learningPaths` / video JSON in assistant text and tells the model that video selection is handled by the UI; it should reply with one short sentence and let the card render.
+- Keep the client-side injection as the source of truth so behavior stays consistent even if the model regresses.
 
-- Container: `mt-3 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` so 5 cards sit in one row on the wide chat surface, gracefully wrapping on narrower viewports.
-- Add a horizontal-scroll fallback (`overflow-x-auto` with `snap-x` and `min-w-[180px]` cards) for the rare case where the chat width is constrained — ensures 5 are always comparable in one window without page scroll.
-
-### Card redesign (compact vertical layout, one column inside each tile)
-
-- Header: small uppercase carrier · type (truncate), serif plan name `text-sm leading-snug` clamped to 2 lines, star rating inline as a small pill.
-- Price block: large `$XX/mo` premium as the visual anchor, secondary `Max OOP $X,XXX` underneath in muted-2 text.
-- Key facts: collapse `highlights` to the top 2 bullets max (slice), each a tight one-liner with a small dot.
-- "Why" section: render only the top 1–2 reasons as `label` chips with a tooltip on hover for the full `detail`; keep `Sparkles` icon as a small header.
-- Favorite: move the heart to a small icon-only button in the top-right corner (no "Favorite" text label) to save horizontal space; keep aria-label + pressed state.
-- Footer: optional "Compare" / "See details" link that expands the card inline (uses local `useState` per card) to reveal the full highlights + reasons list — preserves all current data without bloating the strip.
-
-### Tokens / styling
-
-- Continue using existing tokens (`bg-paper`, `border-ink/10`, `bg-surface-soft/40`, `text-muted-2`, `text-amber-600`, rose favorite styles). No new custom colors.
-- Use `text-[11px]` / `text-xs` for meta rows; `text-base font-serif` for plan name; `text-xl font-semibold` for the premium anchor.
-- Cards: `rounded-xl border border-ink/10 bg-paper flex flex-col h-full` so all 5 cards line up to equal height.
-
-### Behavior preserved
-
-- Favorites toggle continues to read/write `state.favoritePlans` via `useSession`.
-- Same input contract (`RecommendPlansInput`) — no changes to chat wiring, intake, or API.
-- Rationale data still available; just visually condensed with progressive disclosure.
+## Technical notes
+- No new dependencies; iframe embed is plain JSX.
+- Reuse the same "inline tool part" pattern already used for `tool-learningPaths` and `tool-recommendPlans` so no transport/server-route changes are required.
+- Card respects existing `disabled` prop while the chat is busy (only the follow-up chips disable; videos remain playable).
+- Accessibility: each tile is a `<button>` with the video title as label; the iframe gets a `title` attribute.
 
 ## Out of scope
-
-- No changes to chat layout, intake logic, or data shape.
-- No new dependencies.
-- No changes to the Favorites workspace card.
+- Adding a real server-side `recommendVideos` tool / catalog API.
+- Persisting watched-video state into the workspace.
+- Replacing the existing learning-paths card layout.

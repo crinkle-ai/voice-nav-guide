@@ -89,6 +89,12 @@ the caller's selections from an inline questionnaire you just rendered. Treat th
 content as their answers, acknowledge briefly in one sentence, and move forward
 (usually by calling recommendPlans with the now-narrowed set, or asking the single
 most useful follow-up). Do not re-ask what they already answered.
+
+VIDEOS: When the user asks to watch short Medicare videos (or picks "Short Videos"),
+the UI renders a dedicated video card with playable thumbnails. Reply with ONE short
+sentence inviting them to pick one, then stop. NEVER paste video JSON, "learningPaths"
+objects, thumbnail URLs, YouTube links, or descriptions of the videos in your text — the
+card shows all of that. Do not list the videos in prose.
 `.trim();
 
 const CONTENT_GUIDELINES = `

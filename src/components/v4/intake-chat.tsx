@@ -9,6 +9,7 @@ import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questio
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import { LearningPathsCard } from "./chat-cards/learning-paths";
+import { ShortVideosCard } from "./chat-cards/short-videos";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { CallDialog } from "./call-dialog";
@@ -53,6 +54,8 @@ const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plan
 // Detect when the model emitted a tool invocation as plain text instead of calling the tool.
 const LEAKED_TOOL_RE = /\brecommendPlans\b/;
 const NEW_TO_MEDICARE_RE = /\b(just (starting|started)|new to|starting)\b[\s\S]{0,40}\bmedicare\b|\bunderstand the basics\b/i;
+const SHORT_VIDEOS_RE = /\b(short\s+)?videos?\b[\s\S]{0,40}\b(medicare|explain|basics)\b|\bshow me (some |short )?videos?\b|\bwatch.*\bvideos?\b/i;
+const SHORT_VIDEOS_LEAD = "Here are a few short videos that walk through the basics. Pick one to watch right here, or tell me which topic to dig into.";
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
 const VERIFYING_MESSAGE = "Before I show plans, I'm verifying your doctor against the NPI Registry — one moment.";
 
@@ -363,6 +366,55 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     );
   }, [busy, messages, setMessages]);
 
+  // Inject the "Short Videos" card when the user asks to watch Medicare videos.
+  // Replace any JSON-leaking assistant text with a clean lead-in.
+  const videosInjectedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (busy) return;
+    let askIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const m = messages[i];
+      if (m.role !== "user") continue;
+      const t = messageText(m);
+      if (t && SHORT_VIDEOS_RE.test(t)) {
+        askIdx = i;
+        break;
+      }
+    }
+    if (askIdx < 0) return;
+    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
+    if (!assistant) return;
+    if (videosInjectedRef.current.has(assistant.id)) return;
+    const hasVideosTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-shortVideos");
+    if (hasVideosTool) {
+      videosInjectedRef.current.add(assistant.id);
+      return;
+    }
+    videosInjectedRef.current.add(assistant.id);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistant.id
+          ? {
+              ...m,
+              parts: [
+                // Collapse the assistant's prose into a single clean lead-in so any
+                // accidentally inlined JSON / link dump is hidden.
+                { type: "text", text: SHORT_VIDEOS_LEAD },
+                {
+                  type: "tool-shortVideos",
+                  toolCallId: `inline-videos-${assistant.id}`,
+                  state: "output-available",
+                  input: {},
+                  output: {},
+                } as UIMessage["parts"][number],
+              ],
+            }
+          : m,
+      ),
+    );
+  }, [busy, messages, setMessages]);
+
+
   const chatItems: ChatItem[] = useMemo(
     () => [
       ...messages.map((m) => ({ message: m, live: false })),
@@ -538,6 +590,9 @@ function MessageRow({
           }
           if (part.type === "tool-learningPaths") {
             return <LearningPathsCard key={i} onPick={onPickChip} disabled={disabled} />;
+          }
+          if (part.type === "tool-shortVideos") {
+            return <ShortVideosCard key={i} onPick={onPickChip} disabled={disabled} />;
           }
           return null;
         })}
