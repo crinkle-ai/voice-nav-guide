@@ -78,12 +78,7 @@ interface DemoCheatsheetProps {
 }
 
 function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProps) {
-  const { update, reset } = useSession();
-
-  async function loadDemo() {
-    const { diabeticMinneapolisIntake } = await import("@/lib/v4/demo-profile");
-    update({ intake: diabeticMinneapolisIntake(), finished: true });
-  }
+  const { reset } = useSession();
 
   return (
     <>
