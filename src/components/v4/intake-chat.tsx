@@ -411,9 +411,20 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
 
 
-  const chatItems: ChatItem[] = useMemo(
+  const lastUserMsgIndex = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === "user") return i;
+    }
+    return -1;
+  }, [messages]);
+
+  const chatItems: (ChatItem & { locked?: boolean })[] = useMemo(
     () => [
-      ...messages.map((m) => ({ message: m, live: false })),
+      ...messages.map((m, idx) => ({
+        message: m,
+        live: false,
+        locked: m.role === "assistant" && idx < lastUserMsgIndex,
+      })),
       ...voiceLive.map(
         (e) =>
           ({
@@ -426,7 +437,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           }) as ChatItem,
       ),
     ],
-    [messages, voiceLive],
+    [messages, voiceLive, lastUserMsgIndex],
   );
 
   return (
@@ -434,7 +445,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       <div className="flex-1 bg-white overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
-          {chatItems.map(({ message, live }) => (
+          {chatItems.map(({ message, live, locked }) => (
             <MessageRow
               key={message.id}
               message={message}
@@ -443,6 +454,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               disabled={busy}
               live={live}
               intake={intake}
+              locked={locked}
               forceVideoCard={videoAssistantIds.has(message.id)}
             />
           ))}
