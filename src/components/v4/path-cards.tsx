@@ -15,7 +15,7 @@ const CARDS = [
     desc: "Help me compare plans that fit my doctors, meds, and budget.",
     icon: ListChecks,
     prompt: "I want to see Medicare plans that fit my situation.",
-    bg: "#59D1E2",
+    bg: "#DADADA",
   },
 ];
 
