@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { UserCircle2 } from "lucide-react";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
+import { useSession } from "@/lib/v4/session-store";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
