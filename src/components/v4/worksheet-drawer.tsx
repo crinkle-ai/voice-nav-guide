@@ -18,10 +18,12 @@ import {
   Wallet,
   Headset,
   PlusCircle,
+  Heart,
+  X as XIcon,
 } from "lucide-react";
 
 type Size = "min" | "half" | "full";
-type CardKey = "personal" | "doctors" | "meds" | "budget" | "agent";
+type CardKey = "personal" | "doctors" | "meds" | "budget" | "agent" | "favorites";
 
 const PALETTE: Record<
   CardKey,
@@ -66,6 +68,14 @@ const PALETTE: Record<
     chip: "bg-[#033592]/10 text-[#033592]",
     icon: Headset,
     label: "Your agent",
+  },
+  favorites: {
+    bg: "bg-[#BE185D]",
+    ring: "ring-[#BE185D]/30",
+    text: "text-white",
+    chip: "bg-white/20 text-white",
+    icon: Heart,
+    label: "Favorite plans",
   },
 };
 
@@ -140,7 +150,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
 }
 
 function WorksheetDrawerInner() {
-  const { state, ready } = useSession();
+  const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   useAutoVerifyIntake();
@@ -265,6 +275,50 @@ function WorksheetDrawerInner() {
             <p className="text-sm text-muted-2">
               No agent yet. Start a call from the composer and tap “Make this my permanent agent” to pin them here.
             </p>
+          )}
+        </DetailWrap>
+      );
+    }
+    if (card === "favorites") {
+      const favs = state.favoritePlans ?? [];
+      return (
+        <DetailWrap title="Favorite plans" onBack={() => setCard(null)}>
+          {favs.length === 0 ? (
+            <p className="text-sm text-muted-2">
+              Tap the <Heart className="inline h-3.5 w-3.5 text-rose-500" /> on any plan in the chat
+              to save it here for easy comparison.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {favs.map((p) => (
+                <li
+                  key={p.id}
+                  className="rounded-xl border border-line bg-paper p-3 flex items-start justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-2">
+                      {p.carrier} · {p.type}
+                    </div>
+                    <div className="font-serif text-base text-ink leading-tight">{p.name}</div>
+                    <div className="text-xs text-muted-2 mt-1">
+                      ${p.monthlyPremium}/mo · MOOP ${p.maxOOP.toLocaleString()}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      update({
+                        favoritePlans: (state.favoritePlans ?? []).filter((f) => f.id !== p.id),
+                      })
+                    }
+                    aria-label={`Remove ${p.name} from favorites`}
+                    className="rounded-md p-1 text-muted-2 hover:bg-rose-50 hover:text-rose-600"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </DetailWrap>
       );
@@ -399,6 +453,28 @@ function WorksheetDrawerInner() {
               }
               onClick={() => setCard("agent")}
             />
+            <WorkspaceCard
+              cardKey="favorites"
+              status={(state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save"}
+              primary={
+                (state.favoritePlans ?? []).length === 0
+                  ? "Your favorite plans"
+                  : (state.favoritePlans ?? [])
+                      .slice(0, 2)
+                      .map((p) => p.name)
+                      .join(", ") +
+                    ((state.favoritePlans ?? []).length > 2
+                      ? ` +${(state.favoritePlans ?? []).length - 2}`
+                      : "")
+              }
+              secondary={
+                (state.favoritePlans ?? []).length === 0
+                  ? "Tap the heart on any plan to save it"
+                  : "Tap to compare your saved plans"
+              }
+              onClick={() => setCard("favorites")}
+            />
+
 
             <button
               type="button"
