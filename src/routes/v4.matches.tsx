@@ -34,7 +34,7 @@ function MatchesPage() {
   const { data: scored, isLoading, error } = useQuery({
     queryKey: ["v4-rank", state.intake],
     queryFn: () => rankDemoPlans({ data: { intake: state.intake } }),
-    enabled: ready && state.finished,
+    enabled: ready && state.finished && hasZip,
   });
 
   const top = (scored ?? []).slice(0, 5);
