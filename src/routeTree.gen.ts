@@ -32,6 +32,7 @@ import { Route as V4PrioritiesRouteImport } from './routes/v4.priorities'
 import { Route as V4NextStepRouteImport } from './routes/v4.next-step'
 import { Route as V4MatchesRouteImport } from './routes/v4.matches'
 import { Route as V4IntakeRouteImport } from './routes/v4.intake'
+import { Route as V4DeckRouteImport } from './routes/v4.deck'
 import { Route as V3SummaryRouteImport } from './routes/v3.summary'
 import { Route as V3PrioritiesRouteImport } from './routes/v3.priorities'
 import { Route as V3NextStepRouteImport } from './routes/v3.next-step'
@@ -163,6 +164,11 @@ const V4IntakeRoute = V4IntakeRouteImport.update({
   path: '/intake',
   getParentRoute: () => V4Route,
 } as any)
+const V4DeckRoute = V4DeckRouteImport.update({
+  id: '/deck',
+  path: '/deck',
+  getParentRoute: () => V4Route,
+} as any)
 const V3SummaryRoute = V3SummaryRouteImport.update({
   id: '/summary',
   path: '/summary',
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/v3/next-step': typeof V3NextStepRoute
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
+  '/v4/deck': typeof V4DeckRoute
   '/v4/intake': typeof V4IntakeRoute
   '/v4/matches': typeof V4MatchesRoute
   '/v4/next-step': typeof V4NextStepRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/v3/next-step': typeof V3NextStepRoute
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
+  '/v4/deck': typeof V4DeckRoute
   '/v4/intake': typeof V4IntakeRoute
   '/v4/matches': typeof V4MatchesRoute
   '/v4/next-step': typeof V4NextStepRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/v3/next-step': typeof V3NextStepRoute
   '/v3/priorities': typeof V3PrioritiesRoute
   '/v3/summary': typeof V3SummaryRoute
+  '/v4/deck': typeof V4DeckRoute
   '/v4/intake': typeof V4IntakeRoute
   '/v4/matches': typeof V4MatchesRoute
   '/v4/next-step': typeof V4NextStepRoute
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/v3/next-step'
     | '/v3/priorities'
     | '/v3/summary'
+    | '/v4/deck'
     | '/v4/intake'
     | '/v4/matches'
     | '/v4/next-step'
@@ -423,6 +433,7 @@ export interface FileRouteTypes {
     | '/v3/next-step'
     | '/v3/priorities'
     | '/v3/summary'
+    | '/v4/deck'
     | '/v4/intake'
     | '/v4/matches'
     | '/v4/next-step'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/v3/next-step'
     | '/v3/priorities'
     | '/v3/summary'
+    | '/v4/deck'
     | '/v4/intake'
     | '/v4/matches'
     | '/v4/next-step'
@@ -666,6 +678,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof V4IntakeRouteImport
       parentRoute: typeof V4Route
     }
+    '/v4/deck': {
+      id: '/v4/deck'
+      path: '/deck'
+      fullPath: '/v4/deck'
+      preLoaderRoute: typeof V4DeckRouteImport
+      parentRoute: typeof V4Route
+    }
     '/v3/summary': {
       id: '/v3/summary'
       path: '/summary'
@@ -809,6 +828,7 @@ const V3RouteChildren: V3RouteChildren = {
 const V3RouteWithChildren = V3Route._addFileChildren(V3RouteChildren)
 
 interface V4RouteChildren {
+  V4DeckRoute: typeof V4DeckRoute
   V4IntakeRoute: typeof V4IntakeRoute
   V4MatchesRoute: typeof V4MatchesRoute
   V4NextStepRoute: typeof V4NextStepRoute
@@ -818,6 +838,7 @@ interface V4RouteChildren {
 }
 
 const V4RouteChildren: V4RouteChildren = {
+  V4DeckRoute: V4DeckRoute,
   V4IntakeRoute: V4IntakeRoute,
   V4MatchesRoute: V4MatchesRoute,
   V4NextStepRoute: V4NextStepRoute,
