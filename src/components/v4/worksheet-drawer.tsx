@@ -1,10 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
-import { useSession } from "@/lib/v4/session-store";
+import { useSession, type PermanentAgent } from "@/lib/v4/session-store";
 import { useAutoVerifyIntake } from "@/components/v4/use-auto-verify-intake";
 import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { formatMedication } from "@/lib/v3/intake-types";
+import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
+import { CallDialog } from "@/components/v4/call-dialog";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles } from "lucide-react";
+
 import {
   Bookmark,
   Minus,
@@ -153,9 +157,11 @@ function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
+  const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
   useAutoVerifyIntake();
 
   if (!ready) return null;
+
 
   const intake = state.intake;
   const doctorsCount = intake.doctors.value.length;
@@ -250,35 +256,17 @@ function WorksheetDrawerInner() {
       );
     }
     if (card === "agent") {
-      const a = state.permanentAgent;
       return (
         <DetailWrap title="Your agent" onBack={() => setCard(null)}>
-          {a ? (
-            <div className="rounded-2xl border border-line bg-paper p-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={a.avatar}
-                  alt={a.name}
-                  className="h-14 w-14 rounded-full object-cover border border-line"
-                />
-                <div className="min-w-0">
-                  <div className="font-medium text-ink">{a.name}</div>
-                  <div className="text-xs text-muted-2">
-                    {a.title} · {a.location}
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-2 mt-0.5">NPN {a.npn}</div>
-                </div>
-              </div>
-              {a.facts[0] && <p className="mt-3 text-sm italic text-ink/70">“{a.facts[0]}”</p>}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-2">
-              No agent yet. Start a call from the composer and tap “Make this my permanent agent” to pin them here.
-            </p>
-          )}
+          <AgentDirectoryView
+            pinned={state.permanentAgent}
+            onPin={(a) => update({ permanentAgent: a })}
+            onCall={(a) => setCallAgent(a)}
+          />
         </DetailWrap>
       );
     }
+
     if (card === "favorites") {
       const favs = state.favoritePlans ?? [];
       return (
@@ -487,7 +475,143 @@ function WorksheetDrawerInner() {
           </div>
         )}
       </div>
+      <CallDialog
+        open={!!callAgent}
+        onOpenChange={(v) => { if (!v) setCallAgent(null); }}
+        agent={callAgent ?? undefined}
+      />
     </aside>
+  );
+}
+
+const STATUS_STYLE: Record<DirectoryAgent["availability"], { dot: string; text: string; pill: string }> = {
+  available: { dot: "bg-emerald-500", text: "text-emerald-700", pill: "bg-emerald-50 border-emerald-200" },
+  soon:      { dot: "bg-amber-500",   text: "text-amber-700",   pill: "bg-amber-50 border-amber-200" },
+  busy:      { dot: "bg-gray-400",    text: "text-gray-600",    pill: "bg-gray-50 border-gray-200" },
+};
+
+function AgentDirectoryView({
+  pinned,
+  onPin,
+  onCall,
+}: {
+  pinned?: PermanentAgent;
+  onPin: (a: PermanentAgent) => void;
+  onCall: (a: DirectoryAgent) => void;
+}) {
+  const pinnedAgent = pinned
+    ? AGENT_DIRECTORY.find((a) => a.name === pinned.name) ?? null
+    : null;
+
+  return (
+    <div className="space-y-4">
+      {pinnedAgent && (
+        <div className="rounded-2xl border border-[#033592]/20 bg-[#E5F5F8] p-4">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#033592]/70 mb-2 flex items-center gap-1">
+            <BadgeCheck className="h-3.5 w-3.5" /> Your agent
+          </div>
+          <div className="flex items-center gap-3">
+            <img src={pinnedAgent.avatar} alt={pinnedAgent.name} className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-ink">{pinnedAgent.name}</div>
+              <div className="text-xs text-muted-2">{pinnedAgent.title}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onCall(pinnedAgent)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#033592] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#022b7a]"
+            >
+              <Phone className="h-3.5 w-3.5" /> Call my agent
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-[#033592]/70 mb-2">
+          <Sparkles className="h-3.5 w-3.5" /> {pinnedAgent ? "Browse other advisors" : "Choose your trusted advisor"}
+        </div>
+        <p className="text-xs text-muted-2 mb-3">
+          Each advisor is a licensed Medicare expert. Pick someone you'd like to work with — you can make them your permanent agent any time.
+        </p>
+      </div>
+
+      <ul className="space-y-3">
+        {AGENT_DIRECTORY.map((a) => {
+          const isPinned = pinned?.name === a.name;
+          const s = STATUS_STYLE[a.availability];
+          return (
+            <li
+              key={a.id}
+              className="rounded-2xl border border-line bg-white p-4 shadow-sm hover:shadow-md transition"
+            >
+              <div className="flex items-start gap-3">
+                <img
+                  src={a.avatar}
+                  alt={a.name}
+                  className="h-16 w-16 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium text-ink truncate">{a.name}</div>
+                      <div className="text-xs text-muted-2">{a.title}</div>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${s.pill} ${s.text}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} /> {a.availabilityLabel}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-2">
+                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {a.location}</span>
+                    <span className="uppercase tracking-wider">{a.npn}</span>
+                  </div>
+                </div>
+              </div>
+
+              {a.facts[0] && (
+                <p className="mt-3 text-sm italic text-ink/70 leading-snug">"{a.facts[0]}"</p>
+              )}
+
+              <div className="mt-3 rounded-lg bg-[#E5F5F8]/60 border border-[#033592]/10 px-3 py-2 text-xs text-[#033592]">
+                <span className="font-medium">Why you might like {a.name.split(" ")[0]}: </span>
+                {a.specialty}
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onCall(a)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#033592] px-3 py-2 text-sm font-medium text-white hover:bg-[#022b7a]"
+                >
+                  <Phone className="h-4 w-4" /> Call this agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPin(a)}
+                  disabled={isPinned}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition ${
+                    isPinned
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 cursor-default"
+                      : "border-[#033592]/30 text-[#033592] hover:bg-[#E5F5F8]"
+                  }`}
+                  title={isPinned ? "Your permanent agent" : "Make this my permanent agent"}
+                >
+                  {isPinned ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" /> My agent
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="h-3.5 w-3.5" /> Make my agent
+                    </>
+                  )}
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -498,3 +622,4 @@ export function WorksheetDrawer() {
     </AutoVerifyProvider>
   );
 }
+

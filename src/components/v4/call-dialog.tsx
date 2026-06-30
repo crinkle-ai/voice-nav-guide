@@ -34,11 +34,14 @@ type Status = "ringing" | "connected" | "ended";
 export function CallDialog({
   open,
   onOpenChange,
+  agent,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  agent?: PermanentAgent;
 }) {
   const { state, update } = useSession();
+  const ACTIVE_AGENT: PermanentAgent = agent ?? AGENT;
   const [status, setStatus] = useState<Status>("ringing");
   const [muted, setMuted] = useState(false);
   const [secs, setSecs] = useState(0);
@@ -46,7 +49,8 @@ export function CallDialog({
   const [sharing, setSharing] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
-  const pinned = state.permanentAgent?.name === AGENT.name;
+  const pinned = state.permanentAgent?.name === ACTIVE_AGENT.name;
+
 
   const stopShare = () => {
     setSharing(false);
@@ -91,7 +95,7 @@ export function CallDialog({
   const mmss = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
 
   const makePermanent = () => {
-    update({ permanentAgent: AGENT });
+    update({ permanentAgent: ACTIVE_AGENT });
     setJustPinned(true);
   };
 
@@ -100,9 +104,9 @@ export function CallDialog({
     return (
       <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-gray-400 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-3 p-3">
-          <img src={AGENT.avatar} alt={AGENT.name} className="h-10 w-10 rounded-full object-cover border border-line" />
+          <img src={ACTIVE_AGENT.avatar} alt={ACTIVE_AGENT.name} className="h-10 w-10 rounded-full object-cover border border-line" />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-ink truncate">{AGENT.name}</div>
+            <div className="text-sm font-semibold text-ink truncate">{ACTIVE_AGENT.name}</div>
             <div className="text-xs text-emerald-700 font-medium">
               <Volume2 className="inline h-3 w-3 mr-0.5" /> {mmss}
             </div>
@@ -157,8 +161,8 @@ export function CallDialog({
         <div className="flex flex-col items-center text-center pt-2">
           <div className="relative">
             <img
-              src={AGENT.avatar}
-              alt={AGENT.name}
+              src={ACTIVE_AGENT.avatar}
+              alt={ACTIVE_AGENT.name}
               className="h-28 w-28 rounded-full object-cover border-2 border-line"
             />
             {status === "ringing" && (
@@ -168,10 +172,10 @@ export function CallDialog({
               <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-paper" />
             )}
           </div>
-          <div className="mt-3 text-lg font-medium text-ink">{AGENT.name}</div>
-          <div className="text-xs text-muted-2">Licensed Agent · {AGENT.title} · {AGENT.npn}</div>
+          <div className="mt-3 text-lg font-medium text-ink">{ACTIVE_AGENT.name}</div>
+          <div className="text-xs text-muted-2">Licensed Agent · {ACTIVE_AGENT.title} · {ACTIVE_AGENT.npn}</div>
           <div className="mt-1 inline-flex items-center gap-1 text-xs text-muted-2">
-            <MapPin className="h-3 w-3" /> {AGENT.location}
+            <MapPin className="h-3 w-3" /> {ACTIVE_AGENT.location}
           </div>
 
           {status === "connected" && (
@@ -199,7 +203,7 @@ export function CallDialog({
           </p>
           {!sharing && (
             <ul className="mt-3 space-y-1.5 text-xs text-ink/80">
-              {AGENT.facts.map((f) => (
+              {ACTIVE_AGENT.facts.map((f) => (
                 <li key={f} className="flex items-start gap-2">
                   <Fish className="h-3.5 w-3.5 mt-0.5 text-[#033592] shrink-0" />
                   <span>{f}</span>
@@ -275,7 +279,7 @@ export function CallDialog({
         <div className="mt-4 border-t border-line pt-4 flex justify-center">
           {pinned || justPinned ? (
             <div className="inline-flex items-center gap-1.5 text-sm text-emerald-700 font-medium">
-              <Check className="h-4 w-4" /> {AGENT.name.split(" ")[0]} is now your permanent agent
+              <Check className="h-4 w-4" /> {ACTIVE_AGENT.name.split(" ")[0]} is now your permanent agent
             </div>
           ) : (
             <Button onClick={makePermanent} variant="outline" className="gap-2">
