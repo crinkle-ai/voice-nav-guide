@@ -144,11 +144,6 @@ function IntakePage() {
     const startWith = (text: string) => {
       setAutoSend(text);
     };
-    const loadDiabeticDemo = async () => {
-      const { diabeticMinneapolisIntake } = await import("@/lib/v4/demo-profile");
-      update({ intake: diabeticMinneapolisIntake(), finished: true });
-      navigate({ to: "/v4/matches" });
-    };
     return (
       <AppShell step="intake">
         <div className="max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-160px)]">
