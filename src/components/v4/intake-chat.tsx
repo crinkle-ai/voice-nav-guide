@@ -394,6 +394,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               onQuestionnaireSubmit={(text) => submit(`__FORM_RESPONSE__\n${text}`)}
               disabled={busy}
               live={live}
+              intake={intake}
             />
           ))}
           {/* inline plan fallback now injected into messages directly */}
@@ -459,12 +460,14 @@ function MessageRow({
   onQuestionnaireSubmit,
   disabled,
   live,
+  intake,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
   onQuestionnaireSubmit: (text: string) => void;
   disabled: boolean;
   live?: boolean;
+  intake?: Intake;
 }) {
   const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
@@ -519,7 +522,15 @@ function MessageRow({
             );
           }
           if (part.type === "tool-recommendPlans" && input) {
-            return <PlanComparisonCard key={i} data={input as RecommendPlansInput} />;
+            const toolCallId = (part as { toolCallId?: string }).toolCallId ?? "";
+            // Inline-injected cards stay in sync with the live intake so newly
+            // captured medications, ZIP, medicaid status, or priorities
+            // change which plans are surfaced.
+            const liveData =
+              intake && toolCallId.startsWith("inline-")
+                ? buildInlinePlanRecommendations(intake)
+                : (input as RecommendPlansInput);
+            return <PlanComparisonCard key={i} data={liveData} />;
           }
           if (part.type === "tool-suggestNext" && input) {
             const { chips } = input as { chips: string[] };
