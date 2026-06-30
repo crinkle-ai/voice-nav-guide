@@ -69,6 +69,14 @@ const PALETTE: Record<
     icon: Headset,
     label: "Your agent",
   },
+  favorites: {
+    bg: "bg-[#BE185D]",
+    ring: "ring-[#BE185D]/30",
+    text: "text-white",
+    chip: "bg-white/20 text-white",
+    icon: Heart,
+    label: "Favorite plans",
+  },
 };
 
 function WorkspaceCard({
