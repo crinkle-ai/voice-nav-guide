@@ -12,6 +12,26 @@ import { LearningPathsCard } from "./chat-cards/learning-paths";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { CallDialog } from "./call-dialog";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+function AssistantMarkdown({ text }: { text: string }) {
+  return (
+    <div className="text-[15px] leading-relaxed text-ink space-y-3 [&_p]:m-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_li]:leading-relaxed [&_strong]:font-semibold [&_a]:underline [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/5 [&_code]:text-[13px]">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h1: ({ node, ...p }) => <h1 className="font-serif text-2xl text-[#131F69] mt-2 mb-1" {...p} />,
+          h2: ({ node, ...p }) => <h2 className="font-serif text-xl text-[#131F69] mt-2 mb-1" {...p} />,
+          h3: ({ node, ...p }) => <h3 className="font-semibold text-base text-[#131F69] mt-2 mb-1" {...p} />,
+          h4: ({ node, ...p }) => <h4 className="font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    </div>
+  );
+}
 
 type Props = {
   mode: IntakeMode;
@@ -446,7 +466,11 @@ function MessageRow({
       </div>
       <div className="flex-1 min-w-0 max-w-[85%]">
         {text && (
-          <div className={`text-[15px] leading-relaxed text-ink whitespace-pre-wrap ${live ? "opacity-70 italic" : ""}`}>{text}</div>
+          live ? (
+            <div className="text-[15px] leading-relaxed text-ink whitespace-pre-wrap opacity-70 italic">{text}</div>
+          ) : (
+            <AssistantMarkdown text={text} />
+          )
         )}
 
         {message.parts.map((p, i) => {
