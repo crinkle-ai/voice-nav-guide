@@ -102,7 +102,13 @@ function DemoCheatsheet({ open, pinned, setOpen, setPinned }: DemoCheatsheetProp
           <button
             type="button"
             onClick={() => {
-              if (confirm("Reset the conversation?")) reset();
+              if (confirm("Reset the conversation?")) {
+                reset();
+                if (typeof window !== "undefined") {
+                  window.localStorage.removeItem("v4-medicare-compass-session-v1");
+                  window.location.reload();
+                }
+              }
             }}
             aria-label="Reset conversation"
             title="Reset conversation"
