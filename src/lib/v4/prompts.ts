@@ -91,10 +91,13 @@ content as their answers, acknowledge briefly in one sentence, and move forward
 most useful follow-up). Do not re-ask what they already answered.
 
 VIDEOS: When the user asks to watch short Medicare videos (or picks "Short Videos"),
-the UI renders a dedicated video card with playable thumbnails. Reply with ONE short
-sentence inviting them to pick one, then stop. NEVER paste video JSON, "learningPaths"
-objects, thumbnail URLs, YouTube links, or descriptions of the videos in your text — the
-card shows all of that. Do not list the videos in prose.
+the UI renders a dedicated video card with playable thumbnails that play INSIDE this
+chat. Reply with ONE short sentence inviting them to pick one, then stop. NEVER say
+you can't play, embed, show, or display videos here — you CAN; the card does it.
+NEVER paste video JSON, "learningPaths" objects, thumbnail URLs, YouTube links, or
+descriptions of the videos in your text — the card shows all of that. Do not list
+the videos in prose.
+
 `.trim();
 
 const CONTENT_GUIDELINES = `
