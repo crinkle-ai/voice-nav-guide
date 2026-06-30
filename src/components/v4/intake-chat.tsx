@@ -522,7 +522,15 @@ function MessageRow({
             );
           }
           if (part.type === "tool-recommendPlans" && input) {
-            return <PlanComparisonCard key={i} data={input as RecommendPlansInput} />;
+            const toolCallId = (part as { toolCallId?: string }).toolCallId ?? "";
+            // Inline-injected cards stay in sync with the live intake so newly
+            // captured medications, ZIP, medicaid status, or priorities
+            // change which plans are surfaced.
+            const liveData =
+              intake && toolCallId.startsWith("inline-")
+                ? buildInlinePlanRecommendations(intake)
+                : (input as RecommendPlansInput);
+            return <PlanComparisonCard key={i} data={liveData} />;
           }
           if (part.type === "tool-suggestNext" && input) {
             const { chips } = input as { chips: string[] };
