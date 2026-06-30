@@ -54,6 +54,8 @@ const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plan
 // Detect when the model emitted a tool invocation as plain text instead of calling the tool.
 const LEAKED_TOOL_RE = /\brecommendPlans\b/;
 const NEW_TO_MEDICARE_RE = /\b(just (starting|started)|new to|starting)\b[\s\S]{0,40}\bmedicare\b|\bunderstand the basics\b/i;
+const SHORT_VIDEOS_RE = /\b(short\s+)?videos?\b[\s\S]{0,40}\b(medicare|explain|basics)\b|\bshow me (some |short )?videos?\b|\bwatch.*\bvideos?\b/i;
+const SHORT_VIDEOS_LEAD = "Here are a few short videos that walk through the basics. Pick one to watch right here, or tell me which topic to dig into.";
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
 const VERIFYING_MESSAGE = "Before I show plans, I'm verifying your doctor against the NPI Registry — one moment.";
 
