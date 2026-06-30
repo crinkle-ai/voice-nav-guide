@@ -21,6 +21,8 @@ export function HeaderIndicators({ compact = false }: { compact?: boolean }) {
 
   if (!ready) return null;
 
+  const zip = state.intake.zip?.value?.trim() ?? "";
+  const hasZip = /^\d{5}$/.test(zip);
   const narrowed = matches.length < PLAN_CATALOG.length;
   const planLabel = `${matches.length} plan${matches.length === 1 ? "" : "s"} to recommend`;
 
