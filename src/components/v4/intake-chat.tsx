@@ -8,6 +8,7 @@ import { VoiceIntake, type VoiceIntakeHandle } from "./voice-intake";
 import { QuestionnaireCard, type QuestionnaireInput } from "./chat-cards/questionnaire";
 import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-comparison";
 import { SuggestNextCard } from "./chat-cards/suggest-next";
+import { LearningPathsCard } from "./chat-cards/learning-paths";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { CallDialog } from "./call-dialog";
@@ -31,6 +32,7 @@ const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|
 const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
 // Detect when the model emitted a tool invocation as plain text instead of calling the tool.
 const LEAKED_TOOL_RE = /\brecommendPlans\b/;
+const NEW_TO_MEDICARE_RE = /\b(just (starting|started)|new to|starting)\b[\s\S]{0,40}\bmedicare\b|\bunderstand the basics\b/i;
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
 const VERIFYING_MESSAGE = "Before I show plans, I'm verifying your doctor against the NPI Registry — one moment.";
 
@@ -265,6 +267,52 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     );
   }, [busy, intake, messages, setMessages]);
 
+  // Inject "learning paths" cards (AI Guide, Guided Questions, Short Videos, Learning Center)
+  // when the user signals they're new to Medicare.
+  const learningInjectedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (busy) return;
+    let askIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const m = messages[i];
+      if (m.role !== "user") continue;
+      const t = messageText(m);
+      if (t && NEW_TO_MEDICARE_RE.test(t)) {
+        askIdx = i;
+        break;
+      }
+    }
+    if (askIdx < 0) return;
+    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
+    if (!assistant) return;
+    if (learningInjectedRef.current.has(assistant.id)) return;
+    const hasLearningTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-learningPaths");
+    if (hasLearningTool) {
+      learningInjectedRef.current.add(assistant.id);
+      return;
+    }
+    learningInjectedRef.current.add(assistant.id);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistant.id
+          ? {
+              ...m,
+              parts: [
+                ...m.parts,
+                {
+                  type: "tool-learningPaths",
+                  toolCallId: `inline-learning-${assistant.id}`,
+                  state: "output-available",
+                  input: {},
+                  output: {},
+                } as UIMessage["parts"][number],
+              ],
+            }
+          : m,
+      ),
+    );
+  }, [busy, messages, setMessages]);
+
   const chatItems: ChatItem[] = useMemo(
     () => [
       ...messages.map((m) => ({ message: m, live: false })),
@@ -422,6 +470,9 @@ function MessageRow({
           if (part.type === "tool-suggestNext" && input) {
             const { chips } = input as { chips: string[] };
             return <SuggestNextCard key={i} chips={chips} onPick={onPickChip} disabled={disabled} />;
+          }
+          if (part.type === "tool-learningPaths") {
+            return <LearningPathsCard key={i} onPick={onPickChip} disabled={disabled} />;
           }
           return null;
         })}
