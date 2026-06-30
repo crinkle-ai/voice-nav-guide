@@ -49,7 +49,7 @@ export function CallDialog({
   const [sharing, setSharing] = useState(false);
   const [minimized, setMinimized] = useState(false);
 
-  const pinned = state.permanentAgent?.name === ACTIVE_ACTIVE_AGENT.name;
+  const pinned = state.permanentAgent?.name === ACTIVE_AGENT.name;
 
 
   const stopShare = () => {
@@ -95,7 +95,7 @@ export function CallDialog({
   const mmss = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
 
   const makePermanent = () => {
-    update({ permanentAgent: AGENT });
+    update({ permanentAgent: ACTIVE_AGENT });
     setJustPinned(true);
   };
 
