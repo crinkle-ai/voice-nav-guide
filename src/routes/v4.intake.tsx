@@ -207,6 +207,7 @@ function IntakePage() {
           <HeaderIndicators />
         </div>
         <IntakeChat
+          key={`chat-${resetKey}`}
           mode={state.mode}
           path={state.path}
           initialMessages={state.messages}
