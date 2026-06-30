@@ -150,10 +150,12 @@ function IntakePage() {
           <div className="pt-8">
             <LandingHero />
             <PathCards onPick={startWith} />
+            <div className="mt-2 mb-6">
+              <PromptChips onPick={startWith} />
+            </div>
           </div>
           <div className="flex-1" />
-          <div className="pb-8 sticky bottom-4">
-            <PromptChips onPick={startWith} />
+          <div className="pb-8 sticky bottom-4 bg-white/95 backdrop-blur">
             <Composer
               value={landingInput}
               onChange={setLandingInput}
