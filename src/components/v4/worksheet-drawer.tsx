@@ -153,9 +153,11 @@ function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
+  const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
   useAutoVerifyIntake();
 
   if (!ready) return null;
+
 
   const intake = state.intake;
   const doctorsCount = intake.doctors.value.length;
