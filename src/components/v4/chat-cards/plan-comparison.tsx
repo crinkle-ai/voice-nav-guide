@@ -40,7 +40,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 px-1 min-w-[1000px] lg:min-w-0">
         {data.plans.map((p) => {
           const r = data.rationale.find((x) => x.planId === p.id);
-          const isFav = favorites.some((f) => f.id === plan.id);
+          const isFav = favorites.some((f) => f.id === p.id);
           return (
             <PlanTile
               key={p.id}
