@@ -93,63 +93,50 @@ export function CallDialog({
     setTimeout(() => onOpenChange(false), 300);
   };
 
-  // ============ Minimized floating widget ============
+  // ============ Minimized floating widget while sharing ============
   if (open && minimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-emerald-500/50 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-        <div className="relative h-[146px] overflow-hidden bg-[#033592]">
-          <div className="absolute inset-3 rounded-xl border border-white/25 bg-white/10 p-3 text-left text-white shadow-inner">
-            <div className="h-2 w-20 rounded-full bg-white/80" />
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="h-12 rounded-lg bg-white/85" />
-              <div className="h-12 rounded-lg bg-[#E5F5F8]" />
-              <div className="h-9 rounded-lg bg-white/55" />
-              <div className="h-9 rounded-lg bg-white/35" />
+      <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-red-600 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center gap-3 p-3">
+          <img src={AGENT.avatar} alt={AGENT.name} className="h-10 w-10 rounded-full object-cover border border-line" />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-ink truncate">{AGENT.name}</div>
+            <div className="text-xs text-emerald-700 font-medium">
+              <Volume2 className="inline h-3 w-3 mr-0.5" /> {mmss}
             </div>
-            <div className="mt-3 h-2 w-32 rounded-full bg-emerald-300" />
           </div>
-          <div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            </span>
-            Demo sharing
-          </div>
-          <button
+        </div>
+
+        <div className="flex items-center gap-2 border-t border-line p-2">
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setMinimized(false)}
-            className="absolute top-2 right-2 rounded-md bg-black/60 p-1 text-white backdrop-blur hover:bg-black/80"
+            className="h-9 w-9"
             aria-label="Expand call"
             title="Expand call"
           >
-            <Maximize2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <div className="flex items-center gap-2 p-2.5">
-          <img src={AGENT.avatar} alt={AGENT.name} className="h-8 w-8 rounded-full object-cover" />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-ink truncate">{AGENT.name}</div>
-            <div className="text-[10px] text-emerald-700 font-medium">
-              <Volume2 className="inline h-2.5 w-2.5 mr-0.5" /> {mmss}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 border-t border-line p-2">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
             onClick={stopShare}
-            className="flex-1 h-8 gap-1 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-700 text-xs"
+            className="flex-1 h-9 gap-1 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-700 text-xs"
           >
-              <MonitorOff className="h-3.5 w-3.5" /> Stop demo
+            <MonitorOff className="h-3.5 w-3.5" /> Stop Sharing
           </Button>
+
           <Button
             variant="destructive"
-            size="sm"
+            size="icon"
             onClick={endCall}
-            className="h-8 gap-1 text-xs"
+            className="h-9 w-9"
             aria-label="End call"
+            title="End call"
           >
-            <PhoneOff className="h-3.5 w-3.5" />
+            <PhoneOff className="h-4 w-4" />
           </Button>
         </div>
       </div>
