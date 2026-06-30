@@ -250,35 +250,17 @@ function WorksheetDrawerInner() {
       );
     }
     if (card === "agent") {
-      const a = state.permanentAgent;
       return (
         <DetailWrap title="Your agent" onBack={() => setCard(null)}>
-          {a ? (
-            <div className="rounded-2xl border border-line bg-paper p-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={a.avatar}
-                  alt={a.name}
-                  className="h-14 w-14 rounded-full object-cover border border-line"
-                />
-                <div className="min-w-0">
-                  <div className="font-medium text-ink">{a.name}</div>
-                  <div className="text-xs text-muted-2">
-                    {a.title} · {a.location}
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-2 mt-0.5">NPN {a.npn}</div>
-                </div>
-              </div>
-              {a.facts[0] && <p className="mt-3 text-sm italic text-ink/70">“{a.facts[0]}”</p>}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-2">
-              No agent yet. Start a call from the composer and tap “Make this my permanent agent” to pin them here.
-            </p>
-          )}
+          <AgentDirectoryView
+            pinned={state.permanentAgent}
+            onPin={(a) => update({ permanentAgent: a })}
+            onCall={(a) => setCallAgent(a)}
+          />
         </DetailWrap>
       );
     }
+
     if (card === "favorites") {
       const favs = state.favoritePlans ?? [];
       return (
