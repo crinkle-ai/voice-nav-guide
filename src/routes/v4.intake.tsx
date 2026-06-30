@@ -10,6 +10,7 @@ import { Composer } from "@/components/v4/composer";
 import { CallDialog } from "@/components/v4/call-dialog";
 import { useSession, type HybridPath } from "@/lib/v4/session-store";
 import { extractIntake } from "@/lib/v4/intake.functions";
+import { mergeIntake } from "@/lib/v4/intake-merge";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
