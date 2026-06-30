@@ -86,8 +86,11 @@ export const Route = createFileRoute("/api/v4/chat")({
             execute: async (input) => ({ ok: true, rendered: input }),
           }),
           recommendPlans: tool({
-            description: "Render plan recommendations with per-plan rationale tied to intake.",
+            description:
+              "Render a confident plan recommendation: ONE recommended plan plus 1-3 runners-up, with per-plan rationale tied to intake. Only call when confidence is at least 80.",
             inputSchema: z.object({
+              recommendedPlanId: z.string().describe("The single plan id you are recommending. Must match an id in plans[]."),
+              confidence: z.number().min(0).max(100).describe("Your confidence in this recommendation, 0-100. Must be >= 80 to call this tool."),
               plans: z.array(
                 z.object({
                   id: z.string(),
@@ -116,9 +119,9 @@ export const Route = createFileRoute("/api/v4/chat")({
             execute: async (input) => ({ ok: true, rendered: input }),
           }),
           suggestNext: tool({
-            description: "Show 2-4 quick-reply chips under the assistant reply.",
+            description: "Show 2-5 quick-reply chips under the assistant reply.",
             inputSchema: z.object({
-              chips: z.array(z.string()).min(2).max(4),
+              chips: z.array(z.string()).min(2).max(5),
             }),
             execute: async (input) => ({ ok: true, rendered: input }),
           }),
