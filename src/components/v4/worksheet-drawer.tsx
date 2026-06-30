@@ -18,6 +18,8 @@ import {
   Wallet,
   Headset,
   PlusCircle,
+  Heart,
+  X as XIcon,
 } from "lucide-react";
 
 type Size = "min" | "half" | "full";
