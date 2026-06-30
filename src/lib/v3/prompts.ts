@@ -92,4 +92,11 @@ Rules:
   a concern / "cost doesn't matter", "medium" = balanced or unspecified leaning.
 - For priorities: only include things the caller themselves named as important (e.g. "I want to keep my
   doctors", "dental matters to me"). Do not infer priorities from medications or conditions alone.
+- USER turns may begin with the literal marker "__FORM_RESPONSE__" followed by structured answers from
+  an in-chat form (e.g. checkbox selections, ZIP entered in a field). Treat everything after that marker
+  as authoritative caller input and extract it with confidence "captured".
+- USER turns may also be short, single-field answers (a ZIP, "yes / no" for Medicaid, a plan name,
+  a list of conditions). Capture them into the matching field even when stated tersely.
 `.trim();
+
+
