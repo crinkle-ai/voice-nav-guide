@@ -418,8 +418,10 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               disabled={busy}
               live={live}
               intake={intake}
+              forceVideoCard={videoAssistantIds.has(message.id)}
             />
           ))}
+
           {/* inline plan fallback now injected into messages directly */}
           {busy && (
             <div className="flex items-center gap-2 text-sm text-ink/60 px-1">
