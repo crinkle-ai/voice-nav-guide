@@ -10,19 +10,19 @@ type Video = {
 
 const VIDEOS: Video[] = [
   {
-    id: "613nssXuek4",
+    id: "YSfMfg20iQs",
     title: "What are Medicare Parts A and B?",
     duration: "2:15",
     blurb: "The basics of Original Medicare coverage.",
   },
   {
-    id: "q1Yn1xHw_iY",
+    id: "Ba0groz1eYM",
     title: "Medicare Advantage (Part C) simply explained",
     duration: "1:50",
     blurb: "How Advantage plans bundle your coverage.",
   },
   {
-    id: "8U-alid6h1A",
+    id: "Cz7BrmU1Guk",
     title: "Supplement vs. Advantage: which is right for you?",
     duration: "2:30",
     blurb: "Side-by-side comparison to help you choose.",
