@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, Sparkles, Heart, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, Heart, ChevronDown, ChevronUp } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 
 export type RecommendedPlan = {
