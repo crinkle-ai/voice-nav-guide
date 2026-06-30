@@ -22,10 +22,10 @@ function AssistantMarkdown({ text }: { text: string }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ node, ...p }) => <h1 className="font-serif text-2xl text-[#131F69] mt-2 mb-1" {...p} />,
-          h2: ({ node, ...p }) => <h2 className="font-serif text-xl text-[#131F69] mt-2 mb-1" {...p} />,
-          h3: ({ node, ...p }) => <h3 className="font-semibold text-base text-[#131F69] mt-2 mb-1" {...p} />,
-          h4: ({ node, ...p }) => <h4 className="font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h1: ({ node, ...p }) => <h1 className="font-sans font-semibold text-[17px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h2: ({ node, ...p }) => <h2 className="font-sans font-semibold text-[16px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h3: ({ node, ...p }) => <h3 className="font-sans font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h4: ({ node, ...p }) => <h4 className="font-sans font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
         }}
       >
         {text}
@@ -411,9 +411,20 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
 
 
-  const chatItems: ChatItem[] = useMemo(
+  const lastUserMsgIndex = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === "user") return i;
+    }
+    return -1;
+  }, [messages]);
+
+  const chatItems: (ChatItem & { locked?: boolean })[] = useMemo(
     () => [
-      ...messages.map((m) => ({ message: m, live: false })),
+      ...messages.map((m, idx) => ({
+        message: m,
+        live: false,
+        locked: m.role === "assistant" && idx < lastUserMsgIndex,
+      })),
       ...voiceLive.map(
         (e) =>
           ({
@@ -426,7 +437,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           }) as ChatItem,
       ),
     ],
-    [messages, voiceLive],
+    [messages, voiceLive, lastUserMsgIndex],
   );
 
   return (
@@ -434,7 +445,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       <div className="flex-1 bg-white overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
-          {chatItems.map(({ message, live }) => (
+          {chatItems.map(({ message, live, locked }) => (
             <MessageRow
               key={message.id}
               message={message}
@@ -443,6 +454,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               disabled={busy}
               live={live}
               intake={intake}
+              locked={locked}
               forceVideoCard={videoAssistantIds.has(message.id)}
             />
           ))}
@@ -512,6 +524,7 @@ function MessageRow({
   live,
   intake,
   forceVideoCard,
+  locked,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
@@ -520,6 +533,7 @@ function MessageRow({
   live?: boolean;
   intake?: Intake;
   forceVideoCard?: boolean;
+  locked?: boolean;
 }) {
   const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
@@ -581,15 +595,12 @@ function MessageRow({
                 key={i}
                 data={input as QuestionnaireInput}
                 onSubmit={onQuestionnaireSubmit}
-                disabled={disabled}
+                disabled={disabled || locked}
               />
             );
           }
           if (part.type === "tool-recommendPlans" && input) {
             const toolCallId = (part as { toolCallId?: string }).toolCallId ?? "";
-            // Inline-injected cards stay in sync with the live intake so newly
-            // captured medications, ZIP, medicaid status, or priorities
-            // change which plans are surfaced.
             const liveData =
               intake && toolCallId.startsWith("inline-")
                 ? buildInlinePlanRecommendations(intake)
@@ -597,10 +608,12 @@ function MessageRow({
             return <PlanComparisonCard key={i} data={liveData} />;
           }
           if (part.type === "tool-suggestNext" && input) {
+            if (locked) return null;
             const { chips } = input as { chips: string[] };
             return <SuggestNextCard key={i} chips={chips} onPick={onPickChip} disabled={disabled} />;
           }
           if (part.type === "tool-learningPaths") {
+            if (locked) return null;
             return <LearningPathsCard key={i} onPick={onPickChip} disabled={disabled} />;
           }
           if (part.type === "tool-shortVideos") {
