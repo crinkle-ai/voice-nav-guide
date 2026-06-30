@@ -37,7 +37,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
 
   return (
     <div className="mt-3 -mx-1 overflow-x-auto">
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 px-1 min-w-[1000px] lg:min-w-0">
+      <div className="flex gap-4 px-1">
         {data.plans.map((p) => {
           const r = data.rationale.find((x) => x.planId === p.id);
           const isFav = favorites.some((f) => f.id === p.id);
@@ -48,6 +48,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
               rationale={r}
               isFav={isFav}
               onToggleFavorite={() => toggleFavorite(p)}
+              className="flex-1 min-w-[220px]"
             />
           );
         })}
@@ -61,11 +62,13 @@ function PlanTile({
   rationale: r,
   isFav,
   onToggleFavorite,
+  className,
 }: {
   plan: RecommendedPlan;
   rationale?: PlanRationale;
   isFav: boolean;
   onToggleFavorite: () => void;
+  className?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const highlights = p.highlights ?? [];
@@ -74,7 +77,7 @@ function PlanTile({
   const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
 
   return (
-    <article className="rounded-xl border border-ink/10 bg-paper overflow-hidden flex flex-col h-full">
+    <article className={`rounded-xl border border-ink/10 bg-paper overflow-hidden flex flex-col h-full ${className}`}>
       <div className="p-4 border-b border-ink/10 relative">
         <button
           type="button"
@@ -93,15 +96,9 @@ function PlanTile({
         <div className="text-[11px] uppercase tracking-wide text-muted-2 truncate pr-10">
           {p.carrier} · {p.type}
         </div>
-        <div className="font-serif text-base leading-snug text-ink mt-0.5 pr-10 line-clamp-2 min-h-[3.25rem]">
+        <div className="font-serif text-base leading-snug text-ink mt-0.5 pr-10 break-words">
           {p.name}
         </div>
-        {typeof p.starRating === "number" && (
-          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 text-xs px-2 py-1">
-            <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-            {p.starRating.toFixed(1)}
-          </div>
-        )}
       </div>
 
       <div className="px-4 py-3 border-b border-ink/10 bg-surface-soft/40">
