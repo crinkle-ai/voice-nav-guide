@@ -477,7 +477,7 @@ function MessageRow({
     // the questionnaire card already shows the user's own selections.
     if (rawText.startsWith("__FORM_RESPONSE__")) return null;
     return (
-      <div className="flex justify-end">
+      <div className="flex justify-end" data-mid={message.id} data-role="user">
         <div
           className={`max-w-[80%] rounded-2xl rounded-br-md bg-[#131F69] text-white px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
             live ? "opacity-70 italic" : ""
@@ -488,6 +488,9 @@ function MessageRow({
       </div>
     );
   }
+
+  return (
+    <div className="flex gap-3" data-mid={message.id} data-role="assistant">
 
   return (
     <div className="flex gap-3">
