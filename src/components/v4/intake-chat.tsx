@@ -394,6 +394,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               onQuestionnaireSubmit={(text) => submit(`__FORM_RESPONSE__\n${text}`)}
               disabled={busy}
               live={live}
+              intake={intake}
             />
           ))}
           {/* inline plan fallback now injected into messages directly */}
