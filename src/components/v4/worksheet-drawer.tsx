@@ -453,6 +453,28 @@ function WorksheetDrawerInner() {
               }
               onClick={() => setCard("agent")}
             />
+            <WorkspaceCard
+              cardKey="favorites"
+              status={(state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save"}
+              primary={
+                (state.favoritePlans ?? []).length === 0
+                  ? "Your favorite plans"
+                  : (state.favoritePlans ?? [])
+                      .slice(0, 2)
+                      .map((p) => p.name)
+                      .join(", ") +
+                    ((state.favoritePlans ?? []).length > 2
+                      ? ` +${(state.favoritePlans ?? []).length - 2}`
+                      : "")
+              }
+              secondary={
+                (state.favoritePlans ?? []).length === 0
+                  ? "Tap the heart on any plan to save it"
+                  : "Tap to compare your saved plans"
+              }
+              onClick={() => setCard("favorites")}
+            />
+
 
             <button
               type="button"
