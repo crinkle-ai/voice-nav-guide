@@ -191,11 +191,11 @@ function IntakePage() {
 
   return (
     <AppShell step="intake">
-      <div className="w-full px-4 sm:px-8 flex flex-col min-h-[calc(100vh-140px)]">
-        <div className="mb-6 flex items-baseline justify-between gap-4">
+      <div className="w-full px-4 sm:px-8 flex flex-col min-h-[calc(100vh-120px)]">
+        <div className="mb-2 flex items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl text-[#131F69]">Let's talk Medicare</h1>
-            <p className="text-sm text-[#131F69]/70 mt-1">
+            <h1 className="font-serif text-2xl text-[#131F69] leading-none">Let's talk Medicare</h1>
+            <p className="text-xs text-[#131F69]/70 mt-0.5 leading-tight">
               Type, dictate, or have a live voice conversation.{" "}
               {state.mode === "hybrid" && (
                 <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
@@ -204,7 +204,7 @@ function IntakePage() {
               )}
             </p>
           </div>
-          <HeaderIndicators />
+          <HeaderIndicators compact />
         </div>
         <div className="flex-1 flex flex-col min-h-0">
           <IntakeChat
