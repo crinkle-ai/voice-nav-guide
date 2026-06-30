@@ -41,7 +41,7 @@ export function AppShell({
         />
       )}
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-6 h-11 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/v4" className="flex items-center gap-1.5">
               <img
