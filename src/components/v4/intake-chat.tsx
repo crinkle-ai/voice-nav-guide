@@ -524,6 +524,7 @@ function MessageRow({
   live,
   intake,
   forceVideoCard,
+  locked,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
@@ -532,6 +533,7 @@ function MessageRow({
   live?: boolean;
   intake?: Intake;
   forceVideoCard?: boolean;
+  locked?: boolean;
 }) {
   const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
