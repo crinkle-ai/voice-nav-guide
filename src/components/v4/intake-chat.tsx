@@ -141,10 +141,40 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   useEffect(() => {
     onMessagesChange(messages);
-    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, onMessagesChange]);
 
+  // ChatGPT-style scroll: when a new user message is added, scroll to bottom
+  // so the user sees their submission. When a new assistant message begins,
+  // scroll so the TOP of that new message is at the top of the viewport, and
+  // do not chase the bottom while it streams. The user can scroll freely after.
+  const lastUserIdRef = useRef<string | null>(null);
+  const lastAssistantIdRef = useRef<string | null>(null);
   useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (lastUser && lastUser.id !== lastUserIdRef.current) {
+      lastUserIdRef.current = lastUser.id;
+      // Defer to next frame so the new node is in the DOM.
+      requestAnimationFrame(() => {
+        scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+      });
+    }
+    if (lastAssistant && lastAssistant.id !== lastAssistantIdRef.current) {
+      lastAssistantIdRef.current = lastAssistant.id;
+      requestAnimationFrame(() => {
+        const el = scroller.querySelector<HTMLElement>(`[data-mid="${lastAssistant.id}"]`);
+        if (!el) return;
+        const top = el.offsetTop - scroller.offsetTop - 8;
+        scroller.scrollTo({ top, behavior: "smooth" });
+      });
+    }
+  }, [messages]);
+
+  // For live voice transcripts, keep pinned to bottom (real-time conversation).
+  useEffect(() => {
+    if (voiceLive.length === 0) return;
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
   }, [voiceLive]);
 
@@ -447,7 +477,7 @@ function MessageRow({
     // the questionnaire card already shows the user's own selections.
     if (rawText.startsWith("__FORM_RESPONSE__")) return null;
     return (
-      <div className="flex justify-end">
+      <div className="flex justify-end" data-mid={message.id} data-role="user">
         <div
           className={`max-w-[80%] rounded-2xl rounded-br-md bg-[#131F69] text-white px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm ${
             live ? "opacity-70 italic" : ""
@@ -460,7 +490,7 @@ function MessageRow({
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3" data-mid={message.id} data-role="assistant">
       <div className="h-8 w-8 shrink-0 rounded-full bg-[#033592] flex items-center justify-center p-1.5">
         <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-full w-full object-contain" />
       </div>
