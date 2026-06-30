@@ -486,6 +486,7 @@ function MessageRow({
   disabled,
   live,
   intake,
+  forceVideoCard,
 }: {
   message: UIMessage;
   onPickChip: (chip: string) => void;
@@ -493,12 +494,20 @@ function MessageRow({
   disabled: boolean;
   live?: boolean;
   intake?: Intake;
+  forceVideoCard?: boolean;
 }) {
   const rawText = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
     .join("")
     .trim();
-  const text = message.role === "assistant" ? stripLeakedToolText(rawText) : rawText;
+  let text = message.role === "assistant" ? stripLeakedToolText(rawText) : rawText;
+  // If this assistant should show the videos card, replace any apologetic
+  // "can't play videos here" prose with a clean lead-in sentence.
+  if (forceVideoCard && message.role === "assistant") {
+    if (!text || /can'?t\s+play|cannot\s+play|can'?t\s+(show|display|embed)|cannot\s+(show|display|embed)|don'?t\s+have\s+the\s+ability|unable to (play|show|display)/i.test(text)) {
+      text = SHORT_VIDEOS_LEAD;
+    }
+  }
 
   if (message.role === "user") {
     // Hide auto-generated user bubbles from inline questionnaire submissions —
@@ -517,6 +526,9 @@ function MessageRow({
     );
   }
 
+  const hasVideosPart = message.parts.some((p) => (p as AnyPart).type === "tool-shortVideos");
+  const shouldRenderVideos = forceVideoCard && !hasVideosPart;
+
   return (
     <div className="flex gap-3" data-mid={message.id} data-role="assistant">
       <div className="h-8 w-8 shrink-0 rounded-full bg-[#033592] flex items-center justify-center p-1.5">
@@ -530,6 +542,8 @@ function MessageRow({
             <AssistantMarkdown text={text} />
           )
         )}
+        {shouldRenderVideos && <ShortVideosCard onPick={onPickChip} disabled={disabled} />}
+
 
         {message.parts.map((p, i) => {
           const part = p as AnyPart;
