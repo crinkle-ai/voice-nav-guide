@@ -68,8 +68,8 @@ function IntakePage() {
             role: m.role === "user" ? ("user" as const) : ("assistant" as const),
             content: m.parts.map((p) => (p.type === "text" ? p.text : "")).join(""),
           }));
-          const intake = await extractIntake({ data: { messages: transcript } });
-          update({ intake });
+          const extracted = await extractIntake({ data: { messages: transcript } });
+          update((prev) => ({ intake: mergeIntake(prev.intake, extracted) }));
         } catch (e) {
           console.error(e);
         } finally {
