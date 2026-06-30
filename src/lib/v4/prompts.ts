@@ -218,7 +218,7 @@ Start with a one-sentence plain-language reassurance ("Medicare can feel like a 
 I'll keep this simple."). Then ask about their situation in everyday language:
 when they turn 65 (or already did), whether they're still working, and what they
 worry about most. Collect ZIP, doctors, and meds gently as the conversation goes.
-Explain jargon briefly when it comes up. No bullet lists.`,
+Explain jargon briefly when it comes up. Use short headings and bullets only when they help explain a concept.`,
 };
 
 export const SYSTEM_PROMPTS: Record<IntakeMode, string> = {
