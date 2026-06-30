@@ -1,9 +1,5 @@
 import { Sparkles, ListChecks } from "lucide-react";
 
-type Props = {
-  onPick: (prompt: string) => void;
-};
-
 const CARDS = [
   {
     key: "starting",
@@ -11,7 +7,7 @@ const CARDS = [
     desc: "Walk me through the basics — eligibility, parts, and what to do first.",
     icon: Sparkles,
     prompt: "I'm just starting Medicare and want to understand the basics.",
-    iconBg: "#DADADA",
+    bg: "#DADADA",
   },
   {
     key: "plans",
@@ -19,11 +15,13 @@ const CARDS = [
     desc: "Help me compare plans that fit my doctors, meds, and budget.",
     icon: ListChecks,
     prompt: "I want to see Medicare plans that fit my situation.",
-    iconBg: "#59D1E2",
+    bg: "#59D1E2",
   },
 ];
 
-export function PathCards({ onPick }: Props) {
+const V4_INK = "#131F69";
+
+export function PathCards({ onPick }: { onPick: (prompt: string) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
       {CARDS.map((c) => {
@@ -33,27 +31,29 @@ export function PathCards({ onPick }: Props) {
             key={c.key}
             type="button"
             onClick={() => onPick(c.prompt)}
-            className="text-left rounded-2xl border border-[#131F69]/10 bg-white p-5 hover:border-[#131F69] hover:shadow-md transition-all group"
+            className="text-left rounded-2xl border border-white/30 p-5 hover:shadow-md transition-all group"
+            style={{ backgroundColor: c.bg }}
           >
             <div className="flex items-start gap-3">
               <div
-                className="h-10 w-10 rounded-xl text-[#131F69] flex items-center justify-center shrink-0 transition"
-                style={{ backgroundColor: c.iconBg }}
+                className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition"
+                style={{ backgroundColor: "#ffffff" }}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" style={{ color: V4_INK }} />
               </div>
               <div className="min-w-0">
                 <div
-                  className="text-lg text-[#131F69]"
-                  style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }}
+                  className="text-lg"
+                  style={{ fontFamily: '"Source Serif Pro", Georgia, serif', color: V4_INK }}
                 >
                   {c.title}
                 </div>
-                <div className="text-sm text-[#131F69]/70 mt-1">{c.desc}</div>
+                <div className="text-sm mt-1" style={{ color: `${V4_INK}cc` }}>
+                  {c.desc}
+                </div>
               </div>
             </div>
           </button>
-
         );
       })}
     </div>
