@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Heart, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, Heart, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 
 export type RecommendedPlan = {
@@ -21,11 +21,16 @@ export type PlanRationale = {
 export type RecommendPlansInput = {
   plans: RecommendedPlan[];
   rationale: PlanRationale[];
+  recommendedPlanId?: string;
+  confidence?: number;
 };
 
 export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
   const { state, update } = useSession();
   const favorites = state.favoritePlans ?? [];
+  const recommendedId = data.recommendedPlanId ?? data.plans[0]?.id;
+  const confidence = data.confidence;
+  const hasRecommendation = !!recommendedId && typeof confidence === "number" && confidence >= 80;
 
   const toggleFavorite = (plan: RecommendedPlan) => {
     const exists = favorites.some((p) => p.id === plan.id);
@@ -36,22 +41,38 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
   };
 
   return (
-    <div className="mt-3 -mx-1 overflow-x-auto">
-      <div className="flex gap-4 px-1">
-        {data.plans.map((p) => {
-          const r = data.rationale.find((x) => x.planId === p.id);
-          const isFav = favorites.some((f) => f.id === p.id);
-          return (
-            <PlanTile
-              key={p.id}
-              plan={p}
-              rationale={r}
-              isFav={isFav}
-              onToggleFavorite={() => toggleFavorite(p)}
-              className="flex-1 min-w-[220px]"
-            />
-          );
-        })}
+    <div className="mt-3">
+      {hasRecommendation && (
+        <div className="mb-3 flex items-center gap-3 px-1">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#033592]">
+            <ShieldCheck className="h-4 w-4" /> Recommendation Confidence
+          </div>
+          <div className="flex-1 h-1.5 rounded-full bg-[#033592]/10 overflow-hidden max-w-[180px]">
+            <div className="h-full bg-[#033592] transition-all" style={{ width: `${confidence}%` }} />
+          </div>
+          <div className="text-sm font-semibold text-[#033592] tabular-nums">{confidence}%</div>
+        </div>
+      )}
+      <div className="-mx-1 overflow-x-auto">
+        <div className="flex gap-4 px-1 items-stretch">
+          {data.plans.map((p) => {
+            const r = data.rationale.find((x) => x.planId === p.id);
+            const isFav = favorites.some((f) => f.id === p.id);
+            const isRecommended = hasRecommendation && p.id === recommendedId;
+            return (
+              <PlanTile
+                key={p.id}
+                plan={p}
+                rationale={r}
+                isFav={isFav}
+                isRecommended={isRecommended}
+                deemphasize={hasRecommendation && !isRecommended}
+                onToggleFavorite={() => toggleFavorite(p)}
+                className="flex-1 min-w-[220px]"
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );
