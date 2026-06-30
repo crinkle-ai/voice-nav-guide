@@ -33,35 +33,89 @@ function mergeStringList(
   return { value, confidence: value.length === 0 ? "missing" : confidence };
 }
 
+function normalizeDoctorName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\b(dr|doctor|prof|professor|mr|mrs|ms|mx)\.?\b/g, "")
+    .replace(/[,\s]+(md|do|dc|np|pa|pa-c|rn|phd|dds|dpm|dnp|facp|faafp|jr|sr|ii|iii|iv)\b\.?/g, "")
+    .replace(/[.,]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function doctorKey(d: DoctorEntry): string {
-  return d.name.toLowerCase().replace(/\s+/g, " ").trim();
+  const npi = d.npiVerification?.selectedNpi;
+  if (npi) return `npi:${npi}`;
+  return `name:${normalizeDoctorName(d.name)}`;
+}
+
+function mergeDoctorEntries(a: DoctorEntry, b: DoctorEntry): DoctorEntry {
+  const aVerified = Boolean(a.npiVerification);
+  const bVerified = Boolean(b.npiVerification);
+  const base = aVerified ? a : bVerified ? b : a;
+  const fill = base === a ? b : a;
+  return {
+    ...base,
+    name: base.name || fill.name,
+    specialty: base.specialty ?? fill.specialty,
+    clinic: base.clinic ?? fill.clinic,
+    city: base.city ?? fill.city,
+    zip: base.zip ?? fill.zip,
+    npiVerification: base.npiVerification ?? fill.npiVerification,
+    verification: base.npiVerification ? base.verification : fill.verification,
+  };
 }
 
 function mergeDoctors(
   prior: { value: DoctorEntry[]; confidence: Confidence },
   next: { value: DoctorEntry[]; confidence: Confidence },
 ): { value: DoctorEntry[]; confidence: Confidence } {
+  const all = [...prior.value, ...next.value];
+  // Pass 1: dedupe by key (NPI or normalized name).
   const byKey = new Map<string, DoctorEntry>();
-  for (const d of prior.value) byKey.set(doctorKey(d), d);
-  for (const d of next.value) {
+  const order: string[] = [];
+  for (const d of all) {
     const k = doctorKey(d);
     const existing = byKey.get(k);
-    if (!existing) {
-      byKey.set(k, d);
+    if (existing) {
+      byKey.set(k, mergeDoctorEntries(existing, d));
     } else {
-      byKey.set(k, {
-        ...existing,
-        ...d,
-        // Preserve verification artifacts we added locally.
-        npiVerification: existing.npiVerification ?? d.npiVerification,
-        verification: existing.npiVerification ? existing.verification : d.verification,
-      });
+      byKey.set(k, d);
+      order.push(k);
     }
   }
-  const value = Array.from(byKey.values());
+  // Pass 2: collapse name-keyed entries that match an NPI-keyed entry.
+  const result: DoctorEntry[] = order.map((k) => byKey.get(k)!);
+  const byNpi = new Map<string, number>();
+  const removed = new Set<number>();
+  result.forEach((d, i) => {
+    const npi = d.npiVerification?.selectedNpi;
+    if (!npi) return;
+    const existingIdx = byNpi.get(npi);
+    if (existingIdx === undefined) {
+      byNpi.set(npi, i);
+    } else {
+      result[existingIdx] = mergeDoctorEntries(result[existingIdx], d);
+      removed.add(i);
+    }
+  });
+  // Pass 3: drop unverified name-only entries whose normalized name matches
+  // an NPI-verified entry already present.
+  const verifiedNames = new Set(
+    result
+      .filter((_, i) => !removed.has(i))
+      .filter((d) => d.npiVerification?.selectedNpi)
+      .map((d) => normalizeDoctorName(d.name)),
+  );
+  result.forEach((d, i) => {
+    if (removed.has(i)) return;
+    if (d.npiVerification?.selectedNpi) return;
+    if (verifiedNames.has(normalizeDoctorName(d.name))) removed.add(i);
+  });
+  const final = result.filter((_, i) => !removed.has(i));
   const confidence: Confidence =
     rank(next.confidence) >= rank(prior.confidence) ? next.confidence : prior.confidence;
-  return { value, confidence: value.length === 0 ? "missing" : confidence };
+  return { value: final, confidence: final.length === 0 ? "missing" : confidence };
 }
 
 function medKey(m: MedicationEntry): string {
