@@ -53,6 +53,7 @@ function write(s: SessionState) {
 export function useSession() {
   const [state, setState] = useState<SessionState>(initial);
   const [ready, setReady] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     setState(read());
