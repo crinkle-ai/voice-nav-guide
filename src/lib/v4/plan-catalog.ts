@@ -154,7 +154,29 @@ export function buildInlinePlanRecommendations(intake: Intake) {
   const fallback = PLAN_CATALOG.slice(0, 3);
   const selected = matches.length > 0 ? matches : fallback;
 
+  // Score plans against intake to pick a single best fit.
+  const scored = selected.map((plan) => {
+    let score = 0;
+    const details = PLAN_DETAILS[plan.id];
+    if (hasMedicaid(intake) && plan.type === "D-SNP") score += 100;
+    if (wantsTravel(intake) && (plan.type === "MA-PPO" || plan.type === "Medigap")) score += 30;
+    if (budgetLow(intake) && details && details.monthlyPremium <= 25) score += 25;
+    if (hasDrugs(intake) && (plan.type === "MA-HMO" || plan.type === "MA-PPO" || plan.type === "D-SNP")) score += 15;
+    if ((intake.doctors?.value || []).length > 0 && (plan.type === "MA-PPO" || plan.type === "Medigap")) score += 20;
+    // Slight default preference for MA-HMO when nothing else differentiates (most common starting point).
+    if (plan.type === "MA-HMO") score += 5;
+    return { plan, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const recommendedPlanId = scored[0]?.plan.id;
+
+  // Confidence = intake completeness, with floor/ceiling.
+  const { pct } = computeProgress(intake);
+  const confidence = Math.max(35, Math.min(98, pct));
+
   return {
+    recommendedPlanId,
+    confidence,
     plans: selected.map((plan) => {
       const details = PLAN_DETAILS[plan.id] ?? {
         monthlyPremium: 0,
