@@ -82,12 +82,16 @@ function PlanTile({
   plan: p,
   rationale: r,
   isFav,
+  isRecommended,
+  deemphasize,
   onToggleFavorite,
   className,
 }: {
   plan: RecommendedPlan;
   rationale?: PlanRationale;
   isFav: boolean;
+  isRecommended?: boolean;
+  deemphasize?: boolean;
   onToggleFavorite: () => void;
   className?: string;
 }) {
@@ -97,8 +101,19 @@ function PlanTile({
   const reasons = r?.reasons ?? [];
   const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
 
+  const borderCls = isRecommended
+    ? "border-[3px] border-[#033592] shadow-[0_0_0_4px_rgba(3,53,146,0.12),0_12px_32px_-8px_rgba(3,53,146,0.35)]"
+    : deemphasize
+      ? "border border-ink/10 opacity-70"
+      : "border border-ink/10";
+
   return (
-    <article className={`rounded-xl border border-ink/10 bg-paper overflow-hidden flex flex-col h-full ${className}`}>
+    <article className={`relative rounded-xl ${borderCls} bg-paper overflow-hidden flex flex-col h-full ${className}`}>
+      {isRecommended && (
+        <div className="absolute -top-2 right-3 z-10 rounded-full bg-[#033592] text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 shadow">
+          Recommended
+        </div>
+      )}
       <div className="p-4 border-b border-ink/10 relative">
         <button
           type="button"
