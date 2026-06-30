@@ -1,11 +1,24 @@
-Plan: align the Executive Chooser landing page with the actual V4 route.
+## Goal
+Make the `/v4/intake` active chat surface always span the full page width and height, regardless of whether plan cards are present. Demo cheat sheet (left) and Workspace drawer (right) overlay on top via their existing `fixed` positioning.
 
-The current landing page shows the /v4 demo card with the eyebrow "Version 3", while the URL and codebase refer to it as /v4. This mismatch is confusing.
+## Changes
 
-Change to make:
-- In `src/routes/index.tsx`, update the V4 demo card's `eyebrow` from `"Version 3"` to `"Version 4"`.
-- Leave the title and description unchanged unless the user wants them updated.
+**`src/routes/v4.intake.tsx`** — active chat view only (landing + structured wizard unchanged)
+- Swap the `max-w-3xl mx-auto` wrapper for a full-width flex column container that fills the viewport height (e.g. `w-full px-6 flex flex-col min-h-[calc(100vh-160px)]`).
+- Header (title + `HeaderIndicators`) stays at the top.
+- `IntakeChat` wrapper gets `flex-1` so the transcript expands and the composer hugs the bottom.
 
-Verification:
-- Run the build and confirm no errors.
-- Confirm the landing page card shows "Version 4" and clicking it still navigates to /v4/intake.
+**`src/components/v4/intake-chat.tsx`** — verify
+- Ensure the chat root uses `h-full` / `flex-1` so it actually fills the new tall container, and that the inner transcript scrolls within it.
+- Remove any internal `max-w-*` that would re-narrow the surface.
+
+**`src/components/v4/app-shell.tsx`** — verify
+- Confirm the children slot doesn't impose a max-width on `/v4/intake`. If it does, relax it for this route.
+
+**Overlap behavior**
+- No layout reservation for the cheat sheet or Workspace drawer — both are already `fixed` and will float over the wider chat.
+
+## Out of scope
+- Plan card grid layout (no changes — it will naturally flow horizontally inside the wider container).
+- Landing screen and structured wizard layouts.
+- Cheat sheet / Workspace drawer styling.
