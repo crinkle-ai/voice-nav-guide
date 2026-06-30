@@ -71,7 +71,7 @@ const FALLBACK_RULE = `
 ANSWER QUESTIONS FIRST: When the caller asks a question (anything ending in "?", or any
 "what is / how does / can I / do I / when should / explain / tell me about / why"
 phrasing), your FIRST job is to actually answer it using the UHC knowledge above, in
-2-4 plain sentences. Do this BEFORE asking your own follow-up. Never reply with only a
+1–3 short paragraphs (about 75–150 words total). Do this BEFORE asking your own follow-up. Never reply with only a
 new question. Never reply with only a tool call. After answering, you may add one short
 follow-up question OR a suggestNext chip set — not both.
 
