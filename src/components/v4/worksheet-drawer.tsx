@@ -145,7 +145,7 @@ function WorksheetDrawerInner() {
   const [card, setCard] = useState<CardKey | null>(null);
   useAutoVerifyIntake();
 
-  if (!ready || !state.mode) return null;
+  if (!ready) return null;
 
   const intake = state.intake;
   const doctorsCount = intake.doctors.value.length;
