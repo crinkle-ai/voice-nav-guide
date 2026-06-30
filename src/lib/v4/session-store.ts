@@ -23,6 +23,7 @@ export type SessionState = {
   finished: boolean;
   permanentAgent?: PermanentAgent;
   sharingActive?: boolean;
+  favoritePlans?: RecommendedPlan[];
 };
 
 const KEY = "v4-medicare-compass-session-v1";
