@@ -366,53 +366,24 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     );
   }, [busy, messages, setMessages]);
 
-  // Inject the "Short Videos" card when the user asks to watch Medicare videos.
-  // Replace any JSON-leaking assistant text with a clean lead-in.
-  const videosInjectedRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (busy) return;
-    let askIdx = -1;
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      const m = messages[i];
-      if (m.role !== "user") continue;
-      const t = messageText(m);
-      if (t && SHORT_VIDEOS_RE.test(t)) {
-        askIdx = i;
-        break;
+  // Render the "Short Videos" card whenever the user asked to watch Medicare videos.
+  // We compute this at render time (rather than mutating message parts) so the card
+  // appears reliably even if the assistant streams its own apologetic prose.
+  const videoAssistantIds = useMemo(() => {
+    const ids = new Set<string>();
+    let pending = false;
+    for (const m of messages) {
+      if (m.role === "user") {
+        const t = messageText(m);
+        if (t && SHORT_VIDEOS_RE.test(t)) pending = true;
+      } else if (m.role === "assistant" && pending) {
+        ids.add(m.id);
+        pending = false;
       }
     }
-    if (askIdx < 0) return;
-    const assistant = messages.slice(askIdx + 1).find((m) => m.role === "assistant");
-    if (!assistant) return;
-    if (videosInjectedRef.current.has(assistant.id)) return;
-    const hasVideosTool = assistant.parts.some((p) => (p as AnyPart).type === "tool-shortVideos");
-    if (hasVideosTool) {
-      videosInjectedRef.current.add(assistant.id);
-      return;
-    }
-    videosInjectedRef.current.add(assistant.id);
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === assistant.id
-          ? {
-              ...m,
-              parts: [
-                // Collapse the assistant's prose into a single clean lead-in so any
-                // accidentally inlined JSON / link dump is hidden.
-                { type: "text", text: SHORT_VIDEOS_LEAD },
-                {
-                  type: "tool-shortVideos",
-                  toolCallId: `inline-videos-${assistant.id}`,
-                  state: "output-available",
-                  input: {},
-                  output: {},
-                } as UIMessage["parts"][number],
-              ],
-            }
-          : m,
-      ),
-    );
-  }, [busy, messages, setMessages]);
+    return ids;
+  }, [messages]);
+
 
 
   const chatItems: ChatItem[] = useMemo(
