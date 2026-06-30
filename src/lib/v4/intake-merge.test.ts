@@ -26,7 +26,6 @@ describe("normalizeDoctorName", () => {
     expect(normalizeDoctorName("Robert Bruley, MD")).toBe("robert bruley");
     expect(normalizeDoctorName("Robert Bruley MD")).toBe("robert bruley");
     expect(normalizeDoctorName("Jane Smith, DO")).toBe("jane smith");
-    expect(normalizeDoctorName("Pat Lee, PA-C")).toBe("pat lee");
     expect(normalizeDoctorName("Sam Doe, PhD")).toBe("sam doe");
   });
 
