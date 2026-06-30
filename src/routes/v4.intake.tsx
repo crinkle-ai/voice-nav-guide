@@ -191,7 +191,7 @@ function IntakePage() {
 
   return (
     <AppShell step="intake">
-      <div className="max-w-3xl mx-auto">
+      <div className="w-full px-4 sm:px-8 flex flex-col min-h-[calc(100vh-140px)]">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
             <h1 className="font-serif text-3xl text-[#131F69]">Let's talk Medicare</h1>
@@ -206,16 +206,18 @@ function IntakePage() {
           </div>
           <HeaderIndicators />
         </div>
-        <IntakeChat
-          key={`chat-${resetKey}`}
-          mode={state.mode}
-          path={state.path}
-          initialMessages={state.messages}
-          onMessagesChange={onMessagesChange}
-          intake={state.intake}
-          autoSend={autoSend}
-          skipOpener={!!autoSend}
-        />
+        <div className="flex-1 flex flex-col min-h-0">
+          <IntakeChat
+            key={`chat-${resetKey}`}
+            mode={state.mode}
+            path={state.path}
+            initialMessages={state.messages}
+            onMessagesChange={onMessagesChange}
+            intake={state.intake}
+            autoSend={autoSend}
+            skipOpener={!!autoSend}
+          />
+        </div>
         {extracting && (
           <p className="text-xs text-[#131F69]/70 mt-3">Updating workspace…</p>
         )}
