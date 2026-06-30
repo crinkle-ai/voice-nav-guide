@@ -76,14 +76,20 @@ export function HeaderIndicators({ compact = false }: { compact?: boolean }) {
             )}
           </div>
           <DialogFooter>
-            <Link
-              to="/v4/matches"
-              onClick={() => setOpen(false)}
-              className="text-sm font-medium px-3 py-2 rounded-md text-white"
-              style={{ backgroundColor: HEADER_TEXT }}
-            >
-              See full comparison
-            </Link>
+            {hasZip ? (
+              <Link
+                to="/v4/matches"
+                onClick={() => setOpen(false)}
+                className="text-sm font-medium px-3 py-2 rounded-md text-white"
+                style={{ backgroundColor: HEADER_TEXT }}
+              >
+                See full comparison
+              </Link>
+            ) : (
+              <div className="text-xs text-slate-600">
+                Share your 5-digit ZIP code with the assistant to unlock the full comparison.
+              </div>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
