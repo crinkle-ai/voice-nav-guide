@@ -66,7 +66,7 @@ function mergeDoctorEntries(a: DoctorEntry, b: DoctorEntry): DoctorEntry {
   };
 }
 
-function mergeDoctors(
+export function mergeDoctors(
   prior: { value: DoctorEntry[]; confidence: Confidence },
   next: { value: DoctorEntry[]; confidence: Confidence },
 ): { value: DoctorEntry[]; confidence: Confidence } {
