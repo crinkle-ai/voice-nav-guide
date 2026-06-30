@@ -150,7 +150,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
 }
 
 function WorksheetDrawerInner() {
-  const { state, ready } = useSession();
+  const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   useAutoVerifyIntake();
