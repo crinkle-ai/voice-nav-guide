@@ -150,14 +150,6 @@ function IntakePage() {
           <div className="pt-8">
             <LandingHero />
             <PathCards onPick={startWith} />
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={loadDiabeticDemo}
-                className="text-xs text-[#131F69]/60 hover:text-[#131F69] underline underline-offset-2"
-              >
-                Demo: load diabetic 55410 profile → matches
-              </button>
-            </div>
           </div>
           <div className="flex-1" />
           <div className="pb-8 sticky bottom-4">
