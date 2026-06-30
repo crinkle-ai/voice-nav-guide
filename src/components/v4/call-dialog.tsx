@@ -51,40 +51,13 @@ export function CallDialog({
   const stopShare = () => {
     setSharing(false);
     setMinimized(false);
-  };
-
-  useEffect(() => {
-    if (!open) {
-      setStatus("ringing");
-      setMuted(false);
-      setSecs(0);
-      setJustPinned(false);
-      setMinimized(false);
-      stopShare();
-      return;
-    }
-    const t = setTimeout(() => setStatus("connected"), 2200);
-    return () => clearTimeout(t);
-  }, [open]);
-
-  useEffect(() => {
-    if (status !== "connected") return;
-    const i = setInterval(() => setSecs((s) => s + 1), 1000);
-    return () => clearInterval(i);
-  }, [status]);
-
-  useEffect(() => stopShare, []);
-
-  const mmss = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
-
-  const makePermanent = () => {
-    update({ permanentAgent: AGENT });
-    setJustPinned(true);
+    update({ sharingActive: false });
   };
 
   const startShare = () => {
     setSharing(true);
     setMinimized(true);
+    update({ sharingActive: true });
   };
 
   const endCall = () => {
