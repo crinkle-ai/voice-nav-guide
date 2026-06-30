@@ -22,10 +22,10 @@ function AssistantMarkdown({ text }: { text: string }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ node, ...p }) => <h1 className="font-serif text-2xl text-[#131F69] mt-2 mb-1" {...p} />,
-          h2: ({ node, ...p }) => <h2 className="font-serif text-xl text-[#131F69] mt-2 mb-1" {...p} />,
-          h3: ({ node, ...p }) => <h3 className="font-semibold text-base text-[#131F69] mt-2 mb-1" {...p} />,
-          h4: ({ node, ...p }) => <h4 className="font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h1: ({ node, ...p }) => <h1 className="font-sans font-semibold text-[17px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h2: ({ node, ...p }) => <h2 className="font-sans font-semibold text-[16px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h3: ({ node, ...p }) => <h3 className="font-sans font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
+          h4: ({ node, ...p }) => <h4 className="font-sans font-semibold text-[15px] text-[#131F69] mt-2 mb-1" {...p} />,
         }}
       >
         {text}
