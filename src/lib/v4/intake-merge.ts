@@ -33,7 +33,7 @@ function mergeStringList(
   return { value, confidence: value.length === 0 ? "missing" : confidence };
 }
 
-function normalizeDoctorName(name: string): string {
+export function normalizeDoctorName(name: string): string {
   return name
     .toLowerCase()
     .replace(/\b(dr|doctor|prof|professor|mr|mrs|ms|mx)\.?\b/g, "")
@@ -43,7 +43,7 @@ function normalizeDoctorName(name: string): string {
     .trim();
 }
 
-function doctorKey(d: DoctorEntry): string {
+export function doctorKey(d: DoctorEntry): string {
   const npi = d.npiVerification?.selectedNpi;
   if (npi) return `npi:${npi}`;
   return `name:${normalizeDoctorName(d.name)}`;
