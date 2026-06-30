@@ -47,7 +47,7 @@ export function AppShell({
               <img
                 src={emblemAsset.url}
                 alt="UnitedHealthcare"
-                className="h-12 w-auto object-contain"
+                className="h-7 w-auto object-contain"
               />
               <div className="flex flex-col leading-none -ml-1">
                 <span
