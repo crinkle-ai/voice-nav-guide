@@ -61,15 +61,6 @@ export function AppShell({
                 </span>
               </div>
             </Link>
-            <Link
-              to="/"
-              className="text-xs transition ml-4"
-              style={{ color: `${V4_HEADER_TEXT}b3` }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = V4_HEADER_TEXT)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = `${V4_HEADER_TEXT}b3`)}
-            >
-              ← Back
-            </Link>
           </div>
           <div className="flex items-center gap-5 text-sm" style={{ color: V4_HEADER_TEXT }}>
             {rightSlot}
