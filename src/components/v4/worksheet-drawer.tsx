@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 type Size = "min" | "half" | "full";
-type CardKey = "personal" | "doctors" | "meds" | "budget" | "agent";
+type CardKey = "personal" | "doctors" | "meds" | "budget" | "agent" | "favorites";
 
 const PALETTE: Record<
   CardKey,
