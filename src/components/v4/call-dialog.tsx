@@ -98,7 +98,7 @@ export function CallDialog({
   // ============ Minimized floating widget while sharing ============
   if (open && minimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-red-600 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+      <div className="fixed bottom-6 right-6 z-[80] w-[280px] rounded-2xl border-2 border-gray-400 bg-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-3 p-3">
           <img src={AGENT.avatar} alt={AGENT.name} className="h-10 w-10 rounded-full object-cover border border-line" />
           <div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export function CallDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-md ${sharing ? "border-2 border-red-600" : ""}`}>
+      <DialogContent className={`sm:max-w-md ${sharing ? "border-2 border-gray-400" : ""}`}>
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl">
             {status === "ringing" ? "Connecting you to a licensed agent…" : "On call"}
