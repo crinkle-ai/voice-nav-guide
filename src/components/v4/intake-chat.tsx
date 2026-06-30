@@ -595,15 +595,12 @@ function MessageRow({
                 key={i}
                 data={input as QuestionnaireInput}
                 onSubmit={onQuestionnaireSubmit}
-                disabled={disabled}
+                disabled={disabled || locked}
               />
             );
           }
           if (part.type === "tool-recommendPlans" && input) {
             const toolCallId = (part as { toolCallId?: string }).toolCallId ?? "";
-            // Inline-injected cards stay in sync with the live intake so newly
-            // captured medications, ZIP, medicaid status, or priorities
-            // change which plans are surfaced.
             const liveData =
               intake && toolCallId.startsWith("inline-")
                 ? buildInlinePlanRecommendations(intake)
@@ -611,10 +608,12 @@ function MessageRow({
             return <PlanComparisonCard key={i} data={liveData} />;
           }
           if (part.type === "tool-suggestNext" && input) {
+            if (locked) return null;
             const { chips } = input as { chips: string[] };
             return <SuggestNextCard key={i} chips={chips} onPick={onPickChip} disabled={disabled} />;
           }
           if (part.type === "tool-learningPaths") {
+            if (locked) return null;
             return <LearningPathsCard key={i} onPick={onPickChip} disabled={disabled} />;
           }
           if (part.type === "tool-shortVideos") {
