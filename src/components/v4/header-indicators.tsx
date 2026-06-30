@@ -9,7 +9,7 @@ const HEADER_TEXT = "#131F69";
 const ON_DARK = "rgba(19,31,105,0.9)";
 const ON_DARK_MUTED = "rgba(19,31,105,0.6)";
 
-export function HeaderIndicators() {
+export function HeaderIndicators({ compact = false }: { compact?: boolean }) {
   const { state, ready } = useSession();
   const [open, setOpen] = useState(false);
 
@@ -26,10 +26,10 @@ export function HeaderIndicators() {
 
   return (
     <>
-      <div className="flex flex-col items-end gap-2 select-none">
+      <div className={`flex flex-col items-end gap-1 select-none ${compact ? "scale-90 origin-right" : ""}`}>
         <div className="flex items-center gap-2" style={{ color: ON_DARK_MUTED }}>
-          <span className="text-sm leading-none">Profile {pct}%</span>
-          <div className="h-2 w-36 rounded-full" style={{ backgroundColor: "rgba(19,31,105,0.15)" }}>
+          <span className={`leading-none ${compact ? "text-xs" : "text-sm"}`}>Profile {pct}%</span>
+          <div className={`rounded-full ${compact ? "h-1.5 w-28" : "h-2 w-36"}`} style={{ backgroundColor: "rgba(19,31,105,0.15)" }}>
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${pct}%`, backgroundColor: HEADER_TEXT }}
@@ -39,7 +39,7 @@ export function HeaderIndicators() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="text-base leading-none transition hover:underline"
+          className={`leading-none transition hover:underline ${compact ? "text-sm" : "text-base"}`}
           style={{ color: narrowed ? ON_DARK : ON_DARK_MUTED }}
         >
           {planLabel}
