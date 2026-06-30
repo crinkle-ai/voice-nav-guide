@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import type { UIMessage } from "ai";
+import type { RecommendedPlan } from "@/components/v4/chat-cards/plan-comparison";
 import { emptyIntake, type Intake, type IntakeMode } from "@/lib/v3/intake-types";
 
 export type HybridPath = "doctor-first" | "drug-first" | "budget-first" | "new-to-medicare";
