@@ -491,9 +491,6 @@ function MessageRow({
 
   return (
     <div className="flex gap-3" data-mid={message.id} data-role="assistant">
-
-  return (
-    <div className="flex gap-3">
       <div className="h-8 w-8 shrink-0 rounded-full bg-[#033592] flex items-center justify-center p-1.5">
         <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-full w-full object-contain" />
       </div>
