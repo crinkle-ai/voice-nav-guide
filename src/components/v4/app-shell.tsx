@@ -84,8 +84,8 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <main className="w-full px-2 sm:px-4 py-8">{children}</main>
-      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs" style={{ color: `${V4_INK}99` }}>
+      <main className="w-full px-2 sm:px-4 py-3">{children}</main>
+      <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
