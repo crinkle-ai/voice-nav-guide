@@ -90,11 +90,15 @@ function scorePlan(
 
   // --- Network ---
   const intakeDocs = intake.doctors.value || [];
+  // Medigap accepts any Medicare-participating doctor; PDP doesn't cover doctor visits.
+  const networkAgnostic = plan.type === "Medigap" || plan.type === "PDP";
   const doctorOutcomes: DoctorOutcome[] = intakeDocs.map((d) => {
     const match = providers.find((p) =>
       doctorMatchesNpi(d, p.npi, p.first_name, p.last_name),
     );
-    const inNet = !!(match && match.in_network_plans.includes(plan.id));
+    const inNet = networkAgnostic
+      ? !!match || !!d.npiVerification?.selectedNpi
+      : !!(match && match.in_network_plans.includes(plan.id));
     return {
       name: d.name,
       inNetwork: inNet,
@@ -106,6 +110,11 @@ function scorePlan(
   let networkScore = 0;
   if (intakeDocs.length === 0) {
     networkScore = W_NETWORK * 0.6; // neutral if no doctors provided
+  } else if (networkAgnostic) {
+    networkScore = W_NETWORK;
+    if (plan.type === "Medigap")
+      reasons.push("Any Medicare-participating doctor is in network");
+    else reasons.push("Doctor visits handled by Original Medicare");
   } else {
     const inNetCount = doctorOutcomes.filter((d) => d.inNetwork).length;
     const ratio = inNetCount / intakeDocs.length;
