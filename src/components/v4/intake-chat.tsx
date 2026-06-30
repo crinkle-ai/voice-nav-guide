@@ -58,6 +58,12 @@ const SHORT_VIDEOS_RE = /\b(short\s+)?videos?\b[\s\S]{0,40}\b(medicare|explain|b
 const SHORT_VIDEOS_LEAD = "Here are a few short videos that walk through the basics. Pick one to watch right here, or tell me which topic to dig into.";
 const INLINE_PLAN_MESSAGE = "I can show those options right here — here are the strongest matches based on what you've shared so far.";
 const VERIFYING_MESSAGE = "Before I show plans, I'm verifying your doctor against the NPI Registry — one moment.";
+const ZIP_REQUIRED_MESSAGE = "Before I can show plans, I need your 5-digit ZIP code — plans and pricing vary by county. What's your ZIP?";
+
+function hasValidZip(intake: Intake): boolean {
+  const z = intake.zip?.value?.trim() ?? "";
+  return /^\d{5}$/.test(z);
+}
 
 function hasPendingVerification(intake: Intake): boolean {
   const doctorsPending = (intake.doctors?.value ?? []).some((d) => !d.npiVerification);
@@ -269,6 +275,25 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     const isDeferred = DEFERRED_PLAN_RE.test(aText);
     const isLeaked = LEAKED_TOOL_RE.test(aText);
     if (askIdx >= 0 && !isDeferred && !isLeaked && !PLAN_REQUEST_RE.test(aText)) return;
+    // Don't show plans until we have a valid 5-digit ZIP. Replace any
+    // deferred/leaked message with a ZIP ask, and re-run once ZIP is captured.
+    if (!hasValidZip(intake)) {
+      if (isDeferred || isLeaked) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistant!.id
+              ? {
+                  ...m,
+                  parts: m.parts.map((part) =>
+                    part.type === "text" ? { ...part, text: ZIP_REQUIRED_MESSAGE } : part,
+                  ),
+                }
+              : m,
+          ),
+        );
+      }
+      return;
+    }
     // Don't show plans while NPI / RxNorm verification is still pending.
     // We deliberately do NOT mark this assistant as injected, so once
     // verification finishes the effect re-runs and the cards appear.

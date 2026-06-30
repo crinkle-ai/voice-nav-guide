@@ -19,14 +19,22 @@ function MatchesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [secondOpinionOpen, setSecondOpinionOpen] = useState(false);
 
+  const zip = state.intake.zip?.value?.trim() ?? "";
+  const hasZip = /^\d{5}$/.test(zip);
+
   useEffect(() => {
-    if (ready && !state.finished) navigate({ to: "/v4" });
-  }, [ready, state.finished, navigate]);
+    if (!ready) return;
+    if (!hasZip) {
+      navigate({ to: "/v4/intake" });
+      return;
+    }
+    if (!state.finished) navigate({ to: "/v4" });
+  }, [ready, state.finished, hasZip, navigate]);
 
   const { data: scored, isLoading, error } = useQuery({
     queryKey: ["v4-rank", state.intake],
     queryFn: () => rankDemoPlans({ data: { intake: state.intake } }),
-    enabled: ready && state.finished,
+    enabled: ready && state.finished && hasZip,
   });
 
   const top = (scored ?? []).slice(0, 5);

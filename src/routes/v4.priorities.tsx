@@ -51,7 +51,14 @@ function PrioritiesPage() {
       return next;
     });
 
+  const zip = state.intake.zip?.value?.trim() ?? "";
+  const hasZip = /^\d{5}$/.test(zip);
+
   const cont = () => {
+    if (!hasZip) {
+      navigate({ to: "/v4/intake" });
+      return;
+    }
     update({
       finalPriorities: ranked,
       intake: { ...state.intake, priorities: { value: ranked, confidence: "captured" } },
