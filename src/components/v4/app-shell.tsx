@@ -41,13 +41,13 @@ export function AppShell({
         />
       )}
       <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-6 h-11 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/v4" className="flex items-center gap-1.5">
               <img
                 src={emblemAsset.url}
                 alt="UnitedHealthcare"
-                className="h-12 w-auto object-contain"
+                className="h-7 w-auto object-contain"
               />
               <div className="flex flex-col leading-none -ml-1">
                 <span
@@ -84,8 +84,8 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <main className="w-full px-2 sm:px-4 py-8">{children}</main>
-      <footer className="mx-auto max-w-6xl px-6 py-10 text-xs" style={{ color: `${V4_INK}99` }}>
+      <main className="w-full px-2 sm:px-4 py-3">{children}</main>
+      <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
         © UnitedHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
