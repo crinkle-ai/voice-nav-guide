@@ -1,4 +1,5 @@
-import { Star, Sparkles } from "lucide-react";
+import { Star, Sparkles, Heart } from "lucide-react";
+import { useSession } from "@/lib/v4/session-store";
 
 export type RecommendedPlan = {
   id: string;
@@ -22,10 +23,22 @@ export type RecommendPlansInput = {
 };
 
 export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
+  const { state, update } = useSession();
+  const favorites = state.favoritePlans ?? [];
+
+  const toggleFavorite = (plan: RecommendedPlan) => {
+    const exists = favorites.some((p) => p.id === plan.id);
+    const next = exists
+      ? favorites.filter((p) => p.id !== plan.id)
+      : [...favorites, plan];
+    update({ favoritePlans: next });
+  };
+
   return (
     <div className="mt-3 space-y-3">
       {data.plans.map((p) => {
         const r = data.rationale.find((x) => x.planId === p.id);
+        const isFav = favorites.some((f) => f.id === p.id);
         return (
       <article key={p.id} className="rounded-xl border border-ink/10 bg-paper overflow-hidden">
         <div className="p-4 border-b border-ink/10 flex items-start justify-between gap-3">
@@ -33,11 +46,28 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
             <div className="text-xs uppercase tracking-wide text-muted-2">{p.carrier} · {p.type}</div>
             <div className="font-serif text-lg leading-tight text-ink">{p.name}</div>
           </div>
-          {typeof p.starRating === "number" && (
-            <div className="flex items-center gap-1 text-amber-600 text-sm">
-              <Star className="h-4 w-4 fill-amber-500" /> {p.starRating.toFixed(1)}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {typeof p.starRating === "number" && (
+              <div className="flex items-center gap-1 text-amber-600 text-sm">
+                <Star className="h-4 w-4 fill-amber-500" /> {p.starRating.toFixed(1)}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => toggleFavorite(p)}
+              aria-label={isFav ? "Remove from favorites" : "Save to favorites"}
+              aria-pressed={isFav}
+              title={isFav ? "Saved to Your Workspace" : "Save to Your Workspace"}
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium transition ${
+                isFav
+                  ? "border-rose-200 bg-rose-50 text-rose-600"
+                  : "border-ink/15 bg-white text-ink/70 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
+              }`}
+            >
+              <Heart className={`h-3.5 w-3.5 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+              {isFav ? "Saved" : "Favorite"}
+            </button>
+          </div>
         </div>
         <div className="px-4 py-3 grid grid-cols-2 gap-2 text-sm border-b border-ink/10 bg-surface-soft/40">
           <div><span className="text-muted-2">Premium</span> <span className="font-medium text-ink">${p.monthlyPremium}/mo</span></div>
