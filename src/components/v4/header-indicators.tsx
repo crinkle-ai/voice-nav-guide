@@ -13,18 +13,29 @@ export function HeaderIndicators({ compact = false }: { compact?: boolean }) {
   const { state, ready } = useSession();
   const [open, setOpen] = useState(false);
 
-  const { pct, matches } = useMemo(() => {
+  const { pct, matches, displayCount } = useMemo(() => {
     const p = computeProgress(state.intake);
     const m = computeMatches(state.intake);
-    return { pct: p.pct, matches: m };
+    // Start at the full catalog when we know nothing yet; collapse to a
+    // single best-fit once the profile is confident enough to recommend.
+    let display: number;
+    if (p.pct === 0) {
+      display = PLAN_CATALOG.length;
+    } else if (p.pct >= 80) {
+      display = 1;
+    } else {
+      display = m.length;
+    }
+    return { pct: p.pct, matches: m, displayCount: display };
   }, [state.intake]);
 
   if (!ready) return null;
 
   const zip = state.intake.zip?.value?.trim() ?? "";
   const hasZip = /^\d{5}$/.test(zip);
-  const narrowed = matches.length < PLAN_CATALOG.length;
-  const planLabel = `${matches.length} plan${matches.length === 1 ? "" : "s"} to recommend`;
+  const narrowed = displayCount < PLAN_CATALOG.length;
+  const planLabel = `${displayCount} plan${displayCount === 1 ? "" : "s"} to recommend`;
+
 
   return (
     <>
