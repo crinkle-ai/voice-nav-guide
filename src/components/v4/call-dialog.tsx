@@ -145,7 +145,7 @@ export function CallDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`sm:max-w-md ${sharing ? "border-2 border-red-600" : ""}`}>
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl">
             {status === "ringing" ? "Connecting you to a licensed agent…" : "On call"}
