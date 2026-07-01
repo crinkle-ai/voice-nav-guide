@@ -149,6 +149,51 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const autoSentRef = useRef(false);
   const [callOpen, setCallOpen] = useState(false);
 
+  // ---- Save prompt + returning-user recap ------------------------------
+  const auth = useAuth();
+  const { state: sessionState, markSavePromptShown: _unused } = { ..._authBridge(useSession(), useAuth()), markSavePromptShown: () => {} };
+  const [savePromptTrigger, setSavePromptTrigger] = useState<string | null>(null);
+  const [recapDismissed, setRecapDismissed] = useState(false);
+
+  // Fire the inline save card once per anonymous session when the user hits
+  // a meaningful milestone: adds a doctor/med, favorites a plan, or crosses
+  // 40% profile completeness. After it appears once, it stays put where it
+  // was inserted so it doesn't nag on every message.
+  useEffect(() => {
+    if (auth.user) return;
+    if (auth.state.savePromptShown || auth.state.savePromptDismissed) return;
+    if (savePromptTrigger) return;
+    const intakeNow = intakeRef.current;
+    const doctors = intakeNow.doctors?.value?.length ?? 0;
+    const meds = intakeNow.medications?.value?.length ?? 0;
+    const favs = sessionState.favoritePlans?.length ?? 0;
+    const pct = computeProgress(intakeNow).pct;
+    let trigger: string | null = null;
+    if (favs > 0) trigger = "You just favorited a plan.";
+    else if (doctors > 0 && meds > 0) trigger = "Nice — I've captured your doctors and medications.";
+    else if (doctors > 0) trigger = "Nice — I've captured your first doctor.";
+    else if (meds > 0) trigger = "Nice — I've captured your first medication.";
+    else if (pct >= 40) trigger = "You're getting close to a real recommendation.";
+    if (trigger) {
+      setSavePromptTrigger(trigger);
+      auth.markSavePromptShown();
+    }
+  }, [
+    auth,
+    sessionState.favoritePlans,
+    sessionState.intake,
+    savePromptTrigger,
+  ]);
+
+  // Recap card: show only when there's a server-side change newer than the
+  // user's last visit, per the product decision. Mark visit once dismissed.
+  const recapEligible =
+    !!auth.user &&
+    !recapDismissed &&
+    !!auth.user.lastServerChangeAt &&
+    auth.user.lastServerChangeAt > (auth.user.lastVisitAt ?? 0);
+  const recapSummary = auth.user?.serverChangeSummary ?? "";
+
   useEffect(() => {
     if (autoSend && !autoSentRef.current) {
       autoSentRef.current = true;
