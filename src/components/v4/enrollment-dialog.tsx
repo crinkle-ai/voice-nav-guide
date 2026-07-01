@@ -925,7 +925,10 @@ function ReviewStep({
   const [downloading, setDownloading] = useState(false);
   const doDownload = async () => {
     setDownloading(true);
-    // Client-side text "PDF" surrogate for demo
+    const mask = (s?: string) => (s ? `•••• ${s.slice(-4)}` : "");
+    const mailing = info.mailingSameAsResidence === false
+      ? `  ${info.mailingAddress1 ?? ""} ${info.mailingAddress2 ?? ""}, ${info.mailingCity ?? ""}, ${info.mailingState ?? ""} ${info.mailingZip ?? ""}`
+      : `  (same as residence)`;
     const lines = [
       `Crinkle Health — Enrollment Application (DEMO)`,
       `Plan: ${app.planName ?? app.planId}${app.pairedPlanName ? ` + ${app.pairedPlanName}` : ""}`,
@@ -936,18 +939,36 @@ function ReviewStep({
       `  DOB: ${info.dob ?? ""}   Sex: ${info.sex ?? ""}`,
       `  ${info.address1 ?? ""} ${info.address2 ?? ""}`,
       `  ${info.city ?? ""}, ${info.state ?? ""} ${info.zip ?? ""} (${info.county ?? ""})`,
+      `MAILING`,
+      mailing,
       `  Phone: ${info.phone ?? ""}   Email: ${info.email ?? ""}`,
+      `  Language: ${info.preferredLanguage ?? ""}   Race: ${info.race ?? ""}   Ethnicity: ${info.ethnicity ?? ""}`,
+      ``,
+      `EMERGENCY CONTACT`,
+      `  ${info.emergencyContact?.name ?? ""} (${info.emergencyContact?.relationship ?? ""}) ${info.emergencyContact?.phone ?? ""}`,
       ``,
       `MEDICARE`,
       `  MBI: ${info.mbi ?? ""}`,
       `  Part A eff: ${info.partAEffective ?? ""}   Part B eff: ${info.partBEffective ?? ""}`,
+      `  SSN: ${info.ssnFull ? "***-**-" + info.ssnFull.slice(-4) : ""}`,
+      `  OEV pref: ${info.oevPreference ?? ""}`,
       `  Enrollment period: ${info.enrollmentPeriod ?? ""} ${info.sepReason ? `(${info.sepReason})` : ""}`,
       `  Requested effective: ${info.requestedEffective ?? ""}`,
       ``,
-      `PAYMENT`,
-      `  Method: ${info.payment?.method ?? ""}   Last 4: ${info.payment?.accountLast4 ?? ""}`,
+      `ELIGIBILITY & OTHER COVERAGE`,
+      `  ESRD: ${info.esrd ?? ""}   LIS/Extra Help: ${info.lis ?? ""}   Living: ${info.institutional ?? ""}`,
+      `  Medicaid: ${info.medicaidStatus ?? ""}${info.medicaidId ? ` (ID: ${info.medicaidId})` : ""}`,
+      `  Other coverage: ${(info.otherCoverage ?? []).join(", ")}${info.otherCoverageCarrier ? ` — ${info.otherCoverageCarrier} #${info.otherCoveragePolicy ?? ""}` : ""}`,
       ``,
+      info.pcp?.name ? `PRIMARY CARE PROVIDER\n  ${info.pcp.name}  NPI: ${info.pcp.npi ?? ""}  Current patient: ${info.pcp.currentPatient ? "yes" : "no"}\n` : "",
+      `PAYMENT`,
+      `  Method: ${info.payment?.method ?? ""}`,
+      info.payment?.method === "eft" ? `  Routing: ${info.payment?.routingNumber ?? ""}  Account: ${mask(info.payment?.accountNumber)}` : "",
+      info.payment?.method === "card" ? `  Card: ${mask(info.payment?.cardPan)}  Exp: ${info.payment?.cardExp ?? ""}  Billing ZIP: ${info.payment?.cardBillingZip ?? ""}` : "",
+      ``,
+      app.strategy === "medigap-plus-partd" ? `MEDIGAP\n  GI reason: ${info.giReason ?? ""}  Loss date: ${info.giLossDate ?? ""}\n  Replacing: ${info.replacing ? `yes (${info.replacePriorCarrier ?? ""} #${info.replacePriorPolicy ?? ""}, term ${info.replaceTerminationDate ?? ""})` : "no"}\n  Household discount: ${info.householdDiscount ? "yes" : "no"}\n  Tobacco: ${info.tobacco ? "yes" : "no"}   Height: ${info.heightIn ?? ""}in  Weight: ${info.weightLb ?? ""}lb\n  Doc attached: ${info.giDocName ?? "—"}\n` : "",
       `SOA signed: ${app.soa ? new Date(app.soa.signedAt).toISOString() : "—"} by ${app.soa?.typedName ?? ""}`,
+      `  Appointment: ${app.soa?.appointmentDate ?? ""} ${app.soa?.appointmentWindow ?? ""}`,
       `Attestations: ${Object.entries(app.attestations ?? {}).filter(([, v]) => v).map(([k]) => k).join(", ")}`,
       `Signature: ${sig?.typedName ?? ""} at ${sig ? new Date(sig.signedAt).toISOString() : ""}`,
       sig?.onBehalfOf ? `On behalf of member by ${sig.onBehalfOf.repName} (${sig.onBehalfOf.relationship}, ${sig.onBehalfOf.authorityType})` : "",
@@ -964,6 +985,8 @@ function ReviewStep({
     setTimeout(() => setDownloading(false), 500);
     onDownload();
   };
+
+  const isMedigap = app.strategy === "medigap-plus-partd";
 
   return (
     <div className="space-y-4">
@@ -983,21 +1006,62 @@ function ReviewStep({
         <ReviewGroup title="You">
           <ReviewRow label="Name" value={info.legalName} />
           <ReviewRow label="DOB" value={info.dob} />
-          <ReviewRow label="Address" value={[info.address1, info.address2, `${info.city ?? ""}, ${info.state ?? ""} ${info.zip ?? ""}`].filter(Boolean).join(", ")} />
+          <ReviewRow label="Residence" value={[info.address1, info.address2, `${info.city ?? ""}, ${info.state ?? ""} ${info.zip ?? ""}`].filter(Boolean).join(", ")} />
+          {info.mailingSameAsResidence === false && (
+            <ReviewRow label="Mailing" value={[info.mailingAddress1, `${info.mailingCity ?? ""}, ${info.mailingState ?? ""} ${info.mailingZip ?? ""}`].filter(Boolean).join(", ")} />
+          )}
           <ReviewRow label="Phone" value={info.phone} />
           <ReviewRow label="Email" value={info.email} />
+          <ReviewRow label="Emergency contact" value={info.emergencyContact?.name ? `${info.emergencyContact.name}${info.emergencyContact.relationship ? ` (${info.emergencyContact.relationship})` : ""} · ${info.emergencyContact.phone ?? ""}` : ""} />
         </ReviewGroup>
 
         <ReviewGroup title="Medicare">
           <ReviewRow label="MBI" value={info.mbi ? info.mbi.replace(/^(.{4}).*(.{2})$/, "$1••••$2") : ""} />
           <ReviewRow label="Part A / B effective" value={info.partAEffective && info.partBEffective ? `${info.partAEffective} / ${info.partBEffective}` : ""} />
+          <ReviewRow label="SSN" value={info.ssnFull ? `***-**-${info.ssnFull.slice(-4)}` : ""} />
+          <ReviewRow label="OEV preference" value={info.oevPreference} />
           <ReviewRow label="Enrollment period" value={info.enrollmentPeriod ? `${info.enrollmentPeriod}${info.sepReason ? ` — ${info.sepReason}` : ""}` : ""} />
           <ReviewRow label="Requested effective" value={info.requestedEffective} />
         </ReviewGroup>
 
+        <ReviewGroup title="Eligibility & other coverage">
+          <ReviewRow label="ESRD" value={info.esrd} />
+          <ReviewRow label="Extra Help (LIS)" value={info.lis} />
+          <ReviewRow label="Living situation" value={info.institutional} />
+          <ReviewRow label="Medicaid" value={info.medicaidStatus ? `${info.medicaidStatus}${info.medicaidId ? ` (ID: ${info.medicaidId})` : ""}` : ""} />
+          <ReviewRow label="Other coverage" value={(info.otherCoverage ?? []).join(", ") || "None"} />
+        </ReviewGroup>
+
+        {info.pcp?.name && (
+          <ReviewGroup title="Primary care provider">
+            <ReviewRow label="Provider" value={info.pcp.name} />
+            <ReviewRow label="NPI" value={info.pcp.npi} />
+            <ReviewRow label="Current patient" value={info.pcp.currentPatient ? "Yes" : "No"} />
+          </ReviewGroup>
+        )}
+
         <ReviewGroup title="Payment">
           <ReviewRow label="Method" value={info.payment?.method ? PAYMENT_LABELS[info.payment.method] : ""} />
-          {info.payment?.accountLast4 && <ReviewRow label="Last 4" value={`•••• ${info.payment.accountLast4}`} />}
+          {info.payment?.method === "eft" && <ReviewRow label="Bank" value={`Routing ${info.payment.routingNumber ?? ""} · Acct •••• ${(info.payment.accountNumber ?? "").slice(-4)}`} />}
+          {info.payment?.method === "card" && <ReviewRow label="Card" value={`•••• ${(info.payment.cardPan ?? "").slice(-4)} · Exp ${info.payment.cardExp ?? ""}`} />}
+        </ReviewGroup>
+
+        {isMedigap && (
+          <ReviewGroup title="Medigap">
+            <ReviewRow label="GI reason" value={info.giReason} />
+            <ReviewRow label="Loss-of-coverage" value={info.giLossDate} />
+            <ReviewRow label="Replacing coverage" value={info.replacing ? `Yes — ${info.replacePriorCarrier ?? ""} #${info.replacePriorPolicy ?? ""}` : "No"} />
+            <ReviewRow label="Household discount" value={info.householdDiscount ? "Yes" : "No"} />
+            <ReviewRow label="Tobacco (12 mo)" value={info.tobacco ? "Yes" : "No"} />
+            <ReviewRow label="Height / Weight" value={info.heightIn && info.weightLb ? `${info.heightIn}in / ${info.weightLb}lb` : ""} />
+            {info.giDocName && <ReviewRow label="Doc attached" value={info.giDocName} />}
+          </ReviewGroup>
+        )}
+
+        <ReviewGroup title="Scope of Appointment">
+          <ReviewRow label="Signed by" value={app.soa?.typedName} />
+          <ReviewRow label="Appointment" value={app.soa?.appointmentDate ? `${app.soa.appointmentDate} · ${app.soa.appointmentWindow ?? ""}` : ""} />
+          <ReviewRow label="Writing agent" value={`Self-service (no writing agent) · Crinkle Health`} />
         </ReviewGroup>
 
         <ReviewGroup title="Signature">
@@ -1008,6 +1072,7 @@ function ReviewStep({
           )}
         </ReviewGroup>
       </div>
+
 
       <div className="flex flex-wrap gap-2 justify-between items-center">
         <button type="button" onClick={onBack} className={ghostBtn}>
