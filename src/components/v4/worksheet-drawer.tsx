@@ -208,6 +208,35 @@ function WorksheetDrawerInner() {
   const docVerified = intake.doctors.value.filter((d) => d.verification === "high").length;
   const medsVerified = intake.medications.value.filter((m) => m.rxVerification?.status === "verified").length;
 
+  const handleDragStart = (key: CardKey) => (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingKey(key);
+  };
+
+  const handleDragOver = (targetKey: CardKey) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggingKey || draggingKey === targetKey) return;
+    const fromIndex = order.indexOf(draggingKey);
+    const toIndex = order.indexOf(targetKey);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const next = [...order];
+    next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, draggingKey);
+    setOrder(next);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggingKey) {
+      update({ cardOrder: order });
+    }
+    setDraggingKey(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingKey(null);
+  };
+
   if (size === "min") {
     return (
       <button
