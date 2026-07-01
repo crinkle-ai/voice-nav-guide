@@ -12,7 +12,11 @@ import { LearningPathsCard } from "./chat-cards/learning-paths";
 import { ShortVideosCard } from "./chat-cards/short-videos";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
+import { computeProgress } from "@/lib/v4/profile-progress";
 import { CallDialog } from "./call-dialog";
+import { SavePromptCard, RecapCard } from "./chat-cards/save-prompt";
+import { useAuth } from "@/lib/v4/auth-store";
+import { useSession } from "@/lib/v4/session-store";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -48,6 +52,10 @@ type ChatItem = {
   message: UIMessage;
   live: boolean;
 };
+
+type SyntheticCard =
+  | { kind: "save-prompt"; id: string; trigger: string }
+  | { kind: "recap"; id: string; name: string; summary: string };
 
 const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches|them|those)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
 const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
@@ -140,6 +148,51 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
   const voiceRef = useRef<VoiceIntakeHandle>(null);
   const autoSentRef = useRef(false);
   const [callOpen, setCallOpen] = useState(false);
+
+  // ---- Save prompt + returning-user recap ------------------------------
+  const auth = useAuth();
+  const { state: sessionState } = useSession();
+  const [savePromptTrigger, setSavePromptTrigger] = useState<string | null>(null);
+  const [recapDismissed, setRecapDismissed] = useState(false);
+
+  // Fire the inline save card once per anonymous session when the user hits
+  // a meaningful milestone: adds a doctor/med, favorites a plan, or crosses
+  // 40% profile completeness. After it appears once, it stays put where it
+  // was inserted so it doesn't nag on every message.
+  useEffect(() => {
+    if (auth.user) return;
+    if (auth.state.savePromptShown || auth.state.savePromptDismissed) return;
+    if (savePromptTrigger) return;
+    const intakeNow = intakeRef.current;
+    const doctors = intakeNow.doctors?.value?.length ?? 0;
+    const meds = intakeNow.medications?.value?.length ?? 0;
+    const favs = sessionState.favoritePlans?.length ?? 0;
+    const pct = computeProgress(intakeNow).pct;
+    let trigger: string | null = null;
+    if (favs > 0) trigger = "You just favorited a plan.";
+    else if (doctors > 0 && meds > 0) trigger = "Nice — I've captured your doctors and medications.";
+    else if (doctors > 0) trigger = "Nice — I've captured your first doctor.";
+    else if (meds > 0) trigger = "Nice — I've captured your first medication.";
+    else if (pct >= 40) trigger = "You're getting close to a real recommendation.";
+    if (trigger) {
+      setSavePromptTrigger(trigger);
+      auth.markSavePromptShown();
+    }
+  }, [
+    auth,
+    sessionState.favoritePlans,
+    sessionState.intake,
+    savePromptTrigger,
+  ]);
+
+  // Recap card: show only when there's a server-side change newer than the
+  // user's last visit, per the product decision. Mark visit once dismissed.
+  const recapEligible =
+    !!auth.user &&
+    !recapDismissed &&
+    !!auth.user.lastServerChangeAt &&
+    auth.user.lastServerChangeAt > (auth.user.lastVisitAt ?? 0);
+  const recapSummary = auth.user?.serverChangeSummary ?? "";
 
   useEffect(() => {
     if (autoSend && !autoSentRef.current) {
@@ -445,6 +498,16 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       <div className="flex-1 bg-white overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          {recapEligible && auth.user && (
+            <RecapCard
+              name={auth.user.name}
+              summary={recapSummary || "We refreshed a few things on your saved workspace."}
+              onDismiss={() => {
+                auth.markVisit();
+                setRecapDismissed(true);
+              }}
+            />
+          )}
           {chatItems.map(({ message, live, locked }) => (
             <MessageRow
               key={message.id}
@@ -458,6 +521,9 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               forceVideoCard={videoAssistantIds.has(message.id)}
             />
           ))}
+          {savePromptTrigger && !auth.user && (
+            <SavePromptCard trigger={savePromptTrigger} />
+          )}
 
           {/* inline plan fallback now injected into messages directly */}
           {busy && (

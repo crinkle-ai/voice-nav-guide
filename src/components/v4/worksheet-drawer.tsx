@@ -458,81 +458,15 @@ function WorksheetDrawerInner() {
       );
     }
     if (card === "caregiver") {
-      const cg = state.caregiver ?? {};
       return (
         <DetailWrap title="Caregiver" onBack={() => setCard(null)}>
-          <p className="text-xs text-muted-2">
-            Add a family member or trusted helper. They'll be able to see what you see and help
-            manage your plan selections.
-          </p>
-          <div className="grid grid-cols-1 gap-2">
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Name</div>
-              <input
-                type="text"
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                placeholder="e.g. Sarah Johnson"
-                value={cg.name ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, name: e.target.value } })}
-              />
-            </label>
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Relationship</div>
-              <input
-                type="text"
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                placeholder="e.g. Daughter, spouse, friend"
-                value={cg.relationship ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, relationship: e.target.value } })}
-              />
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="rounded-lg border border-line bg-paper p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-2">Email</div>
-                <input
-                  type="email"
-                  className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                  placeholder="name@example.com"
-                  value={cg.email ?? ""}
-                  onChange={(e) => update({ caregiver: { ...cg, email: e.target.value } })}
-                />
-              </label>
-              <label className="rounded-lg border border-line bg-paper p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-2">Phone</div>
-                <input
-                  type="tel"
-                  className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                  placeholder="(555) 555-5555"
-                  value={cg.phone ?? ""}
-                  onChange={(e) => update({ caregiver: { ...cg, phone: e.target.value } })}
-                />
-              </label>
-            </div>
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Notes</div>
-              <textarea
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none resize-none"
-                rows={3}
-                placeholder="What should they be able to help with?"
-                value={cg.notes ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, notes: e.target.value } })}
-              />
-            </label>
-          </div>
-          {cg.name && (
-            <button
-              type="button"
-              onClick={() => update({ caregiver: undefined })}
-              className="text-xs text-rose-600 hover:underline"
-            >
-              Remove caregiver
-            </button>
-          )}
+          <CaregiverPanel />
         </DetailWrap>
       );
     }
     return null;
   };
+
 
 
   return (
@@ -911,4 +845,235 @@ export function WorksheetDrawer() {
     </AutoVerifyProvider>
   );
 }
+
+function CaregiverPanel() {
+  const { state, update } = useSession();
+  const cg = state.caregiver ?? {};
+  const invite = cg.invite;
+  const [copied, setCopied] = useState(false);
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cg.email ?? "");
+  const canSend = !!cg.name && emailOk;
+
+  const sendInvite = (access: "read" | "write") => {
+    const token = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    update({
+      caregiver: {
+        ...cg,
+        invite: {
+          access,
+          sentAt: Date.now(),
+          status: "pending",
+          token,
+          inviteUrl: `${origin}/caregiver/accept?t=${token}`,
+        },
+      },
+    });
+  };
+
+  const revokeInvite = () => update({ caregiver: { ...cg, invite: undefined } });
+
+  const copyLink = async () => {
+    if (!invite?.inviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(invite.inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* noop */
+    }
+  };
+
+  const changeAccess = (access: "read" | "write") => {
+    if (!invite) return;
+    update({ caregiver: { ...cg, invite: { ...invite, access } } });
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-2">
+        Add a family member or trusted helper. When you invite them, they'll sign in with their
+        own UHC account and see the same workspace you see.
+      </p>
+
+      <div className="grid grid-cols-1 gap-2">
+        <label className="rounded-lg border border-line bg-paper p-3">
+          <div className="text-[10px] uppercase tracking-wider text-muted-2">Name</div>
+          <input
+            type="text"
+            className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
+            placeholder="e.g. Sarah Johnson"
+            value={cg.name ?? ""}
+            onChange={(e) => update({ caregiver: { ...cg, name: e.target.value } })}
+          />
+        </label>
+        <label className="rounded-lg border border-line bg-paper p-3">
+          <div className="text-[10px] uppercase tracking-wider text-muted-2">Relationship</div>
+          <input
+            type="text"
+            className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
+            placeholder="e.g. Daughter, spouse, friend"
+            value={cg.relationship ?? ""}
+            onChange={(e) => update({ caregiver: { ...cg, relationship: e.target.value } })}
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="rounded-lg border border-line bg-paper p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-2">Email</div>
+            <input
+              type="email"
+              className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
+              placeholder="name@example.com"
+              value={cg.email ?? ""}
+              onChange={(e) => update({ caregiver: { ...cg, email: e.target.value } })}
+            />
+          </label>
+          <label className="rounded-lg border border-line bg-paper p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-2">Phone</div>
+            <input
+              type="tel"
+              className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
+              placeholder="(555) 555-5555"
+              value={cg.phone ?? ""}
+              onChange={(e) => update({ caregiver: { ...cg, phone: e.target.value } })}
+            />
+          </label>
+        </div>
+        <label className="rounded-lg border border-line bg-paper p-3">
+          <div className="text-[10px] uppercase tracking-wider text-muted-2">Notes</div>
+          <textarea
+            className="mt-1 w-full bg-transparent text-sm text-ink outline-none resize-none"
+            rows={3}
+            placeholder="What should they be able to help with?"
+            value={cg.notes ?? ""}
+            onChange={(e) => update({ caregiver: { ...cg, notes: e.target.value } })}
+          />
+        </label>
+      </div>
+
+      {!invite ? (
+        <div className="rounded-2xl border border-[#033592]/20 bg-[#E5F5F8]/70 p-4 space-y-3">
+          <div className="flex items-start gap-2">
+            <ShieldCheck className="h-4 w-4 text-[#033592] mt-0.5 shrink-0" />
+            <div className="text-xs text-[#131F69] leading-relaxed">
+              We'll email {cg.name?.split(" ")[0] || "your caregiver"} a secure invite link.
+              They sign in with their own UHC account — you can revoke access anytime.
+              <div className="mt-1 text-[11px] text-[#033592]/80">
+                Default: <span className="font-medium">Read + write</span> — they can update your workspace and pick plans on your behalf.
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => sendInvite("write")}
+              disabled={!canSend}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#131F69] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#0d1650] disabled:opacity-50 disabled:cursor-not-allowed"
+              title={canSend ? "Send invite with read + write access" : "Add a name and valid email first"}
+            >
+              <Send className="h-3.5 w-3.5" /> Send invite (read + write)
+            </button>
+            <button
+              type="button"
+              onClick={() => sendInvite("read")}
+              disabled={!canSend}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#033592]/30 bg-white px-3.5 py-1.5 text-xs font-medium text-[#131F69] hover:bg-[#E5F5F8] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Send read-only invite
+            </button>
+          </div>
+          {!canSend && (
+            <div className="text-[11px] text-ink/55">Add a name and valid email to enable sending.</div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-3">
+          <div className="flex items-start gap-2">
+            <Mail className="h-4 w-4 text-emerald-700 mt-0.5 shrink-0" />
+            <div className="text-xs text-emerald-900 leading-relaxed flex-1">
+              <div>
+                Invite sent to <span className="font-medium">{cg.email}</span>
+                {" · "}
+                <span className="capitalize">{invite.status}</span>
+              </div>
+              <div className="text-[11px] text-emerald-800/80 mt-0.5">
+                Sent {new Date(invite.sentAt).toLocaleString()} · Access:{" "}
+                {invite.access === "write" ? "Read + write" : "Read-only"}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              readOnly
+              value={invite.inviteUrl}
+              className="flex-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-[11px] text-ink/70 font-mono outline-none"
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <button
+              type="button"
+              onClick={copyLink}
+              className="rounded-md border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-emerald-800 hover:bg-emerald-50"
+            >
+              {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="text-[11px] text-ink/60 mr-1">Change access:</div>
+            <button
+              type="button"
+              onClick={() => changeAccess("write")}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                invite.access === "write"
+                  ? "border-[#033592] bg-[#131F69] text-white"
+                  : "border-[#033592]/30 bg-white text-[#131F69] hover:bg-[#E5F5F8]"
+              }`}
+            >
+              Read + write
+            </button>
+            <button
+              type="button"
+              onClick={() => changeAccess("read")}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                invite.access === "read"
+                  ? "border-[#033592] bg-[#131F69] text-white"
+                  : "border-[#033592]/30 bg-white text-[#131F69] hover:bg-[#E5F5F8]"
+              }`}
+            >
+              Read-only
+            </button>
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={() => sendInvite(invite.access)}
+              className="text-[11px] text-[#033592] hover:underline"
+            >
+              Resend
+            </button>
+            <button
+              type="button"
+              onClick={revokeInvite}
+              className="text-[11px] text-rose-600 hover:underline"
+            >
+              Revoke access
+            </button>
+          </div>
+        </div>
+      )}
+
+      {cg.name && (
+        <button
+          type="button"
+          onClick={() => update({ caregiver: undefined })}
+          className="text-xs text-rose-600 hover:underline"
+        >
+          Remove caregiver
+        </button>
+      )}
+    </div>
+  );
+}
+
 
