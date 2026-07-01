@@ -15,11 +15,16 @@ You can render rich content inline in the chat by calling tools:
   preferences, comparing trade-offs). Prefer this over asking many questions in plain text.
 
 • recommendPlans — call this ONLY when your confidence is ≥ 80 (see system prompt).
-  Your goal is to recommend ONE best-fit plan. Each call MUST include:
-    - recommendedPlanId: the single plan you are recommending (must match an id in plans[])
-    - confidence: integer 0-100 reflecting how sure you are
-    - plans: 2-4 CrinkleHealthcare plans total (the recommended plan PLUS 1-3 strongest
-      runners-up so the caller can see what was considered)
+  Your goal is to recommend ONE coverage STRATEGY (medicare-advantage, medigap-plus-partd,
+  or dsnp) plus the specific plan(s) that carry it out. Each call MUST include:
+    - strategy: "medicare-advantage" | "medigap-plus-partd" | "dsnp"
+    - recommendedPlanId: the single primary plan (for medigap-plus-partd this is the Medigap plan)
+    - pairedPlanId: REQUIRED when strategy = "medigap-plus-partd" — the standalone Part D
+      plan that pairs with the Medigap plan. Both ids MUST also appear in plans[].
+    - strategyRationale: 1-2 short sentences explaining the OVERALL approach in plain
+      language ("Medigap fits your travel; Part D fills the drug gap")
+    - confidence: integer 0-100
+    - plans: 2-4 CrinkleHealthcare plans total (recommended + paired PDP if any + 1-2 runners-up)
     - rationale[] for every plan with reasons grounded in the caller's intake (doctors,
       meds, conditions, ZIP, budget, medicaid, priorities, travel). Use sourceField values
       like "doctors", "medications", "budget", "zip", "medicaid", "priorities", "travel".
@@ -89,7 +94,16 @@ export const Route = createFileRoute("/api/v4/chat")({
             description:
               "Render a confident plan recommendation: ONE recommended plan plus 1-3 runners-up, with per-plan rationale tied to intake. Only call when confidence is at least 80.",
             inputSchema: z.object({
-              recommendedPlanId: z.string().describe("The single plan id you are recommending. Must match an id in plans[]."),
+              strategy: z
+                .enum(["medicare-advantage", "medigap-plus-partd", "dsnp"])
+                .describe(
+                  "The overall coverage strategy. 'medigap-plus-partd' MUST include a pairedPlanId Part D plan.",
+                ),
+              recommendedPlanId: z.string().describe("The single plan id you are recommending. Must match an id in plans[]. For 'medigap-plus-partd', this is the Medigap plan."),
+              pairedPlanId: z.string().optional().describe("REQUIRED when strategy = 'medigap-plus-partd': the standalone Part D plan id that pairs with the Medigap plan. Must also appear in plans[]."),
+              strategyRationale: z
+                .string()
+                .describe("1-2 short sentences in plain English explaining WHY this coverage strategy fits the caller's stated needs."),
               confidence: z.number().min(0).max(100).describe("Your confidence in this recommendation, 0-100. Must be >= 80 to call this tool."),
               plans: z.array(
                 z.object({

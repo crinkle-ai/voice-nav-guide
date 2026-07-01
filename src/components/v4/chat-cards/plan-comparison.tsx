@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Heart, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
+import { Sparkles, Heart, ChevronDown, ChevronUp, ShieldCheck, Plus, Stethoscope, Pill, HeartHandshake } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 
 export type RecommendedPlan = {
@@ -18,10 +18,15 @@ export type PlanRationale = {
   reasons: { label: string; detail: string; sourceField?: string }[];
 };
 
+export type CoverageStrategy = "medicare-advantage" | "medigap-plus-partd" | "dsnp";
+
 export type RecommendPlansInput = {
   plans: RecommendedPlan[];
   rationale: PlanRationale[];
   recommendedPlanId?: string;
+  pairedPlanId?: string;
+  strategy?: CoverageStrategy;
+  strategyRationale?: string;
   confidence?: number;
 };
 
@@ -29,16 +34,43 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
   const { state, update } = useSession();
   const favorites = state.favoritePlans ?? [];
   const recommendedId = data.recommendedPlanId ?? data.plans[0]?.id;
+  const pairedId = data.pairedPlanId;
   const confidence = data.confidence;
   const hasRecommendation = !!recommendedId && typeof confidence === "number" && confidence >= 80;
+  const strategy: CoverageStrategy =
+    data.strategy ??
+    (pairedId ? "medigap-plus-partd" : "medicare-advantage");
+  const isPaired = strategy === "medigap-plus-partd" && !!pairedId;
+
+  const recommendedPlan = data.plans.find((p) => p.id === recommendedId);
+  const pairedPlan = isPaired ? data.plans.find((p) => p.id === pairedId) : undefined;
+  const runners = data.plans.filter(
+    (p) => p.id !== recommendedId && (!isPaired || p.id !== pairedId),
+  );
 
   const toggleFavorite = (plan: RecommendedPlan) => {
     const exists = favorites.some((p) => p.id === plan.id);
-    const next = exists
+    let next = exists
       ? favorites.filter((p) => p.id !== plan.id)
       : [...favorites, plan];
+    // Auto-bundle: favoriting/unfavoriting the Medigap recommendation also
+    // toggles its paired Part D companion.
+    if (isPaired && recommendedPlan && pairedPlan && plan.id === recommendedPlan.id) {
+      if (exists) {
+        next = next.filter((p) => p.id !== pairedPlan.id);
+      } else if (!next.some((p) => p.id === pairedPlan.id)) {
+        next = [...next, pairedPlan];
+      }
+    }
     update({ favoritePlans: next });
   };
+
+  const strategyBadge =
+    strategy === "medicare-advantage"
+      ? { icon: HeartHandshake, label: "Medical + prescription in one plan" }
+      : strategy === "dsnp"
+        ? { icon: HeartHandshake, label: "Medicare + Medicaid" }
+        : null;
 
   return (
     <div className="mt-3">
@@ -53,30 +85,137 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
           <div className="text-sm font-semibold text-[#033592] tabular-nums">{confidence}%</div>
         </div>
       )}
-      <div className="-mx-1 overflow-x-auto">
-        <div className="flex gap-4 px-1 items-stretch">
-          {data.plans.map((p) => {
-            const r = data.rationale.find((x) => x.planId === p.id);
-            const isFav = favorites.some((f) => f.id === p.id);
-            const isRecommended = hasRecommendation && p.id === recommendedId;
-            return (
-              <PlanTile
-                key={p.id}
-                plan={p}
-                rationale={r}
-                isFav={isFav}
-                isRecommended={isRecommended}
-                deemphasize={hasRecommendation && !isRecommended}
-                onToggleFavorite={() => toggleFavorite(p)}
-                className="flex-1 min-w-[220px]"
-              />
-            );
-          })}
+
+      {hasRecommendation && isPaired && recommendedPlan && pairedPlan && (
+        <div className="mb-4 rounded-2xl border-2 border-[#033592] bg-[#033592]/[0.03] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#033592] mb-3">
+            Your recommended coverage
+          </div>
+          <div className="flex flex-col md:flex-row gap-3 items-stretch">
+            <BundleSlot
+              label="Medical Coverage"
+              icon={Stethoscope}
+              plan={recommendedPlan}
+              isFav={favorites.some((f) => f.id === recommendedPlan.id)}
+              onToggleFavorite={() => toggleFavorite(recommendedPlan)}
+            />
+            <div className="flex items-center justify-center md:flex-col text-[#033592]">
+              <div className="rounded-full bg-[#033592] text-white h-8 w-8 flex items-center justify-center shadow">
+                <Plus className="h-4 w-4" />
+              </div>
+            </div>
+            <BundleSlot
+              label="Prescription Coverage"
+              icon={Pill}
+              plan={pairedPlan}
+              isFav={favorites.some((f) => f.id === pairedPlan.id)}
+              onToggleFavorite={() => toggleFavorite(pairedPlan)}
+            />
+          </div>
+          {data.strategyRationale && (
+            <div className="mt-4 rounded-lg bg-white/70 border border-[#033592]/15 p-3">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-[#033592] mb-1 inline-flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5" /> Why this combination
+              </div>
+              <p className="text-sm text-ink leading-snug m-0">{data.strategyRationale}</p>
+            </div>
+          )}
         </div>
+      )}
+
+      {hasRecommendation && !isPaired && data.strategyRationale && recommendedPlan && (
+        <div className="mb-3 rounded-lg border border-[#033592]/20 bg-[#033592]/[0.04] p-3">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[#033592] mb-1">
+            <Sparkles className="h-3.5 w-3.5" /> Why this coverage
+            {strategyBadge && (
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#033592] text-white px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                <strategyBadge.icon className="h-3 w-3" /> {strategyBadge.label}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-ink leading-snug m-0">{data.strategyRationale}</p>
+        </div>
+      )}
+
+      {(runners.length > 0 || !hasRecommendation || !isPaired) && (
+        <>
+          {hasRecommendation && isPaired && runners.length > 0 && (
+            <div className="text-[11px] font-medium uppercase tracking-wide text-muted-2 px-1 mb-2">
+              Also considered
+            </div>
+          )}
+          <div className="-mx-1 overflow-x-auto">
+            <div className="flex gap-4 px-1 items-stretch">
+              {(isPaired ? runners : data.plans).map((p) => {
+                const r = data.rationale.find((x) => x.planId === p.id);
+                const isFav = favorites.some((f) => f.id === p.id);
+                const isRecommended = !isPaired && hasRecommendation && p.id === recommendedId;
+                return (
+                  <PlanTile
+                    key={p.id}
+                    plan={p}
+                    rationale={r}
+                    isFav={isFav}
+                    isRecommended={isRecommended}
+                    deemphasize={hasRecommendation && !isRecommended}
+                    onToggleFavorite={() => toggleFavorite(p)}
+                    className="flex-1 min-w-[220px]"
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function BundleSlot({
+  label,
+  icon: Icon,
+  plan,
+  isFav,
+  onToggleFavorite,
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  plan: RecommendedPlan;
+  isFav: boolean;
+  onToggleFavorite: () => void;
+}) {
+  return (
+    <div className="flex-1 rounded-xl border border-[#033592]/25 bg-white p-3 relative">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#033592] mb-1.5">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </div>
+      <button
+        type="button"
+        onClick={onToggleFavorite}
+        aria-label={isFav ? "Remove from favorites" : "Save to favorites"}
+        aria-pressed={isFav}
+        className={`absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border transition ${
+          isFav
+            ? "border-rose-200 bg-rose-50 text-rose-600"
+            : "border-ink/15 bg-white text-ink/60 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
+        }`}
+      >
+        <Heart className={`h-3.5 w-3.5 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+      </button>
+      <div className="text-[11px] uppercase tracking-wide text-muted-2 pr-8">
+        {plan.carrier} · {plan.type}
+      </div>
+      <div className="font-serif text-[15px] leading-snug text-ink mt-0.5 pr-8 break-words">
+        {plan.name}
+      </div>
+      <div className="mt-2 text-lg font-semibold text-ink leading-none">
+        ${plan.monthlyPremium}
+        <span className="text-xs font-normal text-muted-2">/mo</span>
       </div>
     </div>
   );
 }
+
 
 function PlanTile({
   plan: p,
