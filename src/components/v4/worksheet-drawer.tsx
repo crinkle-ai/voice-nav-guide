@@ -426,110 +426,97 @@ function WorksheetDrawerInner() {
           renderDetail()
         ) : (
           <div className={size === "full" ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
-            <WorkspaceCard
-              cardKey="personal"
-              status={intake.zip.value ? "Captured" : "Add info"}
-              primary="Your Information"
-              secondary={
-                [intake.zip.value && `ZIP ${intake.zip.value}`, intake.currentPlan.value]
-                  .filter(Boolean)
-                  .join(" · ") || "Name, ZIP, current plan"
-              }
-              onClick={() => setCard("personal")}
-            />
-            <WorkspaceCard
-              cardKey="doctors"
-              status={
-                doctorsCount === 0
-                  ? "Add doctors"
-                  : `${docVerified}/${doctorsCount} verified`
-              }
-              primary={
-                doctorsCount === 0
-                  ? "Your doctors"
-                  : intake.doctors.value
-                      .slice(0, 2)
-                      .map((d) => d.name)
-                      .join(", ") + (doctorsCount > 2 ? ` +${doctorsCount - 2}` : "")
-              }
-              secondary={
-                doctorsCount === 0
-                  ? "We verify each one against the NPI Registry"
-                  : "Tap to view NPPES matches"
-              }
-              onClick={() => setCard("doctors")}
-            />
-            <WorkspaceCard
-              cardKey="meds"
-              status={
-                medsCount === 0
-                  ? "Add medications"
-                  : `${medsVerified}/${medsCount} verified`
-              }
-              primary={
-                medsCount === 0
-                  ? "Your medications"
-                  : intake.medications.value
-                      .slice(0, 2)
-                      .map((m) => formatMedication(m) || m.name)
-                      .join(", ") + (medsCount > 2 ? ` +${medsCount - 2}` : "")
-              }
-              secondary={
-                medsCount === 0
-                  ? "We verify each one against RxNorm"
-                  : "Tap to view RxNorm matches"
-              }
-              onClick={() => setCard("meds")}
-            />
-            <WorkspaceCard
-              cardKey="budget"
-              status={intake.budgetSensitivity.value ? "Captured" : "Add budget"}
-              primary={
-                intake.budgetCaps.monthlyPremiumMax
-                  ? `Up to $${intake.budgetCaps.monthlyPremiumMax}/mo`
-                  : intake.budgetSensitivity.value
-                  ? `${intake.budgetSensitivity.value[0].toUpperCase()}${intake.budgetSensitivity.value.slice(1)} sensitivity`
-                  : "Your budget"
-              }
-              secondary={
-                intake.extras.value.length
-                  ? `Extras: ${intake.extras.value.join(", ")}`
-                  : "Premium, deductible, extra benefits"
-              }
-              onClick={() => setCard("budget")}
-            />
-            <WorkspaceCard
-              cardKey="agent"
-              status={state.permanentAgent ? "Pinned" : "Optional"}
-              primary={state.permanentAgent ? state.permanentAgent.name : "Pick your agent"}
-              secondary={
-                state.permanentAgent
-                  ? `${state.permanentAgent.title} · ${state.permanentAgent.location}`
-                  : "Start a call to make one your permanent agent"
-              }
-              onClick={() => setCard("agent")}
-            />
-            <WorkspaceCard
-              cardKey="favorites"
-              status={(state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save"}
-              primary={
-                (state.favoritePlans ?? []).length === 0
-                  ? "Your favorite plans"
-                  : (state.favoritePlans ?? [])
-                      .slice(0, 2)
-                      .map((p) => p.name)
-                      .join(", ") +
-                    ((state.favoritePlans ?? []).length > 2
-                      ? ` +${(state.favoritePlans ?? []).length - 2}`
-                      : "")
-              }
-              secondary={
-                (state.favoritePlans ?? []).length === 0
-                  ? "Tap the heart on any plan to save it"
-                  : "Tap to compare your saved plans"
-              }
-              onClick={() => setCard("favorites")}
-            />
+            {order.map((key) => {
+              const props: { status: string; primary: string; secondary?: string; onClick: () => void } =
+                key === "personal"
+                  ? {
+                      status: intake.zip.value ? "Captured" : "Add info",
+                      primary: "Your Information",
+                      secondary:
+                        [intake.zip.value && `ZIP ${intake.zip.value}`, intake.currentPlan.value]
+                          .filter(Boolean)
+                          .join(" · ") || "Name, ZIP, current plan",
+                      onClick: () => setCard("personal"),
+                    }
+                  : key === "doctors"
+                  ? {
+                      status: doctorsCount === 0 ? "Add doctors" : `${docVerified}/${doctorsCount} verified`,
+                      primary:
+                        doctorsCount === 0
+                          ? "Your doctors"
+                          : intake.doctors.value
+                              .slice(0, 2)
+                              .map((d) => d.name)
+                              .join(", ") + (doctorsCount > 2 ? ` +${doctorsCount - 2}` : ""),
+                      secondary: doctorsCount === 0 ? "We verify each one against the NPI Registry" : "Tap to view NPPES matches",
+                      onClick: () => setCard("doctors"),
+                    }
+                  : key === "meds"
+                  ? {
+                      status: medsCount === 0 ? "Add medications" : `${medsVerified}/${medsCount} verified`,
+                      primary:
+                        medsCount === 0
+                          ? "Your medications"
+                          : intake.medications.value
+                              .slice(0, 2)
+                              .map((m) => formatMedication(m) || m.name)
+                              .join(", ") + (medsCount > 2 ? ` +${medsCount - 2}` : ""),
+                      secondary: medsCount === 0 ? "We verify each one against RxNorm" : "Tap to view RxNorm matches",
+                      onClick: () => setCard("meds"),
+                    }
+                  : key === "budget"
+                  ? {
+                      status: intake.budgetSensitivity.value ? "Captured" : "Add budget",
+                      primary: intake.budgetCaps.monthlyPremiumMax
+                        ? `Up to $${intake.budgetCaps.monthlyPremiumMax}/mo`
+                        : intake.budgetSensitivity.value
+                        ? `${intake.budgetSensitivity.value[0].toUpperCase()}${intake.budgetSensitivity.value.slice(1)} sensitivity`
+                        : "Your budget",
+                      secondary: intake.extras.value.length ? `Extras: ${intake.extras.value.join(", ")}` : "Premium, deductible, extra benefits",
+                      onClick: () => setCard("budget"),
+                    }
+                  : key === "agent"
+                  ? {
+                      status: state.permanentAgent ? "Pinned" : "Optional",
+                      primary: state.permanentAgent ? state.permanentAgent.name : "Pick your agent",
+                      secondary: state.permanentAgent
+                        ? `${state.permanentAgent.title} · ${state.permanentAgent.location}`
+                        : "Start a call to make one your permanent agent",
+                      onClick: () => setCard("agent"),
+                    }
+                  : {
+                      status: (state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save",
+                      primary:
+                        (state.favoritePlans ?? []).length === 0
+                          ? "Your favorite plans"
+                          : (state.favoritePlans ?? [])
+                              .slice(0, 2)
+                              .map((p) => p.name)
+                              .join(", ") +
+                            ((state.favoritePlans ?? []).length > 2 ? ` +${(state.favoritePlans ?? []).length - 2}` : ""),
+                      secondary:
+                        (state.favoritePlans ?? []).length === 0
+                          ? "Tap the heart on any plan to save it"
+                          : "Tap to compare your saved plans",
+                      onClick: () => setCard("favorites"),
+                    };
+              return (
+                <WorkspaceCard
+                  key={key}
+                  cardKey={key}
+                  status={props.status}
+                  primary={props.primary}
+                  secondary={props.secondary}
+                  onClick={props.onClick}
+                  draggable={!card && size !== "min"}
+                  onDragStart={handleDragStart(key)}
+                  onDragOver={handleDragOver(key)}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  dragging={draggingKey === key}
+                />
+              );
+            })}
 
 
             <button
