@@ -471,9 +471,27 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
     return -1;
   }, [messages]);
 
+  const dedupedMessages = useMemo(() => {
+    const out: UIMessage[] = [];
+    for (const m of messages) {
+      const prev = out[out.length - 1];
+      if (
+        prev &&
+        prev.role === "assistant" &&
+        m.role === "assistant" &&
+        messageText(prev) === messageText(m) &&
+        messageText(m).length > 0
+      ) {
+        continue;
+      }
+      out.push(m);
+    }
+    return out;
+  }, [messages]);
+
   const chatItems: (ChatItem & { locked?: boolean })[] = useMemo(
     () => [
-      ...messages.map((m, idx) => ({
+      ...dedupedMessages.map((m, idx) => ({
         message: m,
         live: false,
         locked: m.role === "assistant" && idx < lastUserMsgIndex,
@@ -490,7 +508,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
           }) as ChatItem,
       ),
     ],
-    [messages, voiceLive, lastUserMsgIndex],
+    [dedupedMessages, voiceLive, lastUserMsgIndex],
   );
 
   return (
