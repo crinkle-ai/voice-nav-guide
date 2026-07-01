@@ -53,6 +53,10 @@ type ChatItem = {
   live: boolean;
 };
 
+type SyntheticCard =
+  | { kind: "save-prompt"; id: string; trigger: string }
+  | { kind: "recap"; id: string; name: string; summary: string };
+
 const PLAN_REQUEST_RE = /\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b[\s\S]{0,80}\b(plan|plans|option|options|recommendation|recommendations|match|matches|them|those)\b|\b(plan|plans|options|recommendations|matches)\b[\s\S]{0,80}\b(show|see|view|compare|recommend|suggest|pick|choose|find|give|display)\b/i;
 const DEFERRED_PLAN_RE = /finish intake|click\s+["“”']?finish|see (them|plans|matches) now|show you matches/i;
 // Detect when the model emitted a tool invocation as plain text instead of calling the tool.
