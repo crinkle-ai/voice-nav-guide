@@ -192,7 +192,19 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-const DEFAULT_ORDER: CardKey[] = ["personal", "doctors", "meds", "budget", "agent", "favorites"];
+const DEFAULT_ENABLED: CardKey[] = ["personal", "doctors", "meds", "budget", "favorites"];
+const OPTIONAL_CARDS: CardKey[] = ["agent", "caregiver"];
+const ALL_CARDS: CardKey[] = ["personal", "doctors", "meds", "budget", "favorites", "agent", "caregiver"];
+
+const OPTIONAL_DESCRIPTIONS: Record<CardKey, string> = {
+  personal: "",
+  doctors: "",
+  meds: "",
+  budget: "",
+  favorites: "",
+  agent: "Pick a licensed advisor and keep them pinned to your workspace.",
+  caregiver: "Invite a family member or trusted helper to see and manage your plan choices.",
+};
 
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
@@ -200,26 +212,65 @@ function WorksheetDrawerInner() {
   const [card, setCard] = useState<CardKey | null>(null);
   const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
   const [draggingKey, setDraggingKey] = useState<CardKey | null>(null);
+  const [showAddPicker, setShowAddPicker] = useState(false);
+
+  // Effective enabled set = user-enabled ∪ defaults ∪ auto-enabled (agent if pinned, caregiver if named)
+  const enabled: CardKey[] = (() => {
+    const base = new Set<CardKey>(
+      (state.enabledCards as CardKey[] | undefined)?.length
+        ? (state.enabledCards as CardKey[])
+        : DEFAULT_ENABLED,
+    );
+    if (state.permanentAgent) base.add("agent");
+    if (state.caregiver?.name) base.add("caregiver");
+    return ALL_CARDS.filter((k) => base.has(k));
+  })();
+
   const [order, setOrder] = useState<CardKey[]>(() => {
     const saved = state.cardOrder as CardKey[] | undefined;
-    return saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length
-      ? saved
-      : [...DEFAULT_ORDER];
+    if (saved && saved.length) return saved.filter((k) => ALL_CARDS.includes(k)) as CardKey[];
+    return enabled;
   });
   const orderInitialized = useRef(false);
 
   useEffect(() => {
     if (orderInitialized.current || !ready) return;
     const saved = state.cardOrder as CardKey[] | undefined;
-    if (saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length) {
-      setOrder(saved);
+    if (saved && saved.length) {
+      setOrder(saved.filter((k) => ALL_CARDS.includes(k)) as CardKey[]);
     }
     orderInitialized.current = true;
   }, [ready, state.cardOrder]);
 
+  // Keep order in sync with enabled set (add newly-enabled, drop disabled)
+  useEffect(() => {
+    setOrder((prev) => {
+      const filtered = prev.filter((k) => enabled.includes(k));
+      const missing = enabled.filter((k) => !filtered.includes(k));
+      const next = [...filtered, ...missing];
+      const same = next.length === prev.length && next.every((k, i) => k === prev[i]);
+      return same ? prev : next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled.join("|")]);
+
   useAutoVerifyIntake();
 
   if (!ready) return null;
+
+  const addOptionalCard = (key: CardKey) => {
+    const current = new Set<CardKey>(
+      (state.enabledCards as CardKey[] | undefined)?.length
+        ? (state.enabledCards as CardKey[])
+        : DEFAULT_ENABLED,
+    );
+    current.add(key);
+    update({ enabledCards: Array.from(current) });
+    setShowAddPicker(false);
+    setCard(key);
+  };
+
+
 
 
   const intake = state.intake;
