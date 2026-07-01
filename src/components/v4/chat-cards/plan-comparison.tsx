@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Heart, ChevronDown, ChevronUp, ShieldCheck, Plus, Stethoscope, Pill, HeartHandshake, FileSignature } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import { useStartEnrollment } from "@/lib/v4/enrollment-dialog-store";
@@ -43,6 +43,12 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
     data.strategy ??
     (pairedId ? "medigap-plus-partd" : "medicare-advantage");
   const isPaired = strategy === "medigap-plus-partd" && !!pairedId;
+
+  const initialSelectedId = recommendedId ?? data.plans[0]?.id;
+  const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
+  useEffect(() => {
+    setSelectedId(initialSelectedId);
+  }, [initialSelectedId]);
 
   const recommendedPlan = data.plans.find((p) => p.id === recommendedId);
   const pairedPlan = isPaired ? data.plans.find((p) => p.id === pairedId) : undefined;
@@ -174,6 +180,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
                 const r = data.rationale.find((x) => x.planId === p.id);
                 const isFav = favorites.some((f) => f.id === p.id);
                 const isRecommended = !isPaired && hasRecommendation && p.id === recommendedId;
+                const isSelected = !isPaired && p.id === selectedId;
                 return (
                   <PlanTile
                     key={p.id}
@@ -181,9 +188,14 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
                     rationale={r}
                     isFav={isFav}
                     isRecommended={isRecommended}
-                    deemphasize={hasRecommendation && !isRecommended}
+                    isSelected={isSelected}
+                    deemphasize={hasRecommendation && !isRecommended && !isSelected}
+                    onSelect={() => setSelectedId(p.id)}
                     onToggleFavorite={() => toggleFavorite(p)}
-                    onEnroll={() => startEnrollment(p)}
+                    onEnroll={() => {
+                      setSelectedId(p.id);
+                      startEnrollment(p);
+                    }}
                     className="flex-1 min-w-[220px]"
                   />
                 );
@@ -247,7 +259,9 @@ function PlanTile({
   rationale: r,
   isFav,
   isRecommended,
+  isSelected,
   deemphasize,
+  onSelect,
   onToggleFavorite,
   onEnroll,
   className,
@@ -256,7 +270,9 @@ function PlanTile({
   rationale?: PlanRationale;
   isFav: boolean;
   isRecommended?: boolean;
+  isSelected?: boolean;
   deemphasize?: boolean;
+  onSelect?: () => void;
   onToggleFavorite: () => void;
   onEnroll?: () => void;
   className?: string;
@@ -267,14 +283,18 @@ function PlanTile({
   const reasons = r?.reasons ?? [];
   const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
 
-  const borderCls = isRecommended
+  const highlighted = isSelected || isRecommended;
+  const borderCls = highlighted
     ? "border-[3px] border-[#033592] shadow-[0_0_0_4px_rgba(3,53,146,0.12),0_12px_32px_-8px_rgba(3,53,146,0.35)]"
     : deemphasize
       ? "border border-ink/10 opacity-70"
       : "border border-ink/10";
 
   return (
-    <article className={`relative rounded-xl ${borderCls} bg-paper overflow-hidden flex flex-col h-full ${className}`}>
+    <article
+      onClick={onSelect}
+      className={`relative rounded-xl ${borderCls} bg-paper overflow-hidden flex flex-col h-full cursor-pointer transition ${className}`}
+    >
       {isRecommended && (
         <div className="absolute -top-2 right-3 z-10 rounded-full bg-[#033592] text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 shadow">
           Recommended
@@ -283,7 +303,7 @@ function PlanTile({
       <div className="p-4 border-b border-ink/10 relative">
         <button
           type="button"
-          onClick={onToggleFavorite}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
           aria-label={isFav ? "Remove from favorites" : "Save to favorites"}
           aria-pressed={isFav}
           title={isFav ? "Saved to Your Workspace" : "Save to Your Workspace"}
@@ -350,7 +370,7 @@ function PlanTile({
       {(highlights.length > 2 || reasons.length > 2) && (
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           className="px-4 py-3 text-xs font-medium text-accent hover:bg-surface-soft/60 border-t border-ink/10 inline-flex items-center justify-center gap-1"
         >
           {expanded ? (
@@ -369,8 +389,12 @@ function PlanTile({
         <div className="p-3 border-t border-ink/10 bg-white">
           <button
             type="button"
-            onClick={onEnroll}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+            onClick={(e) => { e.stopPropagation(); onEnroll(); }}
+            className={
+              isSelected
+                ? "w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+                : "w-full inline-flex items-center justify-center gap-2 rounded-full border border-[#131F69] bg-white px-3 py-2 text-sm font-medium text-[#131F69] hover:bg-[#131F69]/5"
+            }
           >
             <FileSignature className="h-4 w-4" /> Enroll in this plan
           </button>
