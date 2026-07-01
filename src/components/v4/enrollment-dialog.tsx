@@ -304,10 +304,10 @@ function SoaStep({
   onBack: () => void;
 }) {
   const [typed, setTyped] = useState(app.soa?.typedName ?? "");
-  const [agreed, setAgreed] = useState(!!app.soa);
+  const agreed = true;
   const [apptDate, setApptDate] = useState(app.soa?.appointmentDate ?? new Date().toISOString().slice(0, 10));
   const [apptWindow, setApptWindow] = useState(app.soa?.appointmentWindow ?? "any-time");
-  const canSubmit = typed.trim().length >= 2 && agreed && !!apptDate;
+  const canSubmit = typed.trim().length >= 2 && !!apptDate;
   return (
     <div className="space-y-4">
       <StepHeader
