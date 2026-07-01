@@ -35,16 +35,23 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
             Want me to save this to your CHC account?
           </div>
           <p className="text-sm text-ink/75 mt-1 leading-relaxed">
-            {trigger} Sign in and I'll keep your doctors, medications and favorite
-            plans safe — protected by CHC's HIPAA-secure member systems.
+            {trigger} You can sign in with your HealthSafe ID, or create one in about
+            a minute — your info stays in CHC's HIPAA-secure member systems.
           </p>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => setSsoOpen(true)}
+              onClick={() => openSso("signin")}
               className="inline-flex items-center gap-1.5 rounded-full bg-[#131F69] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#0d1650]"
             >
-              Sign in with CHC <ArrowRight className="h-3.5 w-3.5" />
+              Sign in with HealthSafe ID <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => openSso("signup")}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#131F69] px-3.5 py-1.5 text-xs font-medium text-[#131F69] hover:bg-[#131F69]/5"
+            >
+              <UserPlus className="h-3.5 w-3.5" /> Create a HealthSafe ID
             </button>
             <button
               type="button"
@@ -73,6 +80,7 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
       <UhcSsoDialog
         open={ssoOpen}
         onOpenChange={setSsoOpen}
+        defaultMode={ssoMode}
         onSignedIn={() => setHidden(true)}
       />
     </div>
