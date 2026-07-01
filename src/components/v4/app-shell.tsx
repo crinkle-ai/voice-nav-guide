@@ -64,14 +64,7 @@ export function AppShell({
           </div>
           <div className="flex items-center gap-5 text-sm" style={{ color: V4_HEADER_TEXT }}>
             {rightSlot}
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 transition"
-              style={{ color: V4_HEADER_TEXT }}
-            >
-              <UserCircle2 className="h-5 w-5" style={{ color: V4_HEADER_TEXT }} />
-              <span>Sign in</span>
-            </Link>
+            <UserMenu />
           </div>
         </div>
       </header>
