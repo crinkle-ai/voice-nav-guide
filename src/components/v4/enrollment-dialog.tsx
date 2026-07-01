@@ -373,11 +373,13 @@ function SoaStep({
 function InfoStep({
   app,
   isMedigap,
+  isMA,
   onSubmit,
   onBack,
 }: {
   app: EnrollmentApplication;
   isMedigap: boolean;
+  isMA: boolean;
   onSubmit: (info: NonNullable<EnrollmentApplication["info"]>) => void;
   onBack: () => void;
 }) {
@@ -386,8 +388,16 @@ function InfoStep({
     setInfo((p) => ({ ...p, [k]: v }));
   const setPay = <K extends keyof NonNullable<NonNullable<EnrollmentApplication["info"]>["payment"]>>(k: K, v: NonNullable<NonNullable<EnrollmentApplication["info"]>["payment"]>[K]) =>
     setInfo((p) => ({ ...p, payment: { ...(p.payment ?? {}), [k]: v } }));
+  const setEc = (k: "name" | "relationship" | "phone", v: string) =>
+    setInfo((p) => ({ ...p, emergencyContact: { ...(p.emergencyContact ?? {}), [k]: v } }));
+  const setPcp = (k: "name" | "npi" | "currentPatient", v: string | boolean) =>
+    setInfo((p) => ({ ...p, pcp: { ...(p.pcp ?? {}), [k]: v } as NonNullable<EnrollmentApplication["info"]>["pcp"] }));
 
   const mbiValid = !info.mbi || MBI_RE.test((info.mbi || "").trim());
+  const ssnValid = !info.ssnFull || /^\d{3}-?\d{2}-?\d{4}$/.test(info.ssnFull);
+  const routingValid = !info.payment?.routingNumber || /^\d{9}$/.test(info.payment.routingNumber);
+  const isDsnp = app.strategy === "dsnp";
+
   const errors = useMemo(() => {
     const e: string[] = [];
     if (!info.legalName) e.push("Legal name");
@@ -397,19 +407,61 @@ function InfoStep({
     if (!info.city) e.push("City");
     if (!info.state) e.push("State");
     if (!info.zip) e.push("ZIP");
+    if (info.mailingSameAsResidence === false) {
+      if (!info.mailingAddress1) e.push("Mailing street");
+      if (!info.mailingCity) e.push("Mailing city");
+      if (!info.mailingState) e.push("Mailing state");
+      if (!info.mailingZip) e.push("Mailing ZIP");
+    }
     if (!info.phone) e.push("Phone");
     if (!info.email) e.push("Email");
+    if (!info.emergencyContact?.name) e.push("Emergency contact name");
+    if (!info.emergencyContact?.phone) e.push("Emergency contact phone");
     if (!info.mbi) e.push("MBI");
     else if (!mbiValid) e.push("MBI format (e.g. 1EG4-TE5-MK73)");
     if (!info.partAEffective) e.push("Part A effective date");
     if (!info.partBEffective) e.push("Part B effective date");
+    if (!info.oevPreference) e.push("OEV contact preference");
     if (!info.enrollmentPeriod) e.push("Enrollment period");
     if (!info.requestedEffective) e.push("Requested effective date");
+    // Eligibility
+    if (!info.esrd) e.push("ESRD question");
+    if (!info.otherCoverage || info.otherCoverage.length === 0) e.push("Other coverage");
+    if (!info.lis) e.push("Extra Help (LIS) question");
+    if (!info.institutional) e.push("Living situation");
+    if (isDsnp && !info.medicaidId) e.push("Medicaid ID (required for D-SNP)");
+    if (info.otherCoverage?.includes("medicaid") && !info.medicaidId) e.push("Medicaid ID");
+    // MA-only
+    if (isMA && !info.pcp?.name) e.push("Primary care provider");
+    if (isMA && !info.pcp?.npi) e.push("PCP NPI");
+    // Payment
     if (!info.payment?.method) e.push("Payment method");
-    if (isMedigap && info.tobacco === undefined) e.push("Tobacco use (last 12 mo)");
-    if (isMedigap && !info.ssnLast4) e.push("SSN (last 4)");
+    if (info.payment?.method === "eft") {
+      if (!routingValid) e.push("Routing # (9 digits)");
+      if (!info.payment?.routingNumber) e.push("Routing #");
+      if (!info.payment?.accountNumber) e.push("Account #");
+    }
+    if (info.payment?.method === "card") {
+      if (!info.payment?.cardPan || info.payment.cardPan.replace(/\D/g, "").length < 15) e.push("Card number");
+      if (!info.payment?.cardExp) e.push("Card exp (MM/YY)");
+      if (!info.payment?.cardCvv) e.push("Card CVV");
+      if (!info.payment?.cardBillingZip) e.push("Card billing ZIP");
+    }
+    // Medigap
+    if (isMedigap) {
+      if (info.tobacco === undefined) e.push("Tobacco use (last 12 mo)");
+      if (!info.ssnFull) e.push("Full SSN");
+      else if (!ssnValid) e.push("SSN format (XXX-XX-XXXX)");
+      if (!info.giReason) e.push("Guaranteed-issue reason");
+      if (!info.giLossDate) e.push("Loss-of-coverage date");
+      if (info.replacing === undefined) e.push("Replacing existing coverage? (yes/no)");
+      if (info.replacing && !info.replacePriorCarrier) e.push("Prior carrier");
+      if (info.householdDiscount === undefined) e.push("Household discount question");
+      if (!info.heightIn) e.push("Height");
+      if (!info.weightLb) e.push("Weight");
+    }
     return e;
-  }, [info, mbiValid, isMedigap]);
+  }, [info, mbiValid, ssnValid, routingValid, isMedigap, isMA, isDsnp]);
 
   const canSubmit = errors.length === 0;
   return (
@@ -435,6 +487,9 @@ function InfoStep({
           <SelectField label="Sex" value={info.sex} onChange={(v) => set("sex", v as "F" | "M" | "X")} options={[["F","Female"],["M","Male"],["X","Prefer not to say"]]} />
           <TxtField label="Phone" value={info.phone} onChange={(v) => set("phone", v)} placeholder="612-555-0134" />
           <TxtField label="Email" value={info.email} onChange={(v) => set("email", v)} placeholder="you@example.com" />
+          <TxtField label="Preferred language (optional)" value={info.preferredLanguage} onChange={(v) => set("preferredLanguage", v)} placeholder="English" />
+          <TxtField label="Race (optional, CMS-collected)" value={info.race} onChange={(v) => set("race", v)} />
+          <TxtField label="Ethnicity (optional, CMS-collected)" value={info.ethnicity} onChange={(v) => set("ethnicity", v)} />
         </Section>
 
         <Section title="Permanent residence (no PO box)">
@@ -446,11 +501,120 @@ function InfoStep({
           <TxtField label="County" value={info.county} onChange={(v) => set("county", v)} placeholder="Hennepin" />
         </Section>
 
+        <div>
+          <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+            <input
+              type="checkbox"
+              checked={info.mailingSameAsResidence !== false}
+              onChange={(e) => set("mailingSameAsResidence", e.target.checked)}
+            />
+            <span>Mailing address is the same as my permanent residence</span>
+          </label>
+          {info.mailingSameAsResidence === false && (
+            <div className="mt-2">
+              <Section title="Mailing address">
+                <TxtField label="Street" value={info.mailingAddress1} onChange={(v) => set("mailingAddress1", v)} />
+                <TxtField label="Apt / unit" value={info.mailingAddress2} onChange={(v) => set("mailingAddress2", v)} />
+                <TxtField label="City" value={info.mailingCity} onChange={(v) => set("mailingCity", v)} />
+                <TxtField label="State" value={info.mailingState} onChange={(v) => set("mailingState", v)} />
+                <TxtField label="ZIP" value={info.mailingZip} onChange={(v) => set("mailingZip", v)} />
+              </Section>
+            </div>
+          )}
+        </div>
+
+        <Section title="Emergency contact">
+          <TxtField label="Name" value={info.emergencyContact?.name} onChange={(v) => setEc("name", v)} />
+          <TxtField label="Relationship" value={info.emergencyContact?.relationship} onChange={(v) => setEc("relationship", v)} placeholder="Daughter, spouse, etc." />
+          <TxtField label="Phone" value={info.emergencyContact?.phone} onChange={(v) => setEc("phone", v)} />
+        </Section>
+
         <Section title="Medicare card">
           <TxtField label="Medicare Beneficiary Identifier (MBI)" value={info.mbi} onChange={(v) => set("mbi", v.toUpperCase())} placeholder="1EG4-TE5-MK73" />
           <TxtField label="Part A effective date" value={info.partAEffective} onChange={(v) => set("partAEffective", v)} placeholder="2024-08-01" />
           <TxtField label="Part B effective date" value={info.partBEffective} onChange={(v) => set("partBEffective", v)} placeholder="2024-08-01" />
+          <TxtField label="SSN (full, XXX-XX-XXXX)" value={info.ssnFull} onChange={(v) => set("ssnFull", v)} placeholder="123-45-1930" />
+          <SelectField
+            label="Outbound Enrollment Verification (OEV) — how should CMS contact you?"
+            value={info.oevPreference}
+            onChange={(v) => set("oevPreference", v as NonNullable<typeof info.oevPreference>)}
+            options={[["phone","Phone"],["email","Email"],["mail","Mail"]]}
+          />
         </Section>
+
+        <Section title="Eligibility & other coverage">
+          <SelectField
+            label="Do you have End-Stage Renal Disease (ESRD)?"
+            value={info.esrd}
+            onChange={(v) => set("esrd", v as NonNullable<typeof info.esrd>)}
+            options={[["no","No"],["yes","Yes"],["transplant_recovery","In kidney-transplant recovery"]]}
+          />
+          <SelectField
+            label="Do you receive Extra Help (LIS) for prescription costs?"
+            value={info.lis}
+            onChange={(v) => set("lis", v as NonNullable<typeof info.lis>)}
+            options={[["no","No"],["yes","Yes"],["unsure","Not sure"]]}
+          />
+          <SelectField
+            label="Where do you live?"
+            value={info.institutional}
+            onChange={(v) => set("institutional", v as NonNullable<typeof info.institutional>)}
+            options={[["community","In the community (home)"],["ltc","Long-term care facility"],["hcbs","Receiving home & community-based services"]]}
+          />
+          <SelectField
+            label="Medicaid status"
+            value={info.medicaidStatus}
+            onChange={(v) => set("medicaidStatus", v as NonNullable<typeof info.medicaidStatus>)}
+            options={[["no","No Medicaid"],["full","Full Medicaid"],["partial","Partial (share of cost)"],["qmb","QMB"],["slmb","SLMB"]]}
+          />
+          {(isDsnp || info.otherCoverage?.includes("medicaid") || (info.medicaidStatus && info.medicaidStatus !== "no")) && (
+            <TxtField label="Medicaid ID" value={info.medicaidId} onChange={(v) => set("medicaidId", v)} />
+          )}
+          <div className="col-span-1 sm:col-span-2">
+            <span className="text-[11px] uppercase tracking-wider text-muted-2">Other coverage today (select all that apply)</span>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {(["none","employer","union","cobra","va","tricare","ihs","medicaid","other"] as const).map((c) => {
+                const checked = info.otherCoverage?.includes(c) ?? false;
+                return (
+                  <button
+                    type="button"
+                    key={c}
+                    onClick={() => {
+                      const cur = new Set(info.otherCoverage ?? []);
+                      if (checked) cur.delete(c); else {
+                        if (c === "none") { cur.clear(); cur.add("none"); }
+                        else { cur.delete("none"); cur.add(c); }
+                      }
+                      set("otherCoverage", Array.from(cur));
+                    }}
+                    className={`rounded-full px-2.5 py-1 text-xs border ${checked ? "bg-[#131F69] text-white border-[#131F69]" : "bg-white text-ink border-line"}`}
+                  >
+                    {({ none:"None", employer:"Employer group", union:"Union / retiree", cobra:"COBRA", va:"VA", tricare:"TRICARE", ihs:"Indian Health", medicaid:"Medicaid", other:"Other" } as Record<string,string>)[c]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {info.otherCoverage && info.otherCoverage.some((c) => c !== "none") && (
+            <>
+              <TxtField label="Other coverage carrier" value={info.otherCoverageCarrier} onChange={(v) => set("otherCoverageCarrier", v)} />
+              <TxtField label="Other coverage policy #" value={info.otherCoveragePolicy} onChange={(v) => set("otherCoveragePolicy", v)} />
+            </>
+          )}
+        </Section>
+
+        {isMA && (
+          <Section title="Primary care provider (required for MA)">
+            <TxtField label="PCP name" value={info.pcp?.name} onChange={(v) => setPcp("name", v)} />
+            <TxtField label="PCP NPI (10 digits)" value={info.pcp?.npi} onChange={(v) => setPcp("npi", v.replace(/\D/g,"").slice(0,10))} />
+            <SelectField
+              label="Currently a patient?"
+              value={info.pcp?.currentPatient === undefined ? undefined : info.pcp.currentPatient ? "yes" : "no"}
+              onChange={(v) => setPcp("currentPatient", v === "yes")}
+              options={[["yes","Yes"],["no","No"]]}
+            />
+          </Section>
+        )}
 
         <Section title="Enrollment period">
           <SelectField
@@ -482,29 +646,86 @@ function InfoStep({
               ["ssa", "Deducted from Social Security"],
             ]}
           />
-          {(info.payment?.method === "eft" || info.payment?.method === "card") && (
-            <TxtField
-              label={info.payment?.method === "eft" ? "Account (last 4)" : "Card (last 4)"}
-              value={info.payment?.accountLast4}
-              onChange={(v) => setPay("accountLast4", v.replace(/\D/g, "").slice(0, 4))}
-              placeholder="4242"
-            />
+          {info.payment?.method === "eft" && (
+            <>
+              <TxtField label="Routing # (9 digits)" value={info.payment?.routingNumber} onChange={(v) => setPay("routingNumber", v.replace(/\D/g,"").slice(0,9))} placeholder="091000019" />
+              <TxtField label="Account #" value={info.payment?.accountNumber} onChange={(v) => { const clean = v.replace(/\D/g,""); setPay("accountNumber", clean); setPay("accountLast4", clean.slice(-4)); }} placeholder="000123456789" />
+            </>
           )}
+          {info.payment?.method === "card" && (
+            <>
+              <TxtField label="Card number" value={info.payment?.cardPan} onChange={(v) => { const clean = v.replace(/\D/g,"").slice(0,19); setPay("cardPan", clean); setPay("accountLast4", clean.slice(-4)); }} placeholder="4242 4242 4242 4242" />
+              <TxtField label="Exp (MM/YY)" value={info.payment?.cardExp} onChange={(v) => setPay("cardExp", v)} placeholder="12/28" />
+              <TxtField label="CVV" value={info.payment?.cardCvv} onChange={(v) => setPay("cardCvv", v.replace(/\D/g,"").slice(0,4))} />
+              <TxtField label="Billing ZIP" value={info.payment?.cardBillingZip} onChange={(v) => setPay("cardBillingZip", v.replace(/\D/g,"").slice(0,5))} />
+            </>
+          )}
+          {info.payment?.method === "ssa" && (
+            <div className="col-span-1 sm:col-span-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[11px] text-amber-900">
+              Social Security deductions typically take <b>1–3 months</b> to start. You may receive a bill in the meantime.
+            </div>
+          )}
+          <div className="col-span-1 sm:col-span-2 text-[11px] text-ink/60">
+            In production, payment details are tokenized by the carrier's payment vault and are never stored on our servers.
+          </div>
         </Section>
 
         {isMedigap && (
           <Section title="Medigap-specific">
-            <div className="col-span-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-800">
+            <div className="col-span-1 sm:col-span-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-800">
               <Check className="inline h-3 w-3 mr-1" /> You're in a <b>guaranteed-issue window</b>, so no
               health questions are required. Coverage cannot be denied based on health.
             </div>
+            <SelectField
+              label="Guaranteed-issue reason"
+              value={info.giReason}
+              onChange={(v) => set("giReason", v)}
+              options={[
+                ["turning_65", "Turning 65 open enrollment"],
+                ["loss_employer", "Losing employer/retiree coverage"],
+                ["ma_termination", "MA plan leaving service area / terminating"],
+                ["ma_trial", "Trial right (dropped Medigap for MA, going back within 12 mo)"],
+                ["moved", "Moved out of plan area"],
+                ["other_gi", "Other CMS-defined GI event"],
+              ]}
+            />
+            <TxtField label="Loss-of-coverage date" value={info.giLossDate} onChange={(v) => set("giLossDate", v)} placeholder="2025-12-31" />
+            <div className="col-span-1 sm:col-span-2">
+              <label className="text-[11px] uppercase tracking-wider text-muted-2">Supporting document (termination letter)</label>
+              <input
+                type="file"
+                onChange={(e) => set("giDocName", e.target.files?.[0]?.name)}
+                className="mt-1 block w-full text-xs text-ink/70 file:mr-3 file:rounded-full file:border-0 file:bg-[#131F69] file:text-white file:px-3 file:py-1.5 file:text-xs file:cursor-pointer"
+              />
+              {info.giDocName && <div className="text-[11px] text-emerald-700 mt-1">Attached: {info.giDocName}</div>}
+            </div>
+            <SelectField
+              label="Replacing existing Medigap or MA coverage?"
+              value={info.replacing === undefined ? undefined : info.replacing ? "yes" : "no"}
+              onChange={(v) => set("replacing", v === "yes")}
+              options={[["no","No"],["yes","Yes"]]}
+            />
+            {info.replacing && (
+              <>
+                <TxtField label="Prior carrier" value={info.replacePriorCarrier} onChange={(v) => set("replacePriorCarrier", v)} />
+                <TxtField label="Prior policy #" value={info.replacePriorPolicy} onChange={(v) => set("replacePriorPolicy", v)} />
+                <TxtField label="Planned termination date" value={info.replaceTerminationDate} onChange={(v) => set("replaceTerminationDate", v)} placeholder="2025-12-31" />
+              </>
+            )}
+            <SelectField
+              label="Anyone else in your household with this carrier?"
+              value={info.householdDiscount === undefined ? undefined : info.householdDiscount ? "yes" : "no"}
+              onChange={(v) => set("householdDiscount", v === "yes")}
+              options={[["no","No"],["yes","Yes"]]}
+            />
             <SelectField
               label="Used tobacco in last 12 months?"
               value={info.tobacco === undefined ? undefined : info.tobacco ? "yes" : "no"}
               onChange={(v) => set("tobacco", v === "yes")}
               options={[["no", "No"], ["yes", "Yes"]]}
             />
-            <TxtField label="SSN (last 4)" value={info.ssnLast4} onChange={(v) => set("ssnLast4", v.replace(/\D/g, "").slice(0, 4))} placeholder="1234" />
+            <TxtField label="Height (inches)" value={info.heightIn} onChange={(v) => set("heightIn", v.replace(/\D/g,"").slice(0,3))} placeholder="64" />
+            <TxtField label="Weight (lb)" value={info.weightLb} onChange={(v) => set("weightLb", v.replace(/\D/g,"").slice(0,3))} placeholder="142" />
           </Section>
         )}
       </div>
@@ -519,6 +740,8 @@ function InfoStep({
     </div>
   );
 }
+
+
 
 function DisclosuresStep({
   app,
