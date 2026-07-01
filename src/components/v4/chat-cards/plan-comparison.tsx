@@ -183,6 +183,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
                     isRecommended={isRecommended}
                     deemphasize={hasRecommendation && !isRecommended}
                     onToggleFavorite={() => toggleFavorite(p)}
+                    onEnroll={() => startEnrollment(p)}
                     className="flex-1 min-w-[220px]"
                   />
                 );
