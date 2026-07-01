@@ -737,16 +737,45 @@ function ReviewStep({
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={doDownload} disabled={downloading} className={outlineBtn}>
             {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Download PDF (demo)
+            Download PDF
           </button>
-          <button type="button" onClick={onHandoff} className={primaryBtn}>
-            Submit to licensed agent <Phone className="h-4 w-4" />
+          <button type="button" onClick={onHandoff} className={outlineBtn}>
+            <Phone className="h-4 w-4" /> Get a 2nd opinion from licensed agent
+          </button>
+          <button type="button" onClick={onSelfSubmit} className={primaryBtn}>
+            Submit application <Check className="h-4 w-4" />
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+function SubmittedStep({ app, onClose }: { app: EnrollmentApplication; onClose: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 text-center">
+        <div className="mx-auto h-12 w-12 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+          <Check className="h-6 w-6" />
+        </div>
+        <h3 className="font-serif text-xl text-[#131F69] mt-3">Application submitted</h3>
+        <p className="text-sm text-ink/75 mt-2 leading-relaxed">
+          Your self-enrollment for <b>{app.planName ?? app.planId}</b>
+          {app.pairedPlanName ? ` + ${app.pairedPlanName}` : ""} has been submitted.
+          You'll get a confirmation by email, and your plan will take effect on
+          <b> {app.info?.requestedEffective ?? "your requested date"}</b>.
+        </p>
+        <p className="text-xs text-ink/60 mt-2">Demo only — no real application was filed.</p>
+      </div>
+      <div className="text-center">
+        <button type="button" onClick={onClose} className={primaryBtn + " mx-auto"}>
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function HandedOffStep({ app, onClose }: { app: EnrollmentApplication; onClose: () => void }) {
   return (
