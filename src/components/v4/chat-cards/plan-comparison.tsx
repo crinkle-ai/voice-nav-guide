@@ -370,7 +370,7 @@ function PlanTile({
       {(highlights.length > 2 || reasons.length > 2) && (
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           className="px-4 py-3 text-xs font-medium text-accent hover:bg-surface-soft/60 border-t border-ink/10 inline-flex items-center justify-center gap-1"
         >
           {expanded ? (
@@ -389,8 +389,12 @@ function PlanTile({
         <div className="p-3 border-t border-ink/10 bg-white">
           <button
             type="button"
-            onClick={onEnroll}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+            onClick={(e) => { e.stopPropagation(); onEnroll(); }}
+            className={
+              isSelected
+                ? "w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+                : "w-full inline-flex items-center justify-center gap-2 rounded-full border border-[#131F69] bg-white px-3 py-2 text-sm font-medium text-[#131F69] hover:bg-[#131F69]/5"
+            }
           >
             <FileSignature className="h-4 w-4" /> Enroll in this plan
           </button>
