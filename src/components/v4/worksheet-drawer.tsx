@@ -547,7 +547,10 @@ function WorksheetDrawerInner() {
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-[#033592]/70">Saved decisions</div>
-            <div className="font-serif text-lg leading-tight text-[#033592] truncate">Your Workspace</div>
+            <div className="flex items-center gap-2">
+              <div className="font-serif text-lg leading-tight text-[#033592] truncate">Your Workspace</div>
+              <SaveChip onSignInClick={() => setSsoOpen(true)} />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
