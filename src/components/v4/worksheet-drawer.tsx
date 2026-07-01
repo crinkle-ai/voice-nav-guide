@@ -416,6 +416,7 @@ function WorksheetDrawerInner() {
 
     if (card === "favorites") {
       const favs = state.favoritePlans ?? [];
+      const pdpFav = favs.find((f) => f.type === "PDP");
       return (
         <DetailWrap title="Favorite plans" onBack={() => setCard(null)}>
           {favs.length === 0 ? (
@@ -438,6 +439,19 @@ function WorksheetDrawerInner() {
                     <div className="text-xs text-muted-2 mt-1">
                       ${p.monthlyPremium}/mo · MOOP ${p.maxOOP.toLocaleString()}
                     </div>
+                    {p.type !== "PDP" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          startEnrollment(p, p.type === "Medigap" ? pdpFav : undefined)
+                        }
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#131F69] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0d1650]"
+                      >
+                        <FileSignature className="h-3.5 w-3.5" />
+                        Enroll
+                        {p.type === "Medigap" && pdpFav ? " (bundle Part D)" : ""}
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
