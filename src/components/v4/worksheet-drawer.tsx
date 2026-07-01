@@ -7,7 +7,7 @@ import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { formatMedication } from "@/lib/v3/intake-types";
 import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
 import { CallDialog } from "@/components/v4/call-dialog";
-import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles } from "lucide-react";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users } from "lucide-react";
 
 import {
   Bookmark,
@@ -24,6 +24,7 @@ import {
   PlusCircle,
   Heart,
   X as XIcon,
+  Plus,
 } from "lucide-react";
 
 type Size = "min" | "half" | "full";
