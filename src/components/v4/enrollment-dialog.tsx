@@ -376,7 +376,7 @@ function InfoStep({
   return (
     <div className="space-y-4">
       <StepHeader
-        eyebrow="Step 2"
+        eyebrow="Step 1"
         title="Your Medicare details"
         blurb="We've pre-filled what we already have. Fill in the rest — this is what Crinkle Health needs to file the application."
       />
