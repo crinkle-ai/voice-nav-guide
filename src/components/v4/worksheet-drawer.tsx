@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
 import { useSession, type PermanentAgent } from "@/lib/v4/session-store";
@@ -89,34 +89,64 @@ function WorkspaceCard({
   primary,
   secondary,
   onClick,
+  draggable,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  dragging,
 }: {
   cardKey: CardKey;
   status: string;
   primary: string;
   secondary?: string;
   onClick: () => void;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
+  dragging?: boolean;
 }) {
   const p = PALETTE[cardKey];
   const Icon = p.icon;
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
       onClick={onClick}
-      className={`group relative w-full overflow-hidden rounded-2xl ${p.bg} ${p.text} p-4 text-left shadow-[0_8px_24px_-12px_rgb(3_53_146/0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgb(3_53_146/0.45)]`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`group relative w-full cursor-grab overflow-hidden rounded-2xl ${p.bg} ${p.text} p-4 shadow-[0_8px_24px_-12px_rgb(3_53_146/0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgb(3_53_146/0.45)] active:cursor-grabbing ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`inline-flex items-center gap-1.5 rounded-full ${p.chip} px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider`}>
           <Icon className="h-3 w-3" />
           {p.label}
         </div>
-        <span className="text-[10px] uppercase tracking-wider opacity-70">{status}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-[10px] uppercase tracking-wider opacity-70">{status}</span>
+          <div className="flex flex-col items-center gap-1" aria-label="Drag to reorder">
+            <div className="h-0.5 w-5 rounded-full bg-current opacity-40" />
+            <div className="h-0.5 w-5 rounded-full bg-current opacity-40" />
+          </div>
+        </div>
       </div>
       <div className="mt-3 font-serif text-xl leading-tight">{primary}</div>
       {secondary && <div className="mt-1 text-xs opacity-85">{secondary}</div>}
       <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium opacity-90 transition group-hover:opacity-100">
         Open <ChevronRight className="h-3 w-3" />
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -153,11 +183,31 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
+const DEFAULT_ORDER: CardKey[] = ["personal", "doctors", "meds", "budget", "agent", "favorites"];
+
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
+  const [draggingKey, setDraggingKey] = useState<CardKey | null>(null);
+  const [order, setOrder] = useState<CardKey[]>(() => {
+    const saved = state.cardOrder as CardKey[] | undefined;
+    return saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length
+      ? saved
+      : [...DEFAULT_ORDER];
+  });
+  const orderInitialized = useRef(false);
+
+  useEffect(() => {
+    if (orderInitialized.current || !ready) return;
+    const saved = state.cardOrder as CardKey[] | undefined;
+    if (saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length) {
+      setOrder(saved);
+    }
+    orderInitialized.current = true;
+  }, [ready, state.cardOrder]);
+
   useAutoVerifyIntake();
 
   if (!ready) return null;
@@ -168,6 +218,35 @@ function WorksheetDrawerInner() {
   const medsCount = intake.medications.value.length;
   const docVerified = intake.doctors.value.filter((d) => d.verification === "high").length;
   const medsVerified = intake.medications.value.filter((m) => m.rxVerification?.status === "verified").length;
+
+  const handleDragStart = (key: CardKey) => (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingKey(key);
+  };
+
+  const handleDragOver = (targetKey: CardKey) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggingKey || draggingKey === targetKey) return;
+    const fromIndex = order.indexOf(draggingKey);
+    const toIndex = order.indexOf(targetKey);
+    if (fromIndex === -1 || toIndex === -1) return;
+    const next = [...order];
+    next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, draggingKey);
+    setOrder(next);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggingKey) {
+      update({ cardOrder: order });
+    }
+    setDraggingKey(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingKey(null);
+  };
 
   if (size === "min") {
     return (
@@ -358,110 +437,97 @@ function WorksheetDrawerInner() {
           renderDetail()
         ) : (
           <div className={size === "full" ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
-            <WorkspaceCard
-              cardKey="personal"
-              status={intake.zip.value ? "Captured" : "Add info"}
-              primary="Your Information"
-              secondary={
-                [intake.zip.value && `ZIP ${intake.zip.value}`, intake.currentPlan.value]
-                  .filter(Boolean)
-                  .join(" · ") || "Name, ZIP, current plan"
-              }
-              onClick={() => setCard("personal")}
-            />
-            <WorkspaceCard
-              cardKey="doctors"
-              status={
-                doctorsCount === 0
-                  ? "Add doctors"
-                  : `${docVerified}/${doctorsCount} verified`
-              }
-              primary={
-                doctorsCount === 0
-                  ? "Your doctors"
-                  : intake.doctors.value
-                      .slice(0, 2)
-                      .map((d) => d.name)
-                      .join(", ") + (doctorsCount > 2 ? ` +${doctorsCount - 2}` : "")
-              }
-              secondary={
-                doctorsCount === 0
-                  ? "We verify each one against the NPI Registry"
-                  : "Tap to view NPPES matches"
-              }
-              onClick={() => setCard("doctors")}
-            />
-            <WorkspaceCard
-              cardKey="meds"
-              status={
-                medsCount === 0
-                  ? "Add medications"
-                  : `${medsVerified}/${medsCount} verified`
-              }
-              primary={
-                medsCount === 0
-                  ? "Your medications"
-                  : intake.medications.value
-                      .slice(0, 2)
-                      .map((m) => formatMedication(m) || m.name)
-                      .join(", ") + (medsCount > 2 ? ` +${medsCount - 2}` : "")
-              }
-              secondary={
-                medsCount === 0
-                  ? "We verify each one against RxNorm"
-                  : "Tap to view RxNorm matches"
-              }
-              onClick={() => setCard("meds")}
-            />
-            <WorkspaceCard
-              cardKey="budget"
-              status={intake.budgetSensitivity.value ? "Captured" : "Add budget"}
-              primary={
-                intake.budgetCaps.monthlyPremiumMax
-                  ? `Up to $${intake.budgetCaps.monthlyPremiumMax}/mo`
-                  : intake.budgetSensitivity.value
-                  ? `${intake.budgetSensitivity.value[0].toUpperCase()}${intake.budgetSensitivity.value.slice(1)} sensitivity`
-                  : "Your budget"
-              }
-              secondary={
-                intake.extras.value.length
-                  ? `Extras: ${intake.extras.value.join(", ")}`
-                  : "Premium, deductible, extra benefits"
-              }
-              onClick={() => setCard("budget")}
-            />
-            <WorkspaceCard
-              cardKey="agent"
-              status={state.permanentAgent ? "Pinned" : "Optional"}
-              primary={state.permanentAgent ? state.permanentAgent.name : "Pick your agent"}
-              secondary={
-                state.permanentAgent
-                  ? `${state.permanentAgent.title} · ${state.permanentAgent.location}`
-                  : "Start a call to make one your permanent agent"
-              }
-              onClick={() => setCard("agent")}
-            />
-            <WorkspaceCard
-              cardKey="favorites"
-              status={(state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save"}
-              primary={
-                (state.favoritePlans ?? []).length === 0
-                  ? "Your favorite plans"
-                  : (state.favoritePlans ?? [])
-                      .slice(0, 2)
-                      .map((p) => p.name)
-                      .join(", ") +
-                    ((state.favoritePlans ?? []).length > 2
-                      ? ` +${(state.favoritePlans ?? []).length - 2}`
-                      : "")
-              }
-              secondary={
-                (state.favoritePlans ?? []).length === 0
-                  ? "Tap the heart on any plan to save it"
-                  : "Tap to compare your saved plans"
-              }
-              onClick={() => setCard("favorites")}
-            />
+            {order.map((key) => {
+              const props: { status: string; primary: string; secondary?: string; onClick: () => void } =
+                key === "personal"
+                  ? {
+                      status: intake.zip.value ? "Captured" : "Add info",
+                      primary: "Your Information",
+                      secondary:
+                        [intake.zip.value && `ZIP ${intake.zip.value}`, intake.currentPlan.value]
+                          .filter(Boolean)
+                          .join(" · ") || "Name, ZIP, current plan",
+                      onClick: () => setCard("personal"),
+                    }
+                  : key === "doctors"
+                  ? {
+                      status: doctorsCount === 0 ? "Add doctors" : `${docVerified}/${doctorsCount} verified`,
+                      primary:
+                        doctorsCount === 0
+                          ? "Your doctors"
+                          : intake.doctors.value
+                              .slice(0, 2)
+                              .map((d) => d.name)
+                              .join(", ") + (doctorsCount > 2 ? ` +${doctorsCount - 2}` : ""),
+                      secondary: doctorsCount === 0 ? "We verify each one against the NPI Registry" : "Tap to view NPPES matches",
+                      onClick: () => setCard("doctors"),
+                    }
+                  : key === "meds"
+                  ? {
+                      status: medsCount === 0 ? "Add medications" : `${medsVerified}/${medsCount} verified`,
+                      primary:
+                        medsCount === 0
+                          ? "Your medications"
+                          : intake.medications.value
+                              .slice(0, 2)
+                              .map((m) => formatMedication(m) || m.name)
+                              .join(", ") + (medsCount > 2 ? ` +${medsCount - 2}` : ""),
+                      secondary: medsCount === 0 ? "We verify each one against RxNorm" : "Tap to view RxNorm matches",
+                      onClick: () => setCard("meds"),
+                    }
+                  : key === "budget"
+                  ? {
+                      status: intake.budgetSensitivity.value ? "Captured" : "Add budget",
+                      primary: intake.budgetCaps.monthlyPremiumMax
+                        ? `Up to $${intake.budgetCaps.monthlyPremiumMax}/mo`
+                        : intake.budgetSensitivity.value
+                        ? `${intake.budgetSensitivity.value[0].toUpperCase()}${intake.budgetSensitivity.value.slice(1)} sensitivity`
+                        : "Your budget",
+                      secondary: intake.extras.value.length ? `Extras: ${intake.extras.value.join(", ")}` : "Premium, deductible, extra benefits",
+                      onClick: () => setCard("budget"),
+                    }
+                  : key === "agent"
+                  ? {
+                      status: state.permanentAgent ? "Pinned" : "Optional",
+                      primary: state.permanentAgent ? state.permanentAgent.name : "Pick your agent",
+                      secondary: state.permanentAgent
+                        ? `${state.permanentAgent.title} · ${state.permanentAgent.location}`
+                        : "Start a call to make one your permanent agent",
+                      onClick: () => setCard("agent"),
+                    }
+                  : {
+                      status: (state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save",
+                      primary:
+                        (state.favoritePlans ?? []).length === 0
+                          ? "Your favorite plans"
+                          : (state.favoritePlans ?? [])
+                              .slice(0, 2)
+                              .map((p) => p.name)
+                              .join(", ") +
+                            ((state.favoritePlans ?? []).length > 2 ? ` +${(state.favoritePlans ?? []).length - 2}` : ""),
+                      secondary:
+                        (state.favoritePlans ?? []).length === 0
+                          ? "Tap the heart on any plan to save it"
+                          : "Tap to compare your saved plans",
+                      onClick: () => setCard("favorites"),
+                    };
+              return (
+                <WorkspaceCard
+                  key={key}
+                  cardKey={key}
+                  status={props.status}
+                  primary={props.primary}
+                  secondary={props.secondary}
+                  onClick={props.onClick}
+                  draggable={!card}
+                  onDragStart={handleDragStart(key)}
+                  onDragOver={handleDragOver(key)}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  dragging={draggingKey === key}
+                />
+              );
+            })}
 
 
             <button
