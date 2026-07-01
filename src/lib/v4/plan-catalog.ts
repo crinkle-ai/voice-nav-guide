@@ -149,6 +149,15 @@ export function computeMatches(intake: Intake): CatalogPlan[] {
   });
 }
 
+export type CoverageStrategy = "medicare-advantage" | "medigap-plus-partd" | "dsnp";
+
+/** Given a Medigap pick + intake, choose the best paired standalone Part D plan. */
+export function pickPairedPdpId(intake: Intake): string {
+  if (budgetLow(intake)) return "aarp-rx-saver";
+  if (hasDrugs(intake)) return "aarp-rx-preferred";
+  return "aarp-rx-walgreens";
+}
+
 export function buildInlinePlanRecommendations(intake: Intake) {
   const matches = computeMatches(intake).slice(0, 4);
   const fallback = PLAN_CATALOG.slice(0, 3);
@@ -159,25 +168,55 @@ export function buildInlinePlanRecommendations(intake: Intake) {
     let score = 0;
     const details = PLAN_DETAILS[plan.id];
     if (hasMedicaid(intake) && plan.type === "D-SNP") score += 100;
-    if (wantsTravel(intake) && (plan.type === "MA-PPO" || plan.type === "Medigap")) score += 30;
+    if (wantsTravel(intake) && plan.type === "Medigap") score += 40;
+    if (wantsTravel(intake) && plan.type === "MA-PPO") score += 25;
     if (budgetLow(intake) && details && details.monthlyPremium <= 25) score += 25;
     if (hasDrugs(intake) && (plan.type === "MA-HMO" || plan.type === "MA-PPO" || plan.type === "D-SNP")) score += 15;
     if ((intake.doctors?.value || []).length > 0 && (plan.type === "MA-PPO" || plan.type === "Medigap")) score += 20;
-    // Slight default preference for MA-HMO when nothing else differentiates (most common starting point).
     if (plan.type === "MA-HMO") score += 5;
     return { plan, score };
   });
   scored.sort((a, b) => b.score - a.score);
-  const recommendedPlanId = scored[0]?.plan.id;
+  let recommendedPlanId = scored[0]?.plan.id;
+  const topPlan = scored[0]?.plan;
 
-  // Confidence = intake completeness, with floor/ceiling.
+  // Derive strategy from the top pick.
+  let strategy: CoverageStrategy = "medicare-advantage";
+  let pairedPlanId: string | undefined;
+  let strategyRationale = "";
+
+  if (topPlan?.type === "D-SNP") {
+    strategy = "dsnp";
+    strategyRationale = "You qualify for both Medicare and Medicaid, so a Dual Special Needs Plan gives you $0 premium plus extra benefits — no separate drug plan needed.";
+  } else if (topPlan?.type === "Medigap") {
+    strategy = "medigap-plus-partd";
+    pairedPlanId = pickPairedPdpId(intake);
+    strategyRationale = "Medigap gives you nationwide freedom to see any doctor who takes Medicare, with predictable costs. Since Medigap doesn't include drug coverage, we pair it with a standalone Part D plan.";
+  } else {
+    strategy = "medicare-advantage";
+    strategyRationale = "A Medicare Advantage plan bundles your medical coverage and prescription drugs into one plan, usually with extras like dental and vision — a good fit when convenience and low premium matter most.";
+  }
+
+  // Ensure paired PDP is in the plan list when Medigap strategy.
+  let planList = selected;
+  if (strategy === "medigap-plus-partd" && pairedPlanId) {
+    const alreadyIncluded = planList.some((p) => p.id === pairedPlanId);
+    if (!alreadyIncluded) {
+      const pdp = PLAN_CATALOG.find((p) => p.id === pairedPlanId);
+      if (pdp) planList = [...planList, pdp].slice(0, 4);
+    }
+  }
+
   const { pct } = computeProgress(intake);
   const confidence = Math.max(35, Math.min(98, pct));
 
   return {
+    strategy,
     recommendedPlanId,
+    pairedPlanId,
+    strategyRationale,
     confidence,
-    plans: selected.map((plan) => {
+    plans: planList.map((plan) => {
       const details = PLAN_DETAILS[plan.id] ?? {
         monthlyPremium: 0,
         maxOOP: 6700,
@@ -194,7 +233,7 @@ export function buildInlinePlanRecommendations(intake: Intake) {
         highlights: details.highlights,
       };
     }),
-    rationale: selected.map((plan) => ({
+    rationale: planList.map((plan) => ({
       planId: plan.id,
       reasons: [
         {
