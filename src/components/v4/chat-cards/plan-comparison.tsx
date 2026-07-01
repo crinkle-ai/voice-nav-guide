@@ -270,7 +270,7 @@ function PlanTile({
   const reasons = r?.reasons ?? [];
   const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
 
-  const highlighted = isSelected || isRecommended;
+  const highlighted = isSelected;
   const borderCls = highlighted
     ? "border-[3px] border-[#033592] shadow-[0_0_0_4px_rgba(3,53,146,0.12),0_12px_32px_-8px_rgba(3,53,146,0.35)]"
     : deemphasize
