@@ -11,7 +11,13 @@ import { UhcSsoDialog, type SsoMode } from "@/components/v4/uhc-sso-dialog";
 export function SavePromptCard({ trigger }: { trigger: string }) {
   const { dismissSavePrompt } = useAuth();
   const [ssoOpen, setSsoOpen] = useState(false);
+  const [ssoMode, setSsoMode] = useState<SsoMode>("signin");
   const [hidden, setHidden] = useState(false);
+
+  const openSso = (mode: SsoMode) => {
+    setSsoMode(mode);
+    setSsoOpen(true);
+  };
 
   if (hidden) return null;
 
