@@ -1,63 +1,75 @@
 
-## Where we are today
+# Align sign-in flow with HealthSafe ID (CHC's real identity system)
 
-The prototype already understands MA-HMO, MA-PPO, D-SNP, Medigap (G/N), and standalone PDPs, and the AI knowledge base tells the model "Medigap pairs with a standalone Part D". But recommendations flow through a **single** `recommendPlans` tool that returns one plan per card. There is no concept of a *coverage strategy* that bundles Medigap + a matching PDP into one recommendation — the user has to shop for them as two separate results. So we are ~60% there on data and prompt, ~0% there on the recommendation shape and UI.
+Today's mock SSO dialog offers a single "Continue with CHC account" button, which implies every visitor already has one. In reality, CHC members authenticate with a **HealthSafe ID** — new visitors first have to *create* one, existing members *sign in* with theirs. The save moment on `/v4/intake` should reflect that split so the demo reads true to a UHC pilot audience.
 
-## Goal
+## What changes (UX only)
 
-The AI recommends a **coverage strategy** based on lifestyle needs:
-- **Bundled strategy** → one Medicare Advantage plan (medical + drug in one)
-- **Paired strategy** → one Medigap plan + one matching Part D plan
-- **Dual strategy** → one D-SNP (when Medicaid-eligible)
+### 1. `UhcSsoDialog` — two clear paths
 
-The user never has to pick "Medigap vs MA" — the AI decides and explains why.
+Replace the single primary button with a two-option layout:
 
-## Changes
+```text
+┌───────────────────────────────────────────────┐
+│  CrinkleHealthcare — Save your workspace      │
+│                                               │
+│  Sign in with your HealthSafe ID              │
+│  the secure account you use for               │
+│  CrinkleHealthcare, myuhc.com, and the app.   │
+│                                               │
+│  ┌───────────────────────────────────────┐    │
+│  │  Sign in with HealthSafe ID    →     │   ← primary
+│  └───────────────────────────────────────┘    │
+│                                               │
+│  New to CrinkleHealthcare?                    │
+│  ┌───────────────────────────────────────┐    │
+│  │  Create a HealthSafe ID        →     │   ← secondary (outlined)
+│  └───────────────────────────────────────┘    │
+│                                               │
+│  🛡 Protected by CHC's HIPAA-secure identity  │
+│     system. Download or delete anytime.       │
+│                                               │
+│  Not now — keep exploring without saving      │
+└───────────────────────────────────────────────┘
+```
 
-### 1. Prompt (`src/lib/v4/prompts.ts`)
-- Add a **Coverage Strategy** section to `INLINE_PLANS_RULE` teaching the model to translate lifestyle signals → strategy:
-  - travels, snowbird, any doctor, no referrals, predictable costs → **Medigap + Part D**
-  - low premium, bundled convenience, extras (dental/vision/fitness), local → **Medicare Advantage**
-  - Medicaid eligible → **D-SNP**
-- Rewrite the confidence-gate so a Medigap recommendation MUST also include a paired Part D plan (never Medigap alone).
-- Forbid asking the user "do you want Medigap or MA?" — the AI decides from needs.
-- Update the explanation template to name the strategy and say *why* (e.g. "Medigap fits your travel; Part D fills the drug gap").
+- **Sign in** path: simulated handshake (existing 850 ms delay) → signs the user in as returning Margaret.
+- **Create** path: brief simulated "creating your HealthSafe ID…" state (~1.1 s) with a small helper line ("We'll use this to save your doctors, medications, and plan favorites."), then signs the user in as a brand-new account (empty `lastServerChangeAt`, no recap card fires).
+- Both paths land in the same signed-in state so the rest of the flow is unchanged.
+- Dialog copy at top updates to name-drop HealthSafe ID once, in plain language ("the secure account you use across CrinkleHealthcare").
 
-### 2. Recommendation tool schema (`src/routes/api/v4/chat.ts`)
-Extend `recommendPlans` input:
-- Add `strategy: "medicare-advantage" | "medigap-plus-partd" | "dsnp"`
-- Add optional `pairedPlanId: string` (the Part D that pairs with the Medigap)
-- Add `strategyRationale: string` — one short paragraph the UI shows above the cards
-- Keep existing `recommendedPlanId`, `plans[]`, `rationale[]`, `confidence`.
-- Validation: when `strategy === "medigap-plus-partd"`, both `recommendedPlanId` (Medigap) and `pairedPlanId` (PDP) are required and must both be present in `plans[]`.
+### 2. `SavePromptCard` — match the two-path framing
 
-### 3. Plan catalog (`src/lib/v4/plan-catalog.ts`)
-- Existing Medigap G/N and three PDPs are enough for the demo; no schema changes needed.
-- Add a small `PAIRED_PDP_SUGGESTION` helper: given a Medigap pick + intake (drug list, budget), return the best PDP id from the catalog. Used by `buildInlinePlanRecommendations` and available to the AI via the knowledge prompt.
-- Update `buildInlinePlanRecommendations` so when the top-scored plan is Medigap it also returns `strategy: "medigap-plus-partd"` and a `pairedPlanId`.
+The inline save card in the chat currently says "Sign in with CHC". Update to:
 
-### 4. UI — combined recommendation card (`src/components/v4/chat-cards/plan-comparison.tsx`)
-- When `strategy === "medigap-plus-partd"`, render a new **Recommended Coverage** header card above the tiles:
-  - Title: "Your recommended coverage"
-  - Two labeled slots side-by-side: **Medical Coverage** (Medigap tile) + **Prescription Coverage** (paired PDP tile), joined by a "+" pill
-  - "Why this combination" block underneath showing `strategyRationale`
-- Runner-up plans render below in the existing horizontal strip, de-emphasized.
-- MA strategy: keep today's single-recommended layout but add a small "Includes medical + prescription" badge on the recommended tile.
-- D-SNP: same as MA with "Medicare + Medicaid" badge.
+- Headline stays: "Want me to save this to your CHC account?"
+- Body adds one short line: "You can sign in with your HealthSafe ID, or create one in about a minute."
+- Buttons become two chips side-by-side: **Sign in** (filled navy) and **Create HealthSafe ID** (outlined). Both open `UhcSsoDialog` with a `defaultMode` prop preselecting the right tab so the click feels continuous.
+- "Not now" link is unchanged.
 
-### 5. Favorites / Workspace
-- When the user favorites a Medigap recommendation, also auto-favorite the paired PDP (they're a bundle). Add a small "Bundled" label on the pair in the Workspace favorites card.
+### 3. `auth-store` — track how they got in (small addition)
 
-### 6. Header indicators
-- `# plans to recommend` counts the *strategy*, not raw plan count — so a Medigap+PDP pair counts as 1.
+Extend `UhcUser` with an optional `accountCreatedAt?: number` and add a `signUp()` helper alongside `signIn()`. `signUp()` sets `accountCreatedAt = signedInAt`, leaves `lastServerChangeAt` undefined, and clears any prior recap summary — this guarantees the returning-user recap card doesn't misfire for a brand-new account.
 
-## Out of scope for this pass
-- Actual county-level premiums / real PDP formulary matching
-- Letting the user override the strategy pick (we can add "Show me the other approach" as a suggestNext chip later)
-- Enrollment / cart flow for the bundled pair
+No other stored fields change; existing sessions stay valid.
 
-## Verification
-- Ramble: "I travel between MN and AZ and see a cardiologist" → AI recommends Medigap Plan G + AARP MedicareRx Preferred, combined card renders with "Why this combination".
-- Ramble: "I want the lowest premium and everything in one plan" → AI recommends an MA-HMO with the "medical + prescription" badge, no paired PDP.
-- Ramble: "I have Medicaid" → D-SNP with dual badge, no paired PDP.
-- Confidence < 80 still blocks any recommendation and asks one narrowing question.
+### 4. Docs
+
+Update `documents/plans/workspace-save-signin-ux.md` "The sign-in / sign-up moment" section to describe the HealthSafe ID split (sign in vs create) instead of the current single-SSO-button description, and note it as the resolved answer to open question #1.
+
+## Out of scope
+
+- No real HealthSafe ID OAuth integration — still a mock handshake.
+- No email + one-time code alternative (superseded by the HealthSafe ID create path).
+- No changes to caregiver invite, Your Data panel, header user menu, or recap card logic beyond the `accountCreatedAt` guard.
+
+## Files touched
+
+- `src/components/v4/uhc-sso-dialog.tsx` — two-path UI, optional `defaultMode` prop, sign-up simulated state.
+- `src/components/v4/chat-cards/save-prompt.tsx` — two buttons, updated body copy, pass `defaultMode` when opening the dialog.
+- `src/lib/v4/auth-store.ts` — add `accountCreatedAt`, add `signUp()` helper.
+- `documents/plans/workspace-save-signin-ux.md` — reflect HealthSafe ID split.
+
+## Open question
+
+Should the "Create a HealthSafe ID" path collect anything in the mock (e.g. an email field for realism), or stay a single click like the current sign-in? I'd default to **single click** to keep the demo snappy unless you want the extra beat.
