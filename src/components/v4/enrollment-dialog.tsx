@@ -61,7 +61,7 @@ export function EnrollmentDialog({
   if (!app) return null;
 
   const patch = (p: Partial<EnrollmentApplication>) =>
-    update({ enrollment: { ...app, ...p } });
+    update((s) => ({ enrollment: { ...(s.enrollment ?? app), ...p } }));
   const goto = (step: EnrollmentStep) => patch({ step });
 
   const stepIdx = STEP_ORDER.indexOf(app.step);
