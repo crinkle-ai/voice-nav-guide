@@ -110,14 +110,11 @@ export function useAuth() {
   );
 
   const signOut = useCallback(() => {
-    // Record the current time as the last visit, so a future sign-in can
-    // decide whether the recap card should surface.
-    setState((s) => ({
+    setState({
       user: null,
       savePromptShown: false,
       savePromptDismissed: false,
-    }));
-    void s;
+    });
   }, []);
 
   const markVisit = useCallback(() => {
