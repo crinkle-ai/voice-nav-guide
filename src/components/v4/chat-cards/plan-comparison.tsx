@@ -122,6 +122,15 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
               <p className="text-sm text-ink leading-snug m-0">{data.strategyRationale}</p>
             </div>
           )}
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => startEnrollment(recommendedPlan, pairedPlan)}
+              className="inline-flex items-center gap-2 rounded-full bg-[#131F69] px-4 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+            >
+              <FileSignature className="h-4 w-4" /> Enroll in this coverage
+            </button>
+          </div>
         </div>
       )}
 
