@@ -180,7 +180,7 @@ function IntakePage() {
 
   return (
     <AppShell step="intake">
-      <div className="w-full px-4 sm:px-8 flex flex-col min-h-[calc(100vh-120px)]">
+      <div className="w-full flex flex-col min-h-[calc(100vh-120px)]">
         <div className="mb-2 flex items-center justify-between gap-4">
           <div>
             <h1 className="font-serif text-2xl text-[#131F69] leading-none">Let's talk Medicare</h1>
