@@ -351,18 +351,6 @@ function SoaStep({
             className={inputCls}
           />
         </div>
-        <label className="flex items-start gap-2 text-sm text-ink cursor-pointer">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5"
-          />
-          <span>
-            I agree to discuss the products checked above with Crinkle Health today. I understand
-            no other products will be discussed unless I sign another SOA.
-          </span>
-        </label>
       </div>
       <NavRow onBack={onBack} disabled={!canSubmit} onNext={() => onSubmit({ signedAt: Date.now(), typedName: typed.trim(), products, appointmentDate: apptDate, appointmentWindow: apptWindow })} />
     </div>
