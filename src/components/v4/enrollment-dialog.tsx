@@ -303,7 +303,9 @@ function SoaStep({
 }) {
   const [typed, setTyped] = useState(app.soa?.typedName ?? "");
   const [agreed, setAgreed] = useState(!!app.soa);
-  const canSubmit = typed.trim().length >= 2 && agreed;
+  const [apptDate, setApptDate] = useState(app.soa?.appointmentDate ?? new Date().toISOString().slice(0, 10));
+  const [apptWindow, setApptWindow] = useState(app.soa?.appointmentWindow ?? "any-time");
+  const canSubmit = typed.trim().length >= 2 && agreed && !!apptDate;
   return (
     <div className="space-y-4">
       <StepHeader
@@ -321,6 +323,21 @@ function SoaStep({
               </span>
             ))}
           </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="block">
+            <span className="text-[11px] uppercase tracking-wider text-muted-2">Appointment date</span>
+            <input type="date" value={apptDate} onChange={(e) => setApptDate(e.target.value)} className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="text-[11px] uppercase tracking-wider text-muted-2">Time window</span>
+            <select value={apptWindow} onChange={(e) => setApptWindow(e.target.value)} className={inputCls}>
+              <option value="morning">Morning (8am–12pm)</option>
+              <option value="afternoon">Afternoon (12pm–5pm)</option>
+              <option value="evening">Evening (5pm–8pm)</option>
+              <option value="any-time">Any time today</option>
+            </select>
+          </label>
         </div>
         <div>
           <label className="text-[11px] uppercase tracking-wider text-muted-2">Type your name</label>
@@ -345,10 +362,11 @@ function SoaStep({
           </span>
         </label>
       </div>
-      <NavRow onBack={onBack} disabled={!canSubmit} onNext={() => onSubmit({ signedAt: Date.now(), typedName: typed.trim(), products })} />
+      <NavRow onBack={onBack} disabled={!canSubmit} onNext={() => onSubmit({ signedAt: Date.now(), typedName: typed.trim(), products, appointmentDate: apptDate, appointmentWindow: apptWindow })} />
     </div>
   );
 }
+
 
 function InfoStep({
   app,
