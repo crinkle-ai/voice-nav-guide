@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { DoctorVerificationPanel } from "@/components/v4/doctor-verification-panel";
 import { MedicationVerificationPanel } from "@/components/v4/medication-verification-panel";
 import { useSession, type PermanentAgent } from "@/lib/v4/session-store";
