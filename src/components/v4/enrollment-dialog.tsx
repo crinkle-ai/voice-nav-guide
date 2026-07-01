@@ -752,17 +752,27 @@ function DisclosuresStep({
   onSubmit: (a: NonNullable<EnrollmentApplication["attestations"]>) => void;
   onBack: () => void;
 }) {
+  const isMedigap = app.strategy === "medigap-plus-partd";
+  const isMA = !isMedigap;
+  const info = app.info ?? {};
   const items: { key: keyof NonNullable<EnrollmentApplication["attestations"]>; label: string; blurb: string }[] = [
     { key: "tpmo", label: "TPMO disclaimer", blurb: "\"We do not offer every plan available in your area. Any information we provide is limited to those plans we do offer in your area.\"" },
     { key: "sob", label: "Summary of Benefits reviewed", blurb: "I've reviewed (or waived review of) the Summary of Benefits for the plan(s) I'm enrolling in." },
     { key: "stars", label: "CMS Star Rating disclosed", blurb: "I understand the current CMS Star Rating for this plan." },
     { key: "preEnrollment", label: "Pre-enrollment checklist", blurb: "I've reviewed the CMS pre-enrollment checklist covering network, formulary, and cost." },
-    { key: "maVsMedigap", label: "MA vs. Medigap acknowledgment", blurb: app.strategy === "medigap-plus-partd" ? "I understand this is a Medicare Supplement (Medigap) policy plus a standalone Part D plan — not Medicare Advantage." : "I understand this is a Medicare Advantage plan, not a Medicare Supplement." },
+    { key: "maVsMedigap", label: "MA vs. Medigap acknowledgment", blurb: isMedigap ? "I understand this is a Medicare Supplement (Medigap) policy plus a standalone Part D plan — not Medicare Advantage." : "I understand this is a Medicare Advantage plan, not a Medicare Supplement." },
+    ...(isMA ? [{ key: "maNetwork" as const, label: "Provider network acknowledgment", blurb: "I understand I must use in-network providers except for emergencies or urgent care; out-of-network care may not be covered." }] : []),
+    ...(info.lis === "yes" || info.lis === "unsure" ? [{ key: "lisAttest" as const, label: "Extra Help (LIS) attestation", blurb: "I understand my premium and copays may be lower due to Low Income Subsidy, and I'll notify the plan if my LIS status changes." }] : []),
+    ...(info.esrd === "yes" ? [{ key: "esrdAck" as const, label: "ESRD acknowledgment", blurb: "I understand ESRD may affect plan eligibility and I've discussed my options with a licensed agent." }] : []),
+    { key: "oevConsent", label: "Outbound Enrollment Verification (OEV) consent", blurb: "I consent to being contacted by the plan/CMS to verify my enrollment before it's finalized." },
+    { key: "electronicDelivery", label: "Electronic delivery consent", blurb: "I agree to receive the Annual Notice of Change (ANOC), Evidence of Coverage (EOC), and formulary electronically." },
+    ...(isMedigap && info.replacing ? [{ key: "medigapReplacement" as const, label: "Medigap replacement notice", blurb: "I've received and read the Medicare Supplement replacement notice comparing my current and new coverage." }] : []),
     { key: "releaseInfo", label: "Release of information", blurb: "I authorize Crinkle Health to share application information with the carrier and CMS to process this enrollment." },
     { key: "truthful", label: "Truthfulness of answers", blurb: "The information I've provided is true and complete to the best of my knowledge." },
   ];
   const [state, setState] = useState<NonNullable<EnrollmentApplication["attestations"]>>(app.attestations ?? {});
   const allChecked = items.every((i) => state[i.key]);
+
   return (
     <div className="space-y-4">
       <StepHeader
