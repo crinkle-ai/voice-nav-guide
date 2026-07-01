@@ -104,7 +104,7 @@ From the Caregiver card:
 
 ## Open questions
 
-1. **Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?
+1. ~~**Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?~~ **Resolved:** HealthSafe ID with two paths — sign in for existing members, create-account for new visitors. No separate email + one-time code path.
 2. **Save prompt tone** — soft banner in Workspace (recommended), or a modal at the trigger moment?
 3. **Caregiver default** — read-only or read/write when first invited?
 4. **Recap card on return** — always show, or only when it's been >7 days?
