@@ -134,17 +134,30 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
         </div>
       )}
 
-      {hasRecommendation && !isPaired && data.strategyRationale && recommendedPlan && (
+      {hasRecommendation && !isPaired && recommendedPlan && (
         <div className="mb-3 rounded-lg border border-[#033592]/20 bg-[#033592]/[0.04] p-3">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[#033592] mb-1">
-            <Sparkles className="h-3.5 w-3.5" /> Why this coverage
-            {strategyBadge && (
-              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#033592] text-white px-2 py-0.5 text-[10px] normal-case tracking-normal">
-                <strategyBadge.icon className="h-3 w-3" /> {strategyBadge.label}
-              </span>
-            )}
+          {data.strategyRationale && (
+            <>
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[#033592] mb-1">
+                <Sparkles className="h-3.5 w-3.5" /> Why this coverage
+                {strategyBadge && (
+                  <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#033592] text-white px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                    <strategyBadge.icon className="h-3 w-3" /> {strategyBadge.label}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-ink leading-snug m-0">{data.strategyRationale}</p>
+            </>
+          )}
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => startEnrollment(recommendedPlan)}
+              className="inline-flex items-center gap-2 rounded-full bg-[#131F69] px-4 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+            >
+              <FileSignature className="h-4 w-4" /> Enroll in this plan
+            </button>
           </div>
-          <p className="text-sm text-ink leading-snug m-0">{data.strategyRationale}</p>
         </div>
       )}
 
