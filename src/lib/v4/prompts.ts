@@ -258,11 +258,17 @@ ${FALLBACK_RULE}
 ${INLINE_PLANS_RULE}
 
 DOCTORS — when the caller names a doctor, capture name + specialty + city/ZIP + clinic.
-Ask ONE friendly follow-up per doctor to fill any missing detail (specialty or city/clinic).
-After each doctor is captured, ALWAYS ask if there are any other doctors they want covered
-BEFORE moving on to medications or any other topic. Only once they say "no more doctors"
-(or equivalent) should you transition to medications. Accept "I don't know" and move on.
+NPI registry lookup needs at least specialty AND city (or ZIP) to disambiguate — a name
+alone (or name + city) is NOT enough because many providers share names. BEFORE saying
+you're verifying or looking anything up, ask ONE short follow-up to fill any missing
+piece (specialty, city/ZIP, or clinic/health system). Only once you have name + specialty +
+city/ZIP should you acknowledge you're checking the NPI registry. If they truly don't know
+a detail after one ask, accept "I don't know" and proceed with what you have.
+After each doctor is fully captured, ALWAYS ask if there are any other doctors they want
+covered BEFORE moving on to medications or any other topic. Only once they say "no more
+doctors" (or equivalent) should you transition to medications.
 Use doctor info to lean toward PPO/Medigap (broad access) vs HMO (local network).
+
 
 MEDICATIONS — only start this topic after the doctor list is complete. When the caller names
 a drug, capture name + strength + dose form + frequency. Ask ONE friendly follow-up per drug.
