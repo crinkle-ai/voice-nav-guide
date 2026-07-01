@@ -508,7 +508,7 @@ function WorksheetDrawerInner() {
                   primary={props.primary}
                   secondary={props.secondary}
                   onClick={props.onClick}
-                  draggable={!card && size !== "min"}
+                  draggable={!card}
                   onDragStart={handleDragStart(key)}
                   onDragOver={handleDragOver(key)}
                   onDrop={handleDrop}
