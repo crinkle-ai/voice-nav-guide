@@ -112,6 +112,27 @@ export function useAuth() {
     [],
   );
 
+  const signUp = useCallback(
+    (partial?: Partial<UhcUser>) => {
+      const now = Date.now();
+      const sample = SAMPLE_NAMES[0];
+      const user: UhcUser = {
+        name: partial?.name ?? sample.name,
+        memberId: partial?.memberId ?? sample.memberId,
+        email: partial?.email ?? sample.email,
+        signedInAt: now,
+        lastVisitAt: now,
+        // Brand-new account — no prior server-side state, so the recap card
+        // should not fire on this session.
+        lastServerChangeAt: undefined,
+        serverChangeSummary: undefined,
+        accountCreatedAt: now,
+      };
+      setState({ user, savePromptShown: true });
+    },
+    [],
+  );
+
   const signOut = useCallback(() => {
     setState({
       user: null,
