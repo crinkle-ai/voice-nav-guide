@@ -34,7 +34,15 @@ export type SessionState = {
     phone?: string;
     permissions?: string[];
     notes?: string;
+    invite?: {
+      access: "read" | "write";
+      sentAt: number;
+      status: "pending" | "accepted";
+      token: string;
+      inviteUrl: string;
+    };
   };
+
 };
 
 const KEY = "v4-medicare-compass-session-v1";
