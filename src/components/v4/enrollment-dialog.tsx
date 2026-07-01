@@ -304,10 +304,10 @@ function SoaStep({
   onBack: () => void;
 }) {
   const [typed, setTyped] = useState(app.soa?.typedName ?? "");
-  const [agreed, setAgreed] = useState(!!app.soa);
+  const agreed = true;
   const [apptDate, setApptDate] = useState(app.soa?.appointmentDate ?? new Date().toISOString().slice(0, 10));
   const [apptWindow, setApptWindow] = useState(app.soa?.appointmentWindow ?? "any-time");
-  const canSubmit = typed.trim().length >= 2 && agreed && !!apptDate;
+  const canSubmit = typed.trim().length >= 2 && !!apptDate;
   return (
     <div className="space-y-4">
       <StepHeader
@@ -351,18 +351,6 @@ function SoaStep({
             className={inputCls}
           />
         </div>
-        <label className="flex items-start gap-2 text-sm text-ink cursor-pointer">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5"
-          />
-          <span>
-            I agree to discuss the products checked above with Crinkle Health today. I understand
-            no other products will be discussed unless I sign another SOA.
-          </span>
-        </label>
       </div>
       <NavRow onBack={onBack} disabled={!canSubmit} onNext={() => onSubmit({ signedAt: Date.now(), typedName: typed.trim(), products, appointmentDate: apptDate, appointmentWindow: apptWindow })} />
     </div>
