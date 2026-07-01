@@ -51,6 +51,7 @@ const STEP_ORDER: EnrollmentStep[] = [
   "disclosures",
   "signature",
   "review",
+  "submitted",
   "handed_off",
 ];
 
@@ -61,7 +62,8 @@ const STEP_LABELS: Record<EnrollmentStep, string> = {
   disclosures: "Disclosures",
   signature: "Signature",
   review: "Review",
-  handed_off: "Submitted",
+  submitted: "Submitted",
+  handed_off: "With advisor",
 };
 
 export function EnrollmentDialog({
