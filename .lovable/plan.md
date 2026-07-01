@@ -1,35 +1,109 @@
-## Goal
-When the user picks "Short Videos" (or asks for video explainers), show actual playable video tiles inside the chat — not a raw JSON dump like the screenshot.
+# Workspace Save & Sign-In UX Flow
 
-## What's wrong today
-- `LearningPathsCard` "Short Videos" sends the plain prompt `"Show me short videos that explain Medicare."` to the model.
-- The model improvises a `learningPaths` JSON payload in the text body, which renders as a literal JSON blob in the assistant bubble.
-- There is no card component that embeds videos and no client-side interception to inject one.
+Focus: the user-facing experience for identifying users and persisting their workspace. Infra/BAA is handled on the UHC side — this plan is only about screens, prompts, and transitions.
 
-## Changes
+## Guiding principles
 
-### 1. New `ShortVideosCard` (`src/components/v4/chat-cards/short-videos.tsx`)
-- Curated list of 3 short Medicare explainers (YouTube IDs already referenced in the leaked JSON: `613nssXuek4`, `q1Yn1xHw_iY`, `8U-alid6h1A`).
-- Each tile shows the YouTube thumbnail (`https://img.youtube.com/vi/<id>/hqdefault.jpg`), title, duration, and a play overlay.
-- Clicking a tile expands it inline into a responsive 16:9 `<iframe>` (`https://www.youtube.com/embed/<id>?autoplay=1&rel=0`) with a "Close" control. Only one video plays at a time.
-- Lightweight follow-up chips below the grid ("Let's look at plans", "I have more questions") wired via the same `onPick` callback the learning paths card already uses.
+- **Explore first, commit later.** A visitor can build a full workspace without signing in. We never block the demo behind a login wall.
+- **One save moment, clearly explained.** We ask for identity only when there's something worth saving, and we say exactly what gets stored and why.
+- **Returning users feel recognized.** Coming back should surface "Welcome back, Margaret — pick up where you left off" instead of an empty chat.
+- **The workspace is the anchor.** Save/sign-in prompts live in Your Workspace, not scattered across the chat.
 
-### 2. Inject the card from the chat client (`src/components/v4/intake-chat.tsx`)
-- Add a regex like `SHORT_VIDEOS_RE` matching prompts about short Medicare videos / "Show me videos".
-- Mirror the existing `learningInjectedRef` pattern: after a matching user message, find the next assistant message and append a `tool-shortVideos` part (with no input payload — the card is self-contained), then replace the leaked JSON-laden assistant text with a clean lead-in such as: "Here are a few short videos that walk through the basics. Pick one to watch right here, or tell me which topic to dig into."
-- Render the part in `MessageRow` (new branch for `tool-shortVideos`) using `ShortVideosCard`.
+## The three states a user can be in
 
-### 3. Stop the model from emitting the JSON in prose
-- Extend `src/lib/v4/prompts.ts` so the system prompt explicitly forbids inlining `learningPaths` / video JSON in assistant text and tells the model that video selection is handled by the UI; it should reply with one short sentence and let the card render.
-- Keep the client-side injection as the source of truth so behavior stays consistent even if the model regresses.
+```text
+┌──────────────┐   builds workspace    ┌───────────────┐   signs in    ┌────────────────┐
+│  Anonymous   │ ────────────────────► │  Prompted to  │ ────────────► │  Signed in &   │
+│  (local)     │                       │  save         │               │   syncing      │
+└──────────────┘                       └───────────────┘               └────────────────┘
+```
 
-## Technical notes
-- No new dependencies; iframe embed is plain JSX.
-- Reuse the same "inline tool part" pattern already used for `tool-learningPaths` and `tool-recommendPlans` so no transport/server-route changes are required.
-- Card respects existing `disabled` prop while the chat is busy (only the follow-up chips disable; videos remain playable).
-- Accessibility: each tile is a `<button>` with the video title as label; the iframe gets a `title` attribute.
+1. **Anonymous** — today's behavior. Workspace lives in the browser only. Small "Not saved" chip in the Workspace header.
+2. **Prompted to save** — triggered by meaningful progress (see triggers below). Non-blocking banner in Workspace: "Save your progress so you can come back to it."
+3. **Signed in** — Workspace header shows name + "Saved just now". Auto-syncs on every change.
 
-## Out of scope
-- Adding a real server-side `recommendVideos` tool / catalog API.
-- Persisting watched-video state into the workspace.
-- Replacing the existing learning-paths card layout.
+## When we prompt to save (progressive, not naggy)
+
+Prompt appears once per session, dismissible, and only after one of these:
+
+- User adds their first doctor, medication, or caregiver
+- User favorites a plan
+- Profile progress crosses 40%
+- User clicks "Call an agent" or "Get a 2nd opinion" (they'll want the follow-up)
+- User tries to close the tab (browser `beforeunload` hint)
+
+The prompt copy is outcome-focused: *"Save your workspace so Sarah can see it when you call, and so you don't lose it if you close this tab."*
+
+## The sign-in / sign-up moment
+
+One combined screen (no separate signup vs login):
+
+- **Primary:** "Continue with UHC account" (SSO — matches how members already log in to uhc.com)
+- **Secondary:** email + one-time code (magic code, no password to remember — better for the 65+ audience)
+- Tiny link: "I don't want to save — keep exploring" → dismisses, stays anonymous
+
+After sign-in, we merge the anonymous workspace into the account (see conflict handling below).
+
+## Returning-user experience
+
+When a signed-in user lands on `/v4/intake`:
+
+- Header greeting: "Welcome back, Margaret" + last-visit timestamp
+- Workspace opens auto-populated
+- Chat opens with a short recap card:
+  > *"Last time we found 3 plans that fit your doctors and Metformin. Want to keep comparing, or has something changed?"*
+  > Buttons: **Continue** · **Something changed** · **Start over**
+
+This is the "I'm Already a Member" experience we already prototyped for Margaret, now wired to real accounts.
+
+## Conflict handling (anonymous → signed in)
+
+If the person already has a saved workspace and just built a new one anonymously, show a merge screen:
+
+- Side-by-side: "What's saved" vs "What you just added"
+- Per-card choice: Keep saved · Use new · Merge both
+- Default = Merge both, user confirms
+
+Only shown when there's an actual conflict; if the saved workspace is empty, we silently adopt the new one.
+
+## Auto-save behavior (once signed in)
+
+- Debounced save on every workspace change (existing `useSession` hook)
+- Header shows subtle status: "Saved just now" → "Saving…" → "Saved"
+- If offline: "Saved on this device — will sync when you're back online"
+- No manual "Save" button needed
+
+## Trust & control surfaces
+
+Small "Your data" link in the Workspace footer opens a panel with:
+
+- What's saved (list of cards)
+- Who can see it ("Only you, and any agent you call")
+- **Download my data** (JSON)
+- **Delete my data** (wipes account + local)
+- Link to UHC privacy notice
+
+This is the HIPAA-visible surface — even though UHC handles the infra, the *user* needs to see and control their data here.
+
+## Caregiver sharing (UX only)
+
+From the Caregiver card:
+- "Invite [Name] to view your workspace" → sends email with a magic link
+- Caregiver signs in with their own UHC account, sees a read-only (or read/write, user's choice) view marked "Viewing Margaret's workspace"
+- Toggle per-card: what the caregiver can see (e.g. hide budget)
+- Revoke access anytime
+
+## Sign-out
+
+- Menu in header: name → Sign out
+- Confirmation: "Sign out? Your workspace stays saved to your account."
+- After sign-out, local copy is cleared so the next visitor on that device starts fresh.
+
+## Open questions
+
+1. **Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?
+2. **Save prompt tone** — soft banner in Workspace (recommended), or a modal at the trigger moment?
+3. **Caregiver default** — read-only or read/write when first invited?
+4. **Recap card on return** — always show, or only when it's been >7 days?
+
+Answer these and I'll turn the flow into concrete implementation items (sign-in screen, save banner, merge screen, recap card, data panel, caregiver invite).
