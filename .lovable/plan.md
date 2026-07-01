@@ -1,109 +1,24 @@
-# Workspace Save & Sign-In UX Flow
+## Rebrand UnitedHealthcare → CrinkleHealthcare
 
-Focus: the user-facing experience for identifying users and persisting their workspace. Infra/BAA is handled on the UHC side — this plan is only about screens, prompts, and transitions.
+Global text replacement across the app so nothing proprietary ships when we publish.
 
-## Guiding principles
+### Replacements
 
-- **Explore first, commit later.** A visitor can build a full workspace without signing in. We never block the demo behind a login wall.
-- **One save moment, clearly explained.** We ask for identity only when there's something worth saving, and we say exactly what gets stored and why.
-- **Returning users feel recognized.** Coming back should surface "Welcome back, Margaret — pick up where you left off" instead of an empty chat.
-- **The workspace is the anchor.** Save/sign-in prompts live in Your Workspace, not scattered across the chat.
+- `UnitedHealthcare` → `CrinkleHealthcare`
+- `United Healthcare` → `CrinkleHealthcare`
+- `UHC` → `CHC` (as a standalone brand token in user-facing strings, aria labels, alt text, badges, plan names, prompt copy, deck slides)
 
-## The three states a user can be in
+### Files updated (user-facing copy)
 
-```text
-┌──────────────┐   builds workspace    ┌───────────────┐   signs in    ┌────────────────┐
-│  Anonymous   │ ────────────────────► │  Prompted to  │ ────────────► │  Signed in &   │
-│  (local)     │                       │  save         │               │   syncing      │
-└──────────────┘                       └───────────────┘               └────────────────┘
-```
+- V4: `src/components/v4/app-shell.tsx`, `user-menu.tsx`, `uhc-sso-dialog.tsx`, `your-data-panel.tsx`, `save-chip.tsx`, `worksheet-drawer.tsx`, `intake-chat.tsx`, `chat-cards/save-prompt.tsx`
+- V4 data/prompts: `src/lib/v4/prompts.ts`, `auth-store.ts`, `plan-catalog.ts`, `src/routes/api/v4/chat.ts`, `src/routes/v4.deck.tsx`
+- Mocks: `src/mock/plans.ts`
+- Docs: `documents/v4-demo-script-data.md`, `documents/v4-diabetic-55410-demo.md`
+- Head/meta titles and descriptions updated to match
 
-1. **Anonymous** — today's behavior. Workspace lives in the browser only. Small "Not saved" chip in the Workspace header.
-2. **Prompted to save** — triggered by meaningful progress (see triggers below). Non-blocking banner in Workspace: "Save your progress so you can come back to it."
-3. **Signed in** — Workspace header shows name + "Saved just now". Auto-syncs on every change.
+### Not renamed (internal only, no user impact)
 
-## When we prompt to save (progressive, not naggy)
+- Asset filenames (`uhc-emblem.png`, `uhc-logo-white.png`) and their `.asset.json` sidecars — internal paths, never rendered as text. The visible logo images will keep displaying but the surrounding brand text becomes CrinkleHealthcare.
+- CSS class fragments and variable/component identifiers containing `uhc` (e.g. `UhcSsoDialog`, `#uhc-*` tokens in `styles.css`) — code identifiers, not shown to users.
 
-Prompt appears once per session, dismissible, and only after one of these:
-
-- User adds their first doctor, medication, or caregiver
-- User favorites a plan
-- Profile progress crosses 40%
-- User clicks "Call an agent" or "Get a 2nd opinion" (they'll want the follow-up)
-- User tries to close the tab (browser `beforeunload` hint)
-
-The prompt copy is outcome-focused: *"Save your workspace so Sarah can see it when you call, and so you don't lose it if you close this tab."*
-
-## The sign-in / sign-up moment
-
-One combined screen (no separate signup vs login):
-
-- **Primary:** "Continue with UHC account" (SSO — matches how members already log in to uhc.com)
-- **Secondary:** email + one-time code (magic code, no password to remember — better for the 65+ audience)
-- Tiny link: "I don't want to save — keep exploring" → dismisses, stays anonymous
-
-After sign-in, we merge the anonymous workspace into the account (see conflict handling below).
-
-## Returning-user experience
-
-When a signed-in user lands on `/v4/intake`:
-
-- Header greeting: "Welcome back, Margaret" + last-visit timestamp
-- Workspace opens auto-populated
-- Chat opens with a short recap card:
-  > *"Last time we found 3 plans that fit your doctors and Metformin. Want to keep comparing, or has something changed?"*
-  > Buttons: **Continue** · **Something changed** · **Start over**
-
-This is the "I'm Already a Member" experience we already prototyped for Margaret, now wired to real accounts.
-
-## Conflict handling (anonymous → signed in)
-
-If the person already has a saved workspace and just built a new one anonymously, show a merge screen:
-
-- Side-by-side: "What's saved" vs "What you just added"
-- Per-card choice: Keep saved · Use new · Merge both
-- Default = Merge both, user confirms
-
-Only shown when there's an actual conflict; if the saved workspace is empty, we silently adopt the new one.
-
-## Auto-save behavior (once signed in)
-
-- Debounced save on every workspace change (existing `useSession` hook)
-- Header shows subtle status: "Saved just now" → "Saving…" → "Saved"
-- If offline: "Saved on this device — will sync when you're back online"
-- No manual "Save" button needed
-
-## Trust & control surfaces
-
-Small "Your data" link in the Workspace footer opens a panel with:
-
-- What's saved (list of cards)
-- Who can see it ("Only you, and any agent you call")
-- **Download my data** (JSON)
-- **Delete my data** (wipes account + local)
-- Link to UHC privacy notice
-
-This is the HIPAA-visible surface — even though UHC handles the infra, the *user* needs to see and control their data here.
-
-## Caregiver sharing (UX only)
-
-From the Caregiver card:
-- "Invite [Name] to view your workspace" → sends email with a magic link
-- Caregiver signs in with their own UHC account, sees a read-only (or read/write, user's choice) view marked "Viewing Margaret's workspace"
-- Toggle per-card: what the caregiver can see (e.g. hide budget)
-- Revoke access anytime
-
-## Sign-out
-
-- Menu in header: name → Sign out
-- Confirmation: "Sign out? Your workspace stays saved to your account."
-- After sign-out, local copy is cleared so the next visitor on that device starts fresh.
-
-## Open questions
-
-1. **Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?
-2. **Save prompt tone** — soft banner in Workspace (recommended), or a modal at the trigger moment?
-3. **Caregiver default** — read-only or read/write when first invited?
-4. **Recap card on return** — always show, or only when it's been >7 days?
-
-Answer these and I'll turn the flow into concrete implementation items (sign-in screen, save banner, merge screen, recap card, data panel, caregiver invite).
+If you'd also like the logo images swapped to a Crinkle mark, say the word and I'll generate replacements in a follow-up.

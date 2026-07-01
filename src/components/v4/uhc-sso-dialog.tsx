@@ -31,10 +31,10 @@ export function UhcSsoDialog({
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <div className="bg-[#131F69] px-6 py-5 text-white">
           <div className="flex items-center gap-2">
-            <img src={emblemAsset.url} alt="UnitedHealthcare" className="h-8 w-auto object-contain bg-white rounded-full p-0.5" />
+            <img src={emblemAsset.url} alt="CrinkleHealthcare" className="h-8 w-auto object-contain bg-white rounded-full p-0.5" />
             <div className="leading-tight">
               <div style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }} className="text-base">
-                UnitedHealthcare
+                CrinkleHealthcare
               </div>
               <div className="text-xs opacity-80">Member sign in</div>
             </div>
@@ -42,11 +42,11 @@ export function UhcSsoDialog({
         </div>
         <div className="px-6 py-5 space-y-4">
           <DialogTitle className="font-serif text-xl text-[#131F69]">
-            Save your workspace to your UHC account
+            Save your workspace to your CHC account
           </DialogTitle>
           <DialogDescription className="text-sm text-ink/70">
-            Sign in with your UnitedHealthcare account to save your doctors, medications,
-            favorite plans and progress. Your information is stored in UHC's HIPAA-secure
+            Sign in with your CrinkleHealthcare account to save your doctors, medications,
+            favorite plans and progress. Your information is stored in CHC's HIPAA-secure
             member systems — the same ones that protect your claims and benefits.
           </DialogDescription>
 
@@ -62,7 +62,7 @@ export function UhcSsoDialog({
               </>
             ) : (
               <>
-                Continue with UHC account <ArrowRight className="h-4 w-4" />
+                Continue with CHC account <ArrowRight className="h-4 w-4" />
               </>
             )}
           </button>
@@ -70,7 +70,7 @@ export function UhcSsoDialog({
           <div className="rounded-lg bg-[#E5F5F8] border border-[#033592]/15 px-3 py-2 text-xs text-[#131F69] flex items-start gap-2">
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
-              Protected by UHC's HIPAA-compliant identity system. You can download or
+              Protected by CHC's HIPAA-compliant identity system. You can download or
               delete your workspace data anytime from <span className="font-medium">Your data</span>.
             </div>
           </div>

@@ -685,7 +685,7 @@ function WorksheetDrawerInner() {
       <footer className="border-t border-[#033592]/10 bg-white px-4 py-2.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-[10px] text-ink/55">
           <ShieldCheck className="h-3 w-3 text-[#033592]/70" />
-          <span>{auth.user ? "Synced to your UHC account" : "Stored on this device"}</span>
+          <span>{auth.user ? "Synced to your CHC account" : "Stored on this device"}</span>
         </div>
         <button
           type="button"
@@ -894,7 +894,7 @@ function CaregiverPanel() {
     <div className="space-y-4">
       <p className="text-xs text-muted-2">
         Add a family member or trusted helper. When you invite them, they'll sign in with their
-        own UHC account and see the same workspace you see.
+        own CHC account and see the same workspace you see.
       </p>
 
       <div className="grid grid-cols-1 gap-2">
@@ -958,7 +958,7 @@ function CaregiverPanel() {
             <ShieldCheck className="h-4 w-4 text-[#033592] mt-0.5 shrink-0" />
             <div className="text-xs text-[#131F69] leading-relaxed">
               We'll email {cg.name?.split(" ")[0] || "your caregiver"} a secure invite link.
-              They sign in with their own UHC account — you can revoke access anytime.
+              They sign in with their own CHC account — you can revoke access anytime.
               <div className="mt-1 text-[11px] text-[#033592]/80">
                 Default: <span className="font-medium">Read + write</span> — they can update your workspace and pick plans on your behalf.
               </div>
