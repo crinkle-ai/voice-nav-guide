@@ -249,6 +249,7 @@ function PlanTile({
   isRecommended,
   deemphasize,
   onToggleFavorite,
+  onEnroll,
   className,
 }: {
   plan: RecommendedPlan;
@@ -257,6 +258,7 @@ function PlanTile({
   isRecommended?: boolean;
   deemphasize?: boolean;
   onToggleFavorite: () => void;
+  onEnroll?: () => void;
   className?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
