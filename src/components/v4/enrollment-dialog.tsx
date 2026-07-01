@@ -171,6 +171,17 @@ export function EnrollmentDialog({
           {app.step === "review" && (
             <ReviewStep
               app={app}
+              onSelfSubmit={() => {
+                patch({
+                  status: "submitted",
+                  step: "submitted",
+                  handoff: {
+                    agentName: "Self-submitted",
+                    agentNpn: "—",
+                    at: Date.now(),
+                  },
+                });
+              }}
               onHandoff={() => {
                 patch({
                   status: "handed_off",
@@ -187,9 +198,13 @@ export function EnrollmentDialog({
               onBack={() => goto("signature")}
             />
           )}
+          {app.step === "submitted" && (
+            <SubmittedStep app={app} onClose={() => onOpenChange(false)} />
+          )}
           {app.step === "handed_off" && (
             <HandedOffStep app={app} onClose={() => onOpenChange(false)} />
           )}
+
         </div>
       </DialogContent>
       <CallDialog open={callOpen} onOpenChange={setCallOpen} agent={state.permanentAgent} />
