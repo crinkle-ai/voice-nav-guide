@@ -36,13 +36,13 @@ The prompt copy is outcome-focused: *"Save your workspace so Sarah can see it wh
 
 ## The sign-in / sign-up moment
 
-One combined screen (no separate signup vs login):
+CrinkleHealthcare members authenticate with **HealthSafe ID** — the same account used across myuhc.com and the CHC mobile app. New visitors don't have one yet, so the save dialog offers two clear paths:
 
-- **Primary:** "Continue with UHC account" (SSO — matches how members already log in to uhc.com)
-- **Secondary:** email + one-time code (magic code, no password to remember — better for the 65+ audience)
-- Tiny link: "I don't want to save — keep exploring" → dismisses, stays anonymous
+- **Primary:** "Sign in with HealthSafe ID" — for returning members.
+- **Secondary:** "Create a HealthSafe ID" — for first-time visitors, framed as a ~1-minute setup.
+- Tiny link: "Not now — keep exploring without saving" → dismisses, stays anonymous.
 
-After sign-in, we merge the anonymous workspace into the account (see conflict handling below).
+The inline chat save card mirrors the same two buttons, and preselects the right mode when the dialog opens so the click feels continuous. After sign-in or sign-up, we merge the anonymous workspace into the account (see conflict handling below). Newly created accounts skip the returning-user recap card on that first session.
 
 ## Returning-user experience
 
@@ -104,7 +104,7 @@ From the Caregiver card:
 
 ## Open questions
 
-1. **Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?
+1. ~~**Auth method** — UHC SSO only, or also allow email + one-time code for people without a UHC account yet?~~ **Resolved:** HealthSafe ID with two paths — sign in for existing members, create-account for new visitors. No separate email + one-time code path.
 2. **Save prompt tone** — soft banner in Workspace (recommended), or a modal at the trigger moment?
 3. **Caregiver default** — read-only or read/write when first invited?
 4. **Recap card on return** — always show, or only when it's been >7 days?

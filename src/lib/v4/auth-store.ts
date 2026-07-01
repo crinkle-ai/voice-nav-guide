@@ -10,6 +10,9 @@ export type UhcUser = {
   // is newer than lastVisitAt. CHC handles the real HIPAA-compliant sync.
   lastServerChangeAt?: number;
   serverChangeSummary?: string;
+  // Set when the account was created in this session via the HealthSafe ID
+  // signup path (vs. an existing HealthSafe ID sign-in).
+  accountCreatedAt?: number;
 };
 
 export type AuthState = {
@@ -109,6 +112,27 @@ export function useAuth() {
     [],
   );
 
+  const signUp = useCallback(
+    (partial?: Partial<UhcUser>) => {
+      const now = Date.now();
+      const sample = SAMPLE_NAMES[0];
+      const user: UhcUser = {
+        name: partial?.name ?? sample.name,
+        memberId: partial?.memberId ?? sample.memberId,
+        email: partial?.email ?? sample.email,
+        signedInAt: now,
+        lastVisitAt: now,
+        // Brand-new account — no prior server-side state, so the recap card
+        // should not fire on this session.
+        lastServerChangeAt: undefined,
+        serverChangeSummary: undefined,
+        accountCreatedAt: now,
+      };
+      setState({ user, savePromptShown: true });
+    },
+    [],
+  );
+
   const signOut = useCallback(() => {
     setState({
       user: null,
@@ -154,6 +178,7 @@ export function useAuth() {
     user: state.user,
     ready,
     signIn,
+    signUp,
     signOut,
     markVisit,
     dismissSavePrompt,
