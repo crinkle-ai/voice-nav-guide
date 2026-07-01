@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { CallDialog } from "@/components/v4/call-dialog";
 
-const MBI_RE = /^[1-9][A-Z][A-Z0-9]-?[A-Z0-9]{2}[A-Z]-?[A-Z0-9]{2}[A-Z]{2}$/i;
+// CMS MBI: 11 chars, format C-A-AN-N-A-AN-N-A-A-N-N, displayed as XXXX-XXX-XXXX
+const MBI_RE = /^[1-9][A-Z][A-Z0-9][0-9]-?[A-Z][A-Z0-9][0-9]-?[A-Z]{2}[0-9]{2}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const STEP_ORDER: EnrollmentStep[] = [
