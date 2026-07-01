@@ -7,7 +7,11 @@ import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { formatMedication } from "@/lib/v3/intake-types";
 import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
 import { CallDialog } from "@/components/v4/call-dialog";
-import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users } from "lucide-react";
+import { SaveChip } from "@/components/v4/save-chip";
+import { YourDataPanel } from "@/components/v4/your-data-panel";
+import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
+import { useAuth } from "@/lib/v4/auth-store";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail } from "lucide-react";
 
 import {
   Bookmark,
@@ -208,11 +212,14 @@ const OPTIONAL_DESCRIPTIONS: Record<CardKey, string> = {
 
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
+  const auth = useAuth();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
   const [draggingKey, setDraggingKey] = useState<CardKey | null>(null);
   const [showAddPicker, setShowAddPicker] = useState(false);
+  const [ssoOpen, setSsoOpen] = useState(false);
+  const [dataPanelOpen, setDataPanelOpen] = useState(false);
 
   // Effective enabled set = user-enabled ∪ defaults ∪ auto-enabled (agent if pinned, caregiver if named)
   const enabled: CardKey[] = (() => {
@@ -540,7 +547,10 @@ function WorksheetDrawerInner() {
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-[#033592]/70">Saved decisions</div>
-            <div className="font-serif text-lg leading-tight text-[#033592] truncate">Your Workspace</div>
+            <div className="flex items-center gap-2">
+              <div className="font-serif text-lg leading-tight text-[#033592] truncate">Your Workspace</div>
+              <SaveChip onSignInClick={() => setSsoOpen(true)} />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -737,11 +747,28 @@ function WorksheetDrawerInner() {
         )}
       </div>
 
+      {/* Footer: HIPAA + data controls */}
+      <footer className="border-t border-[#033592]/10 bg-white px-4 py-2.5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-[10px] text-ink/55">
+          <ShieldCheck className="h-3 w-3 text-[#033592]/70" />
+          <span>{auth.user ? "Synced to your UHC account" : "Stored on this device"}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDataPanelOpen(true)}
+          className="text-[11px] font-medium text-[#033592] hover:underline"
+        >
+          Your data
+        </button>
+      </footer>
+
       <CallDialog
         open={!!callAgent}
         onOpenChange={(v) => { if (!v) setCallAgent(null); }}
         agent={callAgent ?? undefined}
       />
+      <UhcSsoDialog open={ssoOpen} onOpenChange={setSsoOpen} />
+      <YourDataPanel open={dataPanelOpen} onOpenChange={setDataPanelOpen} />
     </aside>
   );
 }
