@@ -10,6 +10,9 @@ export type UhcUser = {
   // is newer than lastVisitAt. CHC handles the real HIPAA-compliant sync.
   lastServerChangeAt?: number;
   serverChangeSummary?: string;
+  // Set when the account was created in this session via the HealthSafe ID
+  // signup path (vs. an existing HealthSafe ID sign-in).
+  accountCreatedAt?: number;
 };
 
 export type AuthState = {
