@@ -161,6 +161,7 @@ export function EnrollmentDialog({
             <InfoStep
               app={app}
               isMedigap={isMedigap}
+              isMA={!isMedigap}
               onSubmit={(info) => {
                 patch({ info });
                 goto("disclosures");
@@ -168,6 +169,7 @@ export function EnrollmentDialog({
               onBack={() => goto("soa")}
             />
           )}
+
           {app.step === "disclosures" && (
             <DisclosuresStep
               app={app}
