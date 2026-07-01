@@ -12,7 +12,11 @@ import { LearningPathsCard } from "./chat-cards/learning-paths";
 import { ShortVideosCard } from "./chat-cards/short-videos";
 import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
+import { computeProgress } from "@/lib/v4/profile-progress";
 import { CallDialog } from "./call-dialog";
+import { SavePromptCard, RecapCard } from "./chat-cards/save-prompt";
+import { useAuth } from "@/lib/v4/auth-store";
+import { useSession } from "@/lib/v4/session-store";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
