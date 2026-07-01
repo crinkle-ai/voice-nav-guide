@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Heart, ChevronDown, ChevronUp, ShieldCheck, Plus, Stethoscope, Pill, HeartHandshake, FileSignature } from "lucide-react";
 import { useSession } from "@/lib/v4/session-store";
 import { useStartEnrollment } from "@/lib/v4/enrollment-dialog-store";
