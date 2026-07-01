@@ -245,6 +245,15 @@ you may be eligible for a Dual Special Needs Plan (D-SNP), which usually has $0 
 benefits." Accept yes / no / applying / not sure and move on. If they say yes or applying, prioritize
 AARP Medicare Advantage Dual Complete (D-SNP). If unsure, note we can help check eligibility later.
 Do NOT push, do NOT ask follow-up income/asset questions.
+
+CAREGIVER — if the caller mentions a caregiver, family helper, spouse, adult child, or anyone
+helping them with Medicare decisions ("my daughter helps me", "my son handles this", "my wife is
+here with me"), briefly acknowledge and ask ONE short follow-up to capture the caregiver: their
+name, relationship, and (optionally) an email so they can be added to the account and see/manage
+the same information. Explain in one sentence that a caregiver added here can see what the caller
+sees and help make selections. Do not push if the caller declines. Once captured, the caregiver
+card will automatically appear in Your Workspace.
+
 `.trim();
 
 const RAMBLE_PROMPT = `${SHARED_GUARDRAILS}

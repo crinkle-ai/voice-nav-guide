@@ -26,6 +26,15 @@ export type SessionState = {
   sharingActive?: boolean;
   favoritePlans?: RecommendedPlan[];
   cardOrder?: string[];
+  enabledCards?: string[];
+  caregiver?: {
+    name?: string;
+    relationship?: string;
+    email?: string;
+    phone?: string;
+    permissions?: string[];
+    notes?: string;
+  };
 };
 
 const KEY = "v4-medicare-compass-session-v1";
