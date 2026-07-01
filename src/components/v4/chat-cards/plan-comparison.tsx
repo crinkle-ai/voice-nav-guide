@@ -180,6 +180,7 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
                 const r = data.rationale.find((x) => x.planId === p.id);
                 const isFav = favorites.some((f) => f.id === p.id);
                 const isRecommended = !isPaired && hasRecommendation && p.id === recommendedId;
+                const isSelected = !isPaired && p.id === selectedId;
                 return (
                   <PlanTile
                     key={p.id}
@@ -187,9 +188,14 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
                     rationale={r}
                     isFav={isFav}
                     isRecommended={isRecommended}
-                    deemphasize={hasRecommendation && !isRecommended}
+                    isSelected={isSelected}
+                    deemphasize={hasRecommendation && !isRecommended && !isSelected}
+                    onSelect={() => setSelectedId(p.id)}
                     onToggleFavorite={() => toggleFavorite(p)}
-                    onEnroll={() => startEnrollment(p)}
+                    onEnroll={() => {
+                      setSelectedId(p.id);
+                      startEnrollment(p);
+                    }}
                     className="flex-1 min-w-[220px]"
                   />
                 );
