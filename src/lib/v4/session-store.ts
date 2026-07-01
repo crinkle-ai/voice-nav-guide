@@ -22,13 +22,14 @@ export type EnrollmentStep =
   | "disclosures"
   | "signature"
   | "review"
+  | "submitted"
   | "handed_off";
 
 export type EnrollmentApplication = {
   planId: string;
   pairedPlanId?: string;
   strategy?: "medicare-advantage" | "medigap-plus-partd" | "dsnp";
-  status: "draft" | "packaged" | "handed_off";
+  status: "draft" | "packaged" | "submitted" | "handed_off";
   step: EnrollmentStep;
   startedAt: number;
   planName?: string;
