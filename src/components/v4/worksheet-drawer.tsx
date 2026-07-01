@@ -213,6 +213,7 @@ const OPTIONAL_DESCRIPTIONS: Record<CardKey, string> = {
 
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
+  const startEnrollment = useStartEnrollment();
   const auth = useAuth();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
