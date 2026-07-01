@@ -34,7 +34,13 @@ export type EnrollmentApplication = {
   startedAt: number;
   planName?: string;
   pairedPlanName?: string;
-  soa?: { signedAt: number; typedName: string; products: string[] };
+  soa?: {
+    signedAt: number;
+    typedName: string;
+    products: string[];
+    appointmentDate?: string;
+    appointmentWindow?: string;
+  };
   info?: {
     legalName?: string;
     dob?: string;
@@ -45,17 +51,58 @@ export type EnrollmentApplication = {
     state?: string;
     zip?: string;
     county?: string;
+    mailingSameAsResidence?: boolean;
+    mailingAddress1?: string;
+    mailingAddress2?: string;
+    mailingCity?: string;
+    mailingState?: string;
+    mailingZip?: string;
     phone?: string;
     email?: string;
+    preferredLanguage?: string;
+    race?: string;
+    ethnicity?: string;
+    emergencyContact?: { name?: string; relationship?: string; phone?: string };
     mbi?: string;
     partAEffective?: string;
     partBEffective?: string;
+    ssnFull?: string;
+    oevPreference?: "phone" | "email" | "mail";
     enrollmentPeriod?: "IEP" | "AEP" | "MA-OEP" | "SEP";
     sepReason?: string;
     requestedEffective?: string;
+    // Eligibility & other coverage
+    esrd?: "no" | "yes" | "transplant_recovery";
+    otherCoverage?: string[]; // ["employer","union","cobra","va","tricare","ihs","medicaid","other"]
+    otherCoverageCarrier?: string;
+    otherCoveragePolicy?: string;
+    medicaidStatus?: "no" | "full" | "partial" | "qmb" | "slmb";
+    medicaidId?: string;
+    lis?: "no" | "yes" | "unsure";
+    institutional?: "community" | "ltc" | "hcbs";
+    workingAged?: boolean;
+    // MA-specific
+    pcp?: { name?: string; npi?: string; currentPatient?: boolean };
+    // Medigap-specific
+    giReason?: string;
+    giLossDate?: string;
+    giDocName?: string;
+    replacing?: boolean;
+    replacePriorCarrier?: string;
+    replacePriorPolicy?: string;
+    replaceTerminationDate?: string;
+    householdDiscount?: boolean;
+    heightIn?: string;
+    weightLb?: string;
     payment?: {
       method?: "monthly_bill" | "eft" | "card" | "ssa";
       accountLast4?: string;
+      routingNumber?: string;
+      accountNumber?: string;
+      cardPan?: string;
+      cardExp?: string;
+      cardCvv?: string;
+      cardBillingZip?: string;
     };
     tobacco?: boolean;
     ssnLast4?: string;
@@ -68,6 +115,12 @@ export type EnrollmentApplication = {
     maVsMedigap?: boolean;
     releaseInfo?: boolean;
     truthful?: boolean;
+    lisAttest?: boolean;
+    esrdAck?: boolean;
+    oevConsent?: boolean;
+    electronicDelivery?: boolean;
+    medigapReplacement?: boolean;
+    maNetwork?: boolean;
   };
   signature?: {
     signedAt: number;
@@ -77,6 +130,7 @@ export type EnrollmentApplication = {
   };
   handoff?: { agentName: string; agentNpn: string; at: number };
 };
+
 
 export type SessionState = {
   mode: IntakeMode | null;
