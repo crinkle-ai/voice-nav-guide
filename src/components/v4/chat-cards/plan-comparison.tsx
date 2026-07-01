@@ -44,6 +44,12 @@ export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
     (pairedId ? "medigap-plus-partd" : "medicare-advantage");
   const isPaired = strategy === "medigap-plus-partd" && !!pairedId;
 
+  const initialSelectedId = recommendedId ?? data.plans[0]?.id;
+  const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
+  useEffect(() => {
+    setSelectedId(initialSelectedId);
+  }, [initialSelectedId]);
+
   const recommendedPlan = data.plans.find((p) => p.id === recommendedId);
   const pairedPlan = isPaired ? data.plans.find((p) => p.id === pairedId) : undefined;
   const runners = data.plans.filter(
