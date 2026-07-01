@@ -89,34 +89,64 @@ function WorkspaceCard({
   primary,
   secondary,
   onClick,
+  draggable,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  dragging,
 }: {
   cardKey: CardKey;
   status: string;
   primary: string;
   secondary?: string;
   onClick: () => void;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
+  dragging?: boolean;
 }) {
   const p = PALETTE[cardKey];
   const Icon = p.icon;
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
       onClick={onClick}
-      className={`group relative w-full overflow-hidden rounded-2xl ${p.bg} ${p.text} p-4 text-left shadow-[0_8px_24px_-12px_rgb(3_53_146/0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgb(3_53_146/0.45)]`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`group relative w-full cursor-grab overflow-hidden rounded-2xl ${p.bg} ${p.text} p-4 shadow-[0_8px_24px_-12px_rgb(3_53_146/0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgb(3_53_146/0.45)] active:cursor-grabbing ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`inline-flex items-center gap-1.5 rounded-full ${p.chip} px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider`}>
           <Icon className="h-3 w-3" />
           {p.label}
         </div>
-        <span className="text-[10px] uppercase tracking-wider opacity-70">{status}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-[10px] uppercase tracking-wider opacity-70">{status}</span>
+          <div className="flex flex-col items-center gap-1" aria-label="Drag to reorder">
+            <div className="h-0.5 w-5 rounded-full bg-current opacity-40" />
+            <div className="h-0.5 w-5 rounded-full bg-current opacity-40" />
+          </div>
+        </div>
       </div>
       <div className="mt-3 font-serif text-xl leading-tight">{primary}</div>
       {secondary && <div className="mt-1 text-xs opacity-85">{secondary}</div>}
       <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium opacity-90 transition group-hover:opacity-100">
         Open <ChevronRight className="h-3 w-3" />
       </div>
-    </button>
+    </div>
   );
 }
 
