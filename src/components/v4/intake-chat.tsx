@@ -10,7 +10,7 @@ import { PlanComparisonCard, type RecommendPlansInput } from "./chat-cards/plan-
 import { SuggestNextCard } from "./chat-cards/suggest-next";
 import { LearningPathsCard } from "./chat-cards/learning-paths";
 import { ShortVideosCard } from "./chat-cards/short-videos";
-import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
+import emblemAsset from "@/assets/chc-emblem-white.png.asset.json";
 import { buildInlinePlanRecommendations } from "@/lib/v4/plan-catalog";
 import { computeProgress } from "@/lib/v4/profile-progress";
 import { CallDialog } from "./call-dialog";

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import emblemAsset from "@/assets/uhc-emblem-white.png.asset.json";
+import emblemAsset from "@/assets/chc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 import { useSession } from "@/lib/v4/session-store";
 import { UserMenu } from "./user-menu";

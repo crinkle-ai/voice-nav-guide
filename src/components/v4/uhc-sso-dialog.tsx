@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/v4/auth-store";
-import emblemAsset from "@/assets/uhc-emblem.png.asset.json";
+import emblemAsset from "@/assets/chc-emblem.png.asset.json";
 import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 
 export function UhcSsoDialog({
