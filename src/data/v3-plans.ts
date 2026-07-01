@@ -19,7 +19,7 @@ export const MOCK_PLANS: Plan[] = [
   {
     id: "uhc-essential-hmo",
     name: "AARP Medicare Advantage Essential",
-    carrier: "CrinkleHealthcare",
+    carrier: "Crinkle Health",
     type: "HMO",
     monthlyPremium: 0,
     moop: 6700,
@@ -35,7 +35,7 @@ export const MOCK_PLANS: Plan[] = [
   {
     id: "uhc-choice-ppo",
     name: "AARP Medicare Advantage Choice PPO",
-    carrier: "CrinkleHealthcare",
+    carrier: "Crinkle Health",
     type: "PPO",
     monthlyPremium: 39,
     moop: 5500,
@@ -51,7 +51,7 @@ export const MOCK_PLANS: Plan[] = [
   {
     id: "uhc-patriot-hmo",
     name: "AARP Medicare Advantage Patriot",
-    carrier: "CrinkleHealthcare",
+    carrier: "Crinkle Health",
     type: "HMO",
     monthlyPremium: 0,
     moop: 8300,
@@ -67,7 +67,7 @@ export const MOCK_PLANS: Plan[] = [
   {
     id: "uhc-rx-saver",
     name: "AARP Medicare Advantage Rx Saver",
-    carrier: "CrinkleHealthcare",
+    carrier: "Crinkle Health",
     type: "HMO-POS",
     monthlyPremium: 22,
     moop: 5900,
@@ -83,7 +83,7 @@ export const MOCK_PLANS: Plan[] = [
   {
     id: "uhc-complete-ppo",
     name: "AARP Medicare Advantage Complete PPO",
-    carrier: "CrinkleHealthcare",
+    carrier: "Crinkle Health",
     type: "PPO",
     monthlyPremium: 79,
     moop: 4500,
@@ -98,8 +98,8 @@ export const MOCK_PLANS: Plan[] = [
   },
   {
     id: "uhc-dual-snp",
-    name: "CrinkleHealthcare Dual Complete (D-SNP)",
-    carrier: "CrinkleHealthcare",
+    name: "Crinkle Health Dual Complete (D-SNP)",
+    carrier: "Crinkle Health",
     type: "SNP",
     monthlyPremium: 0,
     moop: 3500,

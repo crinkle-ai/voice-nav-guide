@@ -7,7 +7,7 @@ export type UhcUser = {
   signedInAt: number;
   lastVisitAt: number;
   // Simulated server-side change marker; the recap card fires only when this
-  // is newer than lastVisitAt. CHC handles the real HIPAA-compliant sync.
+  // is newer than lastVisitAt. CH handles the real HIPAA-compliant sync.
   lastServerChangeAt?: number;
   serverChangeSummary?: string;
   // Set when the account was created in this session via the HealthSafe ID
@@ -81,7 +81,7 @@ function setState(patch: Partial<AuthState> | ((s: AuthState) => Partial<AuthSta
 }
 
 const SAMPLE_NAMES = [
-  { name: "Margaret Chen", email: "margaret.chen@example.com", memberId: "CHC-4728-1930" },
+  { name: "Margaret Chen", email: "margaret.chen@example.com", memberId: "CH-4728-1930" },
 ];
 
 export function useAuth() {

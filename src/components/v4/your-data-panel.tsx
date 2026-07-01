@@ -91,8 +91,8 @@ export function YourDataPanel({
           </div>
           <DialogDescription className="text-xs text-white/80 mt-1">
             {user
-              ? "Saved to your CHC account in HIPAA-secure member systems."
-              : "Kept only on this device until you sign in and save to your CHC account."}
+              ? "Saved to your CH account in HIPAA-secure member systems."
+              : "Kept only on this device until you sign in and save to your CH account."}
           </DialogDescription>
         </div>
 
@@ -120,8 +120,8 @@ export function YourDataPanel({
           <div>
             <div className="text-[11px] uppercase tracking-wider text-ink/50 mb-2">Who can see it</div>
             <ul className="text-sm text-ink/80 space-y-1 pl-4 list-disc">
-              <li>Only you, when signed in to your CHC account</li>
-              <li>Any CHC agent you call from this workspace</li>
+              <li>Only you, when signed in to your CH account</li>
+              <li>Any CH agent you call from this workspace</li>
               {state.caregiver?.name && (
                 <li>
                   Your caregiver <span className="font-medium">{state.caregiver.name}</span> — you can revoke anytime
@@ -151,7 +151,7 @@ export function YourDataPanel({
               rel="noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 text-xs text-[#033592] hover:underline mt-1"
             >
-              CHC Notice of Privacy Practices <ExternalLink className="h-3 w-3" />
+              CH Notice of Privacy Practices <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </div>
@@ -162,7 +162,7 @@ export function YourDataPanel({
               <AlertDialogTitle>Delete your workspace?</AlertDialogTitle>
               <AlertDialogDescription>
                 This wipes everything you've captured — doctors, medications, favorites, caregiver — from this device
-                {user ? " and from your CHC account" : ""}. This cannot be undone.
+                {user ? " and from your CH account" : ""}. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

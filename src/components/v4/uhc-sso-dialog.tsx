@@ -53,7 +53,7 @@ export function UhcSsoDialog({
           <div className="flex items-center gap-2">
             <img
               src={emblemAsset.url}
-              alt="CrinkleHealthcare"
+              alt="Crinkle Health"
               className="h-8 w-auto object-contain bg-white rounded-full p-0.5"
             />
             <div className="leading-tight">
@@ -61,7 +61,7 @@ export function UhcSsoDialog({
                 style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }}
                 className="text-base"
               >
-                CrinkleHealthcare
+                Crinkle Health
               </div>
               <div className="text-xs opacity-80">HealthSafe ID</div>
             </div>
@@ -69,11 +69,11 @@ export function UhcSsoDialog({
         </div>
         <div className="px-6 py-5 space-y-4">
           <DialogTitle className="font-serif text-xl text-[#131F69]">
-            Save your workspace to your CHC account
+            Save your workspace to your CH account
           </DialogTitle>
           <DialogDescription className="text-sm text-ink/70">
-            CrinkleHealthcare uses <span className="font-medium">HealthSafe ID</span> — the
-            same secure account you use for myuhc.com and the CHC app. Sign in to save your
+            Crinkle Health uses <span className="font-medium">HealthSafe ID</span> — the
+            same secure account you use for myuhc.com and the CH app. Sign in to save your
             doctors, medications, and favorite plans.
           </DialogDescription>
 
@@ -99,7 +99,7 @@ export function UhcSsoDialog({
 
           {/* Secondary: create a new HealthSafe ID */}
           <div className="pt-1">
-            <div className="text-xs text-ink/60 mb-1.5">New to CrinkleHealthcare?</div>
+            <div className="text-xs text-ink/60 mb-1.5">New to Crinkle Health?</div>
             <button
               type="button"
               onClick={doSignUp}
@@ -127,7 +127,7 @@ export function UhcSsoDialog({
           <div className="rounded-lg bg-[#E5F5F8] border border-[#033592]/15 px-3 py-2 text-xs text-[#131F69] flex items-start gap-2">
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
-              Protected by CHC's HIPAA-compliant HealthSafe ID system. You can download or
+              Protected by CH's HIPAA-compliant HealthSafe ID system. You can download or
               delete your workspace anytime from <span className="font-medium">Your data</span>.
             </div>
           </div>

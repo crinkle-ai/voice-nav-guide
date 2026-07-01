@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/v4/auth-store";
 import { UhcSsoDialog, type SsoMode } from "@/components/v4/uhc-sso-dialog";
 
 /**
- * Inline chat card that offers to save the workspace to a CHC account.
+ * Inline chat card that offers to save the workspace to a CH account.
  * Fires once per anonymous session at meaningful progress moments; the
  * caller decides when to insert this into the transcript.
  */
@@ -32,11 +32,11 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
             <Sparkles className="h-3 w-3" /> Save your progress
           </div>
           <div className="font-serif text-[17px] text-[#131F69] leading-snug mt-0.5">
-            Want me to save this to your CHC account?
+            Want me to save this to your CH account?
           </div>
           <p className="text-sm text-ink/75 mt-1 leading-relaxed">
             {trigger} You can sign in with your HealthSafe ID, or create one in about
-            a minute — your info stays in CHC's HIPAA-secure member systems.
+            a minute — your info stays in CH's HIPAA-secure member systems.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button

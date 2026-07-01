@@ -19,7 +19,7 @@ function fmtAgo(ms: number): string {
  * Small status chip that sits in the Workspace header.
  * Signed-in: shows "Saved · just now" and cycles through Saving → Saved on
  * every session change. Anonymous: shows "Not saved" with a subtle CTA.
- * Real HIPAA-compliant persistence is handled on the CHC side; this
+ * Real HIPAA-compliant persistence is handled on the CH side; this
  * component only surfaces the sync state to the user.
  */
 export function SaveChip({ onSignInClick }: { onSignInClick?: () => void }) {
@@ -61,7 +61,7 @@ export function SaveChip({ onSignInClick }: { onSignInClick?: () => void }) {
         type="button"
         onClick={onSignInClick}
         className="inline-flex items-center gap-1.5 rounded-full border border-[#033592]/25 bg-white px-2.5 py-1 text-[11px] font-medium text-[#033592] hover:bg-[#E5F5F8] transition"
-        title="Sign in to save this workspace to your CHC account"
+        title="Sign in to save this workspace to your CH account"
       >
         <CloudOff className="h-3 w-3" />
         Not saved · Sign in
@@ -81,7 +81,7 @@ export function SaveChip({ onSignInClick }: { onSignInClick?: () => void }) {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-medium text-emerald-700"
-      title="Saved to your CHC account via HIPAA-secure sync"
+      title="Saved to your CH account via HIPAA-secure sync"
     >
       <Check className="h-3 w-3" />
       Saved · {fmtAgo(Date.now() - lastSavedAt)}

@@ -225,7 +225,7 @@ export function buildInlinePlanRecommendations(intake: Intake) {
       return {
         id: plan.id,
         name: plan.name,
-        carrier: "CrinkleHealthcare",
+        carrier: "Crinkle Health",
         type: plan.type,
         monthlyPremium: details.monthlyPremium,
         maxOOP: details.maxOOP,
