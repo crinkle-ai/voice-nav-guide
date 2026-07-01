@@ -720,6 +720,7 @@ function WorksheetDrawerInner() {
               );
             })()}
           </div>
+          </>
         )}
       </div>
 
