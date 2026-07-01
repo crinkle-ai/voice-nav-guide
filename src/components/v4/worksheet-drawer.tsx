@@ -531,6 +531,32 @@ function WorksheetDrawerInner() {
         {card ? (
           renderDetail()
         ) : (
+          <>
+            {state.enrollment && (
+              <button
+                type="button"
+                onClick={() => openEnrollment()}
+                className={`mb-3 w-full rounded-xl border p-3 text-left transition ${
+                  state.enrollment.status === "handed_off"
+                    ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100"
+                    : "border-[#131F69]/25 bg-[#131F69]/[0.04] hover:bg-[#131F69]/[0.08]"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#131F69]/70">
+                  <FileSignature className="h-3.5 w-3.5" />
+                  Enrollment {state.enrollment.status === "handed_off" ? "· submitted" : "· in progress"}
+                </div>
+                <div className="font-serif text-base text-[#131F69] leading-tight mt-0.5">
+                  {state.enrollment.planName ?? state.enrollment.planId}
+                  {state.enrollment.pairedPlanName ? ` + ${state.enrollment.pairedPlanName}` : ""}
+                </div>
+                <div className="text-xs text-ink/70 mt-0.5">
+                  {state.enrollment.status === "handed_off"
+                    ? `Queued with ${state.enrollment.handoff?.agentName ?? "your advisor"}`
+                    : `Next: ${state.enrollment.step}`}
+                </div>
+              </button>
+            )}
           <div className={size === "full" ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
             {order.map((key) => {
               const props: { status: string; primary: string; secondary?: string; onClick: () => void } =
