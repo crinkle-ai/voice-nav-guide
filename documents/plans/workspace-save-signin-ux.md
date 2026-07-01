@@ -36,7 +36,7 @@ The prompt copy is outcome-focused: *"Save your workspace so Sarah can see it wh
 
 ## The sign-in / sign-up moment
 
-CrinkleHealthcare members authenticate with **HealthSafe ID** — the same account used across myuhc.com and the CHC mobile app. New visitors don't have one yet, so the save dialog offers two clear paths:
+Crinkle Health members authenticate with **HealthSafe ID** — the same account used across myuhc.com and the CH mobile app. New visitors don't have one yet, so the save dialog offers two clear paths:
 
 - **Primary:** "Sign in with HealthSafe ID" — for returning members.
 - **Secondary:** "Create a HealthSafe ID" — for first-time visitors, framed as a ~1-minute setup.

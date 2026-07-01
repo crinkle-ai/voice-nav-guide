@@ -61,15 +61,15 @@ Designed to force real-world tradeoff conversations (formulary differences, PA h
 
 ## 3. Demo Plans — `demo_plans_55410`
 
-Five CHC-style Medicare Advantage plans hand-tuned for the Twin Cities market.
+Five CH-style Medicare Advantage plans hand-tuned for the Twin Cities market.
 
 | # | Plan | Type | Premium | Deductible | MOOP | Notes |
 |---|---|---|---|---|---|---|
-| 1 | CHC AARP Medicare Advantage Choice Plan 1 | MA-HMO | $0 | $0 | $4,900 | Narrow Allina/Fairview network |
-| 2 | CHC AARP Medicare Advantage Patriot | MA-HMO | $0 | $0 | higher copays | Broadest local HMO network |
-| 3 | CHC AARP Medicare Advantage Choice | MA-PPO | $39 | low | $6,700 | Nationwide PPO |
-| 4 | CHC AARP Medicare Advantage Plan 2 | MA-PPO | $89 | $0 | $4,500 | Rich extras (dental / vision / hearing) |
-| 5 | CHC Dual Complete MN-Y001 | D-SNP | $0 | $0 | $0 | **Requires Medicaid**; OTC + transportation |
+| 1 | CH AARP Medicare Advantage Choice Plan 1 | MA-HMO | $0 | $0 | $4,900 | Narrow Allina/Fairview network |
+| 2 | CH AARP Medicare Advantage Patriot | MA-HMO | $0 | $0 | higher copays | Broadest local HMO network |
+| 3 | CH AARP Medicare Advantage Choice | MA-PPO | $39 | low | $6,700 | Nationwide PPO |
+| 4 | CH AARP Medicare Advantage Plan 2 | MA-PPO | $89 | $0 | $4,500 | Rich extras (dental / vision / hearing) |
+| 5 | CH Dual Complete MN-Y001 | D-SNP | $0 | $0 | $0 | **Requires Medicaid**; OTC + transportation |
 
 Columns also include `pcp_copay`, `specialist_copay`, `network_id`, `extras (text[])`, `star_rating`, `summary`, `highlights (text[])`, `sort_order`.
 
@@ -151,6 +151,6 @@ Implemented in `src/lib/v4/demo-profile.ts` and triggered from `src/routes/v4.in
 
 ## Out of scope
 
-- Editing real CHC plan PDFs or pulling live CMS formularies — values are hand-curated for narrative coherence.
+- Editing real CH plan PDFs or pulling live CMS formularies — values are hand-curated for narrative coherence.
 - Coverage outside ZIP 55410.
 - Persisting intake to the DB across sessions (still `localStorage`).

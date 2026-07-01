@@ -20,7 +20,7 @@ export const Route = createFileRoute("/v4/deck")({
   component: Deck,
 });
 
-// CHC palette
+// CH palette
 const UHC_DARK_BLUE = "#002677";
 const UHC_MEDIUM_BLUE = "#196ECF";
 const UHC_DARK_GREY = "#333333";

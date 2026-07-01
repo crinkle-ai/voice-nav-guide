@@ -80,7 +80,7 @@ export function UserMenu() {
               </div>
             </div>
             <div className="px-4 py-2 flex items-center gap-1.5 text-xs text-emerald-700">
-              <Check className="h-3.5 w-3.5" /> Workspace synced to your CHC account
+              <Check className="h-3.5 w-3.5" /> Workspace synced to your CH account
             </div>
             <button
               type="button"
@@ -98,7 +98,7 @@ export function UserMenu() {
           <AlertDialogHeader>
             <AlertDialogTitle>Sign out?</AlertDialogTitle>
             <AlertDialogDescription>
-              Your workspace stays saved to your CHC account. This device will start fresh
+              Your workspace stays saved to your CH account. This device will start fresh
               on your next visit until you sign in again.
             </AlertDialogDescription>
           </AlertDialogHeader>

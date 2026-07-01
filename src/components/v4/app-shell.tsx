@@ -46,7 +46,7 @@ export function AppShell({
             <Link to="/v4" className="flex items-center gap-1.5">
               <img
                 src={emblemAsset.url}
-                alt="CrinkleHealthcare"
+                alt="Crinkle Health"
                 className="h-7 w-auto object-contain"
               />
               <div className="flex flex-col leading-none -ml-1">
@@ -54,7 +54,7 @@ export function AppShell({
                   className="text-[1.05rem]"
                   style={{ fontFamily: '"Source Serif Pro", Georgia, serif', color: V4_HEADER_TEXT }}
                 >
-                  CrinkleHealthcare
+                  Crinkle Health
                 </span>
                 <span className="text-[0.95rem] tracking-tight" style={{ color: `${V4_HEADER_TEXT}cc` }}>
                   Medicare
@@ -70,7 +70,7 @@ export function AppShell({
       </header>
       <main className="mx-auto max-w-6xl w-full px-6 py-3">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
-        © CrinkleHealthcare. Medicare Advantage plans. Plan availability and benefits vary by region.
+        © Crinkle Health. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
     </div>
   );

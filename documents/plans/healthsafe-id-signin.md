@@ -1,6 +1,6 @@
-# Align sign-in flow with HealthSafe ID (CHC's real identity system)
+# Align sign-in flow with HealthSafe ID (CH's real identity system)
 
-Today's mock SSO dialog offers a single "Continue with CHC account" button, which implies every visitor already has one. In reality, CHC members authenticate with a **HealthSafe ID** — new visitors first have to *create* one, existing members *sign in* with theirs. The save moment on `/v4/intake` should reflect that split so the demo reads true to a UHC pilot audience.
+Today's mock SSO dialog offers a single "Continue with CH account" button, which implies every visitor already has one. In reality, CH members authenticate with a **HealthSafe ID** — new visitors first have to *create* one, existing members *sign in* with theirs. The save moment on `/v4/intake` should reflect that split so the demo reads true to a UHC pilot audience.
 
 ## What changes (UX only)
 
@@ -10,22 +10,22 @@ Replace the single primary button with a two-option layout:
 
 ```text
 ┌───────────────────────────────────────────────┐
-│  CrinkleHealthcare — Save your workspace      │
+│  Crinkle Health — Save your workspace      │
 │                                               │
 │  Sign in with your HealthSafe ID              │
 │  the secure account you use for               │
-│  CrinkleHealthcare, myuhc.com, and the app.   │
+│  Crinkle Health, myuhc.com, and the app.   │
 │                                               │
 │  ┌───────────────────────────────────────┐    │
 │  │  Sign in with HealthSafe ID    →     │   ← primary
 │  └───────────────────────────────────────┘    │
 │                                               │
-│  New to CrinkleHealthcare?                    │
+│  New to Crinkle Health?                    │
 │  ┌───────────────────────────────────────┐    │
 │  │  Create a HealthSafe ID        →     │   ← secondary (outlined)
 │  └───────────────────────────────────────┘    │
 │                                               │
-│  🛡 Protected by CHC's HIPAA-secure identity  │
+│  🛡 Protected by CH's HIPAA-secure identity  │
 │     system. Download or delete anytime.       │
 │                                               │
 │  Not now — keep exploring without saving      │
@@ -35,13 +35,13 @@ Replace the single primary button with a two-option layout:
 - **Sign in** path: simulated handshake (existing 850 ms delay) → signs the user in as returning Margaret.
 - **Create** path: brief simulated "creating your HealthSafe ID…" state (~1.1 s) with a small helper line ("We'll use this to save your doctors, medications, and plan favorites."), then signs the user in as a brand-new account (empty `lastServerChangeAt`, no recap card fires).
 - Both paths land in the same signed-in state so the rest of the flow is unchanged.
-- Dialog copy at top updates to name-drop HealthSafe ID once, in plain language ("the secure account you use across CrinkleHealthcare").
+- Dialog copy at top updates to name-drop HealthSafe ID once, in plain language ("the secure account you use across Crinkle Health").
 
 ### 2. `SavePromptCard` — match the two-path framing
 
-The inline save card in the chat currently says "Sign in with CHC". Update to:
+The inline save card in the chat currently says "Sign in with CH". Update to:
 
-- Headline stays: "Want me to save this to your CHC account?"
+- Headline stays: "Want me to save this to your CH account?"
 - Body adds one short line: "You can sign in with your HealthSafe ID, or create one in about a minute."
 - Buttons become two chips side-by-side: **Sign in** (filled navy) and **Create HealthSafe ID** (outlined). Both open `UhcSsoDialog` with a `defaultMode` prop preselecting the right tab so the click feels continuous.
 - "Not now" link is unchanged.

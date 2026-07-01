@@ -90,7 +90,7 @@ Say "Dr. <Last name>" — the extractor + NPI lookup will resolve the rest.
 | `uhc-patriot-hmo` | AARP MA Patriot (HMO) | $0 | $250 | $6,700 | ★ 3.5 | dental, fitness | Broadest local network, lean formulary |
 | `uhc-choice-ppo` | AARP MA Choice (PPO) | $39 | $0 | $6,700 | ★ 4.0 | dental, vision, hearing, fitness | Nationwide, any Medicare provider |
 | `uhc-plan2-ppo` | AARP MA Plan 2 (PPO) | $89 | $0 | $4,500 | ★ 4.5 | dental, vision, hearing, fitness, transport, OTC | Richest extras, best MOOP |
-| `uhc-dual-complete` | CHC Dual Complete MN-Y001 (D-SNP) | $0 | $0 | $0 | ★ 4.0 | dental, vision, hearing, transport, OTC, fitness | **Requires Medicaid** |
+| `uhc-dual-complete` | CH Dual Complete MN-Y001 (D-SNP) | $0 | $0 | $0 | ★ 4.0 | dental, vision, hearing, transport, OTC, fitness | **Requires Medicaid** |
 
 ---
 

@@ -34,8 +34,8 @@ export const robertPlans: Plan[] = [
   },
   {
     id: "robert-2",
-    name: "CrinkleHealthcare AARP PPO",
-    carrier: "CrinkleHealthcare",
+    name: "Crinkle Health AARP PPO",
+    carrier: "Crinkle Health",
     type: "PPO",
     premium: 48,
     blurb: "Strong national network with one of the deepest drug formularies for cardiology meds.",

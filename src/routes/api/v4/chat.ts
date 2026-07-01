@@ -24,12 +24,12 @@ You can render rich content inline in the chat by calling tools:
     - strategyRationale: 1-2 short sentences explaining the OVERALL approach in plain
       language ("Medigap fits your travel; Part D fills the drug gap")
     - confidence: integer 0-100
-    - plans: 2-4 CrinkleHealthcare plans total (recommended + paired PDP if any + 1-2 runners-up)
+    - plans: 2-4 Crinkle Health plans total (recommended + paired PDP if any + 1-2 runners-up)
     - rationale[] for every plan with reasons grounded in the caller's intake (doctors,
       meds, conditions, ZIP, budget, medicaid, priorities, travel). Use sourceField values
       like "doctors", "medications", "budget", "zip", "medicaid", "priorities", "travel".
-  Plans MUST come from the CrinkleHealthcare lineup in the system prompt. Carrier is always
-  "CrinkleHealthcare". Premiums are plausible TYPICAL ranges, not guarantees. If confidence
+  Plans MUST come from the Crinkle Health lineup in the system prompt. Carrier is always
+  "Crinkle Health". Premiums are plausible TYPICAL ranges, not guarantees. If confidence
   is below 80, do NOT call this tool — ask the ONE most useful narrowing question instead.
 
 • suggestNext — after most assistant turns, offer 2–5 short quick-reply chips the caller
