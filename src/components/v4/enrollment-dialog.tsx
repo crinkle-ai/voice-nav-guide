@@ -630,11 +630,13 @@ function SignatureStep({
 
 function ReviewStep({
   app,
+  onSelfSubmit,
   onHandoff,
   onDownload,
   onBack,
 }: {
   app: EnrollmentApplication;
+  onSelfSubmit: () => void;
   onHandoff: () => void;
   onDownload: () => void;
   onBack: () => void;
