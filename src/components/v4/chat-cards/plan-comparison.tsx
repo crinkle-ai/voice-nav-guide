@@ -303,7 +303,7 @@ function PlanTile({
       <div className="p-4 border-b border-ink/10 relative">
         <button
           type="button"
-          onClick={onToggleFavorite}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
           aria-label={isFav ? "Remove from favorites" : "Save to favorites"}
           aria-pressed={isFav}
           title={isFav ? "Saved to Your Workspace" : "Save to Your Workspace"}
