@@ -71,7 +71,6 @@ const MARGARET_DEMO: NonNullable<EnrollmentApplication["info"]> = {
 
 const STEP_ORDER: EnrollmentStep[] = [
   "intro",
-  "soa",
   "info",
   "disclosures",
   "signature",
@@ -82,7 +81,6 @@ const STEP_ORDER: EnrollmentStep[] = [
 
 const STEP_LABELS: Record<EnrollmentStep, string> = {
   intro: "Start",
-  soa: "Scope of Appointment",
   info: "Your details",
   disclosures: "Disclosures",
   signature: "Signature",
