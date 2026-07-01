@@ -178,6 +178,7 @@ export function useAuth() {
     user: state.user,
     ready,
     signIn,
+    signUp,
     signOut,
     markVisit,
     dismissSavePrompt,
