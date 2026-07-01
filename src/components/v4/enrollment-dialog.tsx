@@ -239,12 +239,11 @@ function IntroStep({ app, onNext, products }: { app: EnrollmentApplication; onNe
           Let's package your {products.join(" + ")} enrollment.
         </h3>
         <p className="text-sm text-ink/75 mt-2 leading-relaxed">
-          I'll walk you through: a quick scope-of-appointment (SOA), your Medicare info,
-          the CMS-required disclosures, and a signature. At the end, a licensed Crinkle Health
-          advisor reviews it with you before it's submitted — nothing is filed until you say so.
+          I'll walk you through: your Medicare info, the CMS-required disclosures,
+          and a signature. At the end, a licensed Crinkle Health advisor reviews
+          it with you before it's submitted — nothing is filed until you say so.
         </p>
         <ul className="mt-3 text-sm text-ink/75 space-y-1.5">
-          <StepBullet icon={ShieldCheck} label="Scope of Appointment (SOA)" />
           <StepBullet icon={UserCheck} label="Your Medicare details (MBI, dates, address, payment)" />
           <StepBullet icon={FileText} label="Disclosures + attestations" />
           <StepBullet icon={PenLine} label="Electronic signature" />
