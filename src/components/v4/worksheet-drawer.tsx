@@ -212,11 +212,14 @@ const OPTIONAL_DESCRIPTIONS: Record<CardKey, string> = {
 
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
+  const auth = useAuth();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
   const [draggingKey, setDraggingKey] = useState<CardKey | null>(null);
   const [showAddPicker, setShowAddPicker] = useState(false);
+  const [ssoOpen, setSsoOpen] = useState(false);
+  const [dataPanelOpen, setDataPanelOpen] = useState(false);
 
   // Effective enabled set = user-enabled ∪ defaults ∪ auto-enabled (agent if pinned, caregiver if named)
   const enabled: CardKey[] = (() => {
