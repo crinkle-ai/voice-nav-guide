@@ -364,6 +364,18 @@ function PlanTile({
           )}
         </button>
       )}
+
+      {onEnroll && (
+        <div className="p-3 border-t border-ink/10 bg-white">
+          <button
+            type="button"
+            onClick={onEnroll}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d1650]"
+          >
+            <FileSignature className="h-4 w-4" /> Enroll in this plan
+          </button>
+        </div>
+      )}
     </article>
   );
 }
