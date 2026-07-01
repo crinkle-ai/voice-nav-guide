@@ -147,7 +147,7 @@ export const Route = createFileRoute("/api/v4/chat")({
             system,
             messages: await convertToModelMessages(messages),
             tools,
-            stopWhen: stepCountIs(50),
+            stopWhen: stepCountIs(5),
           });
           return result.toUIMessageStreamResponse({ originalMessages: messages });
         } catch (err) {
