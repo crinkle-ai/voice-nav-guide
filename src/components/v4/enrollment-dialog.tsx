@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useSession, type EnrollmentApplication, type EnrollmentStep } from "@/lib/v4/session-store";
 import { useAuth } from "@/lib/v4/auth-store";
 import {
-  ShieldCheck,
   ArrowRight,
   ArrowLeft,
   Check,
