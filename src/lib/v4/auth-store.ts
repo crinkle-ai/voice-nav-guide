@@ -163,5 +163,3 @@ export function useAuth() {
   };
 }
 
-// Unused reference silencer for the void trick above (keeps TS quiet under strict noUnusedParameters if enabled).
-declare const s: unknown;
