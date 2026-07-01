@@ -498,6 +498,16 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
       <div className="flex-1 bg-white overflow-hidden flex flex-col min-h-0">
 
         <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          {recapEligible && auth.user && (
+            <RecapCard
+              name={auth.user.name}
+              summary={recapSummary || "We refreshed a few things on your saved workspace."}
+              onDismiss={() => {
+                auth.markVisit();
+                setRecapDismissed(true);
+              }}
+            />
+          )}
           {chatItems.map(({ message, live, locked }) => (
             <MessageRow
               key={message.id}
@@ -511,6 +521,9 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
               forceVideoCard={videoAssistantIds.has(message.id)}
             />
           ))}
+          {savePromptTrigger && !auth.user && (
+            <SavePromptCard trigger={savePromptTrigger} />
+          )}
 
           {/* inline plan fallback now injected into messages directly */}
           {busy && (
