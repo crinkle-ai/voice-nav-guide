@@ -966,11 +966,6 @@ function ReviewStep({
           </ReviewGroup>
         )}
 
-        <ReviewGroup title="Scope of Appointment">
-          <ReviewRow label="Signed by" value={app.soa?.typedName} />
-          <ReviewRow label="Appointment" value={app.soa?.appointmentDate ? `${app.soa.appointmentDate} · ${app.soa.appointmentWindow ?? ""}` : ""} />
-          <ReviewRow label="Writing agent" value={`Self-service (no writing agent) · Crinkle Health`} />
-        </ReviewGroup>
 
         <ReviewGroup title="Signature">
           <ReviewRow label="Signed by" value={sig?.typedName} />
