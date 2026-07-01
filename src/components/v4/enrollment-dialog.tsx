@@ -142,18 +142,7 @@ export function EnrollmentDialog({
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 bg-[#F7FAFC]">
-          {app.step === "intro" && <IntroStep app={app} onNext={() => goto("soa")} products={products} />}
-          {app.step === "soa" && (
-            <SoaStep
-              app={app}
-              products={products}
-              onSubmit={(soa) => {
-                patch({ soa });
-                goto("info");
-              }}
-              onBack={() => goto("intro")}
-            />
-          )}
+          {app.step === "intro" && <IntroStep app={app} onNext={() => goto("info")} products={products} />}
           {app.step === "info" && (
             <InfoStep
               app={app}
@@ -163,7 +152,7 @@ export function EnrollmentDialog({
                 patch({ info });
                 goto("disclosures");
               }}
-              onBack={() => goto("soa")}
+              onBack={() => goto("intro")}
             />
           )}
 
