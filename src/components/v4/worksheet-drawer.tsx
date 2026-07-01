@@ -630,6 +630,15 @@ function WorksheetDrawerInner() {
                         : "Start a call to make one your permanent agent",
                       onClick: () => setCard("agent"),
                     }
+                  : key === "caregiver"
+                  ? {
+                      status: state.caregiver?.name ? "Added" : "Add caregiver",
+                      primary: state.caregiver?.name ?? "Your caregiver",
+                      secondary: state.caregiver?.relationship
+                        ? `${state.caregiver.relationship}${state.caregiver.email ? ` · ${state.caregiver.email}` : ""}`
+                        : "Family or trusted helper who can see and manage your plans",
+                      onClick: () => setCard("caregiver"),
+                    }
                   : {
                       status: (state.favoritePlans ?? []).length ? `${(state.favoritePlans ?? []).length} saved` : "Heart to save",
                       primary:
@@ -664,18 +673,70 @@ function WorksheetDrawerInner() {
               );
             })}
 
-
-            <button
-              type="button"
-              onClick={() => setCard("personal")}
-              className="group flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#033592]/30 bg-white/60 p-4 text-sm text-[#033592] hover:bg-[#E5F5F8] transition"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add more details
-            </button>
+            {(() => {
+              const available = OPTIONAL_CARDS.filter((k) => !enabled.includes(k));
+              if (available.length === 0) return null;
+              if (!showAddPicker) {
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPicker(true)}
+                    className={`group flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#033592]/30 bg-white/60 p-4 text-sm text-[#033592] hover:bg-[#E5F5F8] transition ${
+                      size === "full" ? "col-span-2" : ""
+                    }`}
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Add more details
+                  </button>
+                );
+              }
+              return (
+                <div
+                  className={`rounded-2xl border-2 border-dashed border-[#033592]/30 bg-white p-3 space-y-2 ${
+                    size === "full" ? "col-span-2" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-[#033592]/70">
+                      Add a card
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddPicker(false)}
+                      aria-label="Close"
+                      className="rounded-md p-1 text-[#033592]/60 hover:bg-[#033592]/10"
+                    >
+                      <XIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {available.map((k) => {
+                    const p = PALETTE[k];
+                    const Icon = p.icon;
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => addOptionalCard(k)}
+                        className="w-full flex items-start gap-3 rounded-xl border border-line bg-paper p-3 text-left hover:border-[#033592]/40 hover:bg-[#E5F5F8]/50 transition"
+                      >
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${p.bg}`}>
+                          <Icon className={`h-4 w-4 ${p.text}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-ink">{p.label}</div>
+                          <div className="text-xs text-muted-2">{OPTIONAL_DESCRIPTIONS[k]}</div>
+                        </div>
+                        <Plus className="h-4 w-4 shrink-0 text-[#033592]" />
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
+
       <CallDialog
         open={!!callAgent}
         onOpenChange={(v) => { if (!v) setCallAgent(null); }}
