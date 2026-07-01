@@ -197,6 +197,17 @@ function WorksheetDrawerInner() {
       ? saved
       : [...DEFAULT_ORDER];
   });
+  const orderInitialized = useRef(false);
+
+  useEffect(() => {
+    if (orderInitialized.current || !ready) return;
+    const saved = state.cardOrder as CardKey[] | undefined;
+    if (saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length) {
+      setOrder(saved);
+    }
+    orderInitialized.current = true;
+  }, [ready, state.cardOrder]);
+
   useAutoVerifyIntake();
 
   if (!ready) return null;
