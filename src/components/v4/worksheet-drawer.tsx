@@ -747,11 +747,28 @@ function WorksheetDrawerInner() {
         )}
       </div>
 
+      {/* Footer: HIPAA + data controls */}
+      <footer className="border-t border-[#033592]/10 bg-white px-4 py-2.5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-[10px] text-ink/55">
+          <ShieldCheck className="h-3 w-3 text-[#033592]/70" />
+          <span>{auth.user ? "Synced to your UHC account" : "Stored on this device"}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDataPanelOpen(true)}
+          className="text-[11px] font-medium text-[#033592] hover:underline"
+        >
+          Your data
+        </button>
+      </footer>
+
       <CallDialog
         open={!!callAgent}
         onOpenChange={(v) => { if (!v) setCallAgent(null); }}
         agent={callAgent ?? undefined}
       />
+      <UhcSsoDialog open={ssoOpen} onOpenChange={setSsoOpen} />
+      <YourDataPanel open={dataPanelOpen} onOpenChange={setDataPanelOpen} />
     </aside>
   );
 }
