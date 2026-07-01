@@ -356,6 +356,15 @@ function InfoStep({
         title="Your Medicare details"
         blurb="We've pre-filled what we already have. Fill in the rest — this is what Crinkle Health needs to file the application."
       />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setInfo(MARGARET_DEMO)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#131F69]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#131F69] hover:bg-[#131F69]/5"
+        >
+          <Sparkles className="h-3.5 w-3.5" /> Demo: fill with Margaret's data
+        </button>
+      </div>
       <div className="rounded-2xl border border-line bg-white p-4 space-y-4">
         <Section title="About you">
           <TxtField label="Legal full name" value={info.legalName} onChange={(v) => set("legalName", v)} />
