@@ -22,6 +22,28 @@ import { CallDialog } from "@/components/v4/call-dialog";
 const MBI_RE = /^[1-9][A-Z][A-Z0-9][0-9]-?[A-Z][A-Z0-9][0-9]-?[A-Z]{2}[0-9]{2}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const MARGARET_DEMO: NonNullable<EnrollmentApplication["info"]> = {
+  legalName: "Margaret Chen",
+  dob: "1959-08-14",
+  sex: "F",
+  phone: "612-555-0134",
+  email: "margaret.chen@example.com",
+  address1: "4210 Zenith Ave S",
+  address2: "",
+  city: "Minneapolis",
+  state: "MN",
+  zip: "55410",
+  county: "Hennepin",
+  mbi: "1EG4-TE5-MK73",
+  partAEffective: "2024-08-01",
+  partBEffective: "2024-08-01",
+  enrollmentPeriod: "IEP",
+  requestedEffective: "2026-01-01",
+  payment: { method: "monthly_bill" },
+  tobacco: false,
+  ssnLast4: "1930",
+};
+
 const STEP_ORDER: EnrollmentStep[] = [
   "intro",
   "soa",
@@ -334,6 +356,15 @@ function InfoStep({
         title="Your Medicare details"
         blurb="We've pre-filled what we already have. Fill in the rest — this is what Crinkle Health needs to file the application."
       />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setInfo(MARGARET_DEMO)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#131F69]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#131F69] hover:bg-[#131F69]/5"
+        >
+          <Sparkles className="h-3.5 w-3.5" /> Demo: fill with Margaret's data
+        </button>
+      </div>
       <div className="rounded-2xl border border-line bg-white p-4 space-y-4">
         <Section title="About you">
           <TxtField label="Legal full name" value={info.legalName} onChange={(v) => set("legalName", v)} />
