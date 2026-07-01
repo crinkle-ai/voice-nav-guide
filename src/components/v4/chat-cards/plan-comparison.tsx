@@ -259,7 +259,9 @@ function PlanTile({
   rationale: r,
   isFav,
   isRecommended,
+  isSelected,
   deemphasize,
+  onSelect,
   onToggleFavorite,
   onEnroll,
   className,
@@ -268,7 +270,9 @@ function PlanTile({
   rationale?: PlanRationale;
   isFav: boolean;
   isRecommended?: boolean;
+  isSelected?: boolean;
   deemphasize?: boolean;
+  onSelect?: () => void;
   onToggleFavorite: () => void;
   onEnroll?: () => void;
   className?: string;
@@ -279,14 +283,18 @@ function PlanTile({
   const reasons = r?.reasons ?? [];
   const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
 
-  const borderCls = isRecommended
+  const highlighted = isSelected || isRecommended;
+  const borderCls = highlighted
     ? "border-[3px] border-[#033592] shadow-[0_0_0_4px_rgba(3,53,146,0.12),0_12px_32px_-8px_rgba(3,53,146,0.35)]"
     : deemphasize
       ? "border border-ink/10 opacity-70"
       : "border border-ink/10";
 
   return (
-    <article className={`relative rounded-xl ${borderCls} bg-paper overflow-hidden flex flex-col h-full ${className}`}>
+    <article
+      onClick={onSelect}
+      className={`relative rounded-xl ${borderCls} bg-paper overflow-hidden flex flex-col h-full cursor-pointer transition ${className}`}
+    >
       {isRecommended && (
         <div className="absolute -top-2 right-3 z-10 rounded-full bg-[#033592] text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 shadow">
           Recommended
