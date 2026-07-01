@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useSession, type EnrollmentApplication, type EnrollmentStep } from "@/lib/v4/session-store";
 import { useAuth } from "@/lib/v4/auth-store";
 import {
-  ShieldCheck,
   ArrowRight,
   ArrowLeft,
   Check,
@@ -72,7 +71,6 @@ const MARGARET_DEMO: NonNullable<EnrollmentApplication["info"]> = {
 
 const STEP_ORDER: EnrollmentStep[] = [
   "intro",
-  "soa",
   "info",
   "disclosures",
   "signature",
@@ -83,7 +81,6 @@ const STEP_ORDER: EnrollmentStep[] = [
 
 const STEP_LABELS: Record<EnrollmentStep, string> = {
   intro: "Start",
-  soa: "Scope of Appointment",
   info: "Your details",
   disclosures: "Disclosures",
   signature: "Signature",
@@ -145,18 +142,7 @@ export function EnrollmentDialog({
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 bg-[#F7FAFC]">
-          {app.step === "intro" && <IntroStep app={app} onNext={() => goto("soa")} products={products} />}
-          {app.step === "soa" && (
-            <SoaStep
-              app={app}
-              products={products}
-              onSubmit={(soa) => {
-                patch({ soa });
-                goto("info");
-              }}
-              onBack={() => goto("intro")}
-            />
-          )}
+          {app.step === "intro" && <IntroStep app={app} onNext={() => goto("info")} products={products} />}
           {app.step === "info" && (
             <InfoStep
               app={app}
@@ -166,7 +152,7 @@ export function EnrollmentDialog({
                 patch({ info });
                 goto("disclosures");
               }}
-              onBack={() => goto("soa")}
+              onBack={() => goto("intro")}
             />
           )}
 
@@ -253,12 +239,11 @@ function IntroStep({ app, onNext, products }: { app: EnrollmentApplication; onNe
           Let's package your {products.join(" + ")} enrollment.
         </h3>
         <p className="text-sm text-ink/75 mt-2 leading-relaxed">
-          I'll walk you through: a quick scope-of-appointment (SOA), your Medicare info,
-          the CMS-required disclosures, and a signature. At the end, a licensed Crinkle Health
-          advisor reviews it with you before it's submitted — nothing is filed until you say so.
+          I'll walk you through: your Medicare info, the CMS-required disclosures,
+          and a signature. At the end, a licensed Crinkle Health advisor reviews
+          it with you before it's submitted — nothing is filed until you say so.
         </p>
         <ul className="mt-3 text-sm text-ink/75 space-y-1.5">
-          <StepBullet icon={ShieldCheck} label="Scope of Appointment (SOA)" />
           <StepBullet icon={UserCheck} label="Your Medicare details (MBI, dates, address, payment)" />
           <StepBullet icon={FileText} label="Disclosures + attestations" />
           <StepBullet icon={PenLine} label="Electronic signature" />
@@ -292,70 +277,6 @@ function StepBullet({ icon: Icon, label }: { icon: React.ComponentType<{ classNa
   );
 }
 
-function SoaStep({
-  app,
-  products,
-  onSubmit,
-  onBack,
-}: {
-  app: EnrollmentApplication;
-  products: string[];
-  onSubmit: (soa: NonNullable<EnrollmentApplication["soa"]>) => void;
-  onBack: () => void;
-}) {
-  const [typed, setTyped] = useState(app.soa?.typedName ?? "");
-  const agreed = true;
-  const [apptDate, setApptDate] = useState(app.soa?.appointmentDate ?? new Date().toISOString().slice(0, 10));
-  const [apptWindow, setApptWindow] = useState(app.soa?.appointmentWindow ?? "any-time");
-  const canSubmit = typed.trim().length >= 2 && !!apptDate;
-  return (
-    <div className="space-y-4">
-      <StepHeader
-        eyebrow="Step 1"
-        title="Scope of Appointment"
-        blurb="CMS requires we document which Medicare products we're discussing, before we discuss specific plans. This protects you from unwanted product pitches."
-      />
-      <div className="rounded-2xl border border-line bg-white p-4 space-y-3">
-        <div>
-          <div className="text-[11px] uppercase tracking-wider text-muted-2">Products discussed</div>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {products.map((p) => (
-              <span key={p} className="inline-flex items-center gap-1 rounded-full bg-[#E5F5F8] text-[#033592] text-xs px-2.5 py-1">
-                <Check className="h-3 w-3" /> {p}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wider text-muted-2">Appointment date</span>
-            <input type="date" value={apptDate} onChange={(e) => setApptDate(e.target.value)} className={inputCls} />
-          </label>
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wider text-muted-2">Time window</span>
-            <select value={apptWindow} onChange={(e) => setApptWindow(e.target.value)} className={inputCls}>
-              <option value="morning">Morning (8am–12pm)</option>
-              <option value="afternoon">Afternoon (12pm–5pm)</option>
-              <option value="evening">Evening (5pm–8pm)</option>
-              <option value="any-time">Any time today</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label className="text-[11px] uppercase tracking-wider text-muted-2">Type your name</label>
-          <input
-            type="text"
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            placeholder="Your full name"
-            className={inputCls}
-          />
-        </div>
-      </div>
-      <NavRow onBack={onBack} disabled={!canSubmit} onNext={() => onSubmit({ signedAt: Date.now(), typedName: typed.trim(), products, appointmentDate: apptDate, appointmentWindow: apptWindow })} />
-    </div>
-  );
-}
 
 
 function InfoStep({
@@ -455,7 +376,7 @@ function InfoStep({
   return (
     <div className="space-y-4">
       <StepHeader
-        eyebrow="Step 2"
+        eyebrow="Step 1"
         title="Your Medicare details"
         blurb="We've pre-filled what we already have. Fill in the rest — this is what Crinkle Health needs to file the application."
       />
@@ -955,8 +876,7 @@ function ReviewStep({
       info.payment?.method === "card" ? `  Card: ${mask(info.payment?.cardPan)}  Exp: ${info.payment?.cardExp ?? ""}  Billing ZIP: ${info.payment?.cardBillingZip ?? ""}` : "",
       ``,
       app.strategy === "medigap-plus-partd" ? `MEDIGAP\n  GI reason: ${info.giReason ?? ""}  Loss date: ${info.giLossDate ?? ""}\n  Replacing: ${info.replacing ? `yes (${info.replacePriorCarrier ?? ""} #${info.replacePriorPolicy ?? ""}, term ${info.replaceTerminationDate ?? ""})` : "no"}\n  Household discount: ${info.householdDiscount ? "yes" : "no"}\n  Tobacco: ${info.tobacco ? "yes" : "no"}   Height: ${info.heightIn ?? ""}in  Weight: ${info.weightLb ?? ""}lb\n  Doc attached: ${info.giDocName ?? "—"}\n` : "",
-      `SOA signed: ${app.soa ? new Date(app.soa.signedAt).toISOString() : "—"} by ${app.soa?.typedName ?? ""}`,
-      `  Appointment: ${app.soa?.appointmentDate ?? ""} ${app.soa?.appointmentWindow ?? ""}`,
+      `Enrollment type: Self-service · Crinkle Health`,
       `Attestations: ${Object.entries(app.attestations ?? {}).filter(([, v]) => v).map(([k]) => k).join(", ")}`,
       `Signature: ${sig?.typedName ?? ""} at ${sig ? new Date(sig.signedAt).toISOString() : ""}`,
       sig?.onBehalfOf ? `On behalf of member by ${sig.onBehalfOf.repName} (${sig.onBehalfOf.relationship}, ${sig.onBehalfOf.authorityType})` : "",
@@ -1046,11 +966,6 @@ function ReviewStep({
           </ReviewGroup>
         )}
 
-        <ReviewGroup title="Scope of Appointment">
-          <ReviewRow label="Signed by" value={app.soa?.typedName} />
-          <ReviewRow label="Appointment" value={app.soa?.appointmentDate ? `${app.soa.appointmentDate} · ${app.soa.appointmentWindow ?? ""}` : ""} />
-          <ReviewRow label="Writing agent" value={`Self-service (no writing agent) · Crinkle Health`} />
-        </ReviewGroup>
 
         <ReviewGroup title="Signature">
           <ReviewRow label="Signed by" value={sig?.typedName} />

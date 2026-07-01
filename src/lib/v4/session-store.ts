@@ -17,13 +17,13 @@ export type PermanentAgent = {
 
 export type EnrollmentStep =
   | "intro"
-  | "soa"
   | "info"
   | "disclosures"
   | "signature"
   | "review"
   | "submitted"
   | "handed_off";
+
 
 export type EnrollmentApplication = {
   planId: string;
@@ -34,13 +34,6 @@ export type EnrollmentApplication = {
   startedAt: number;
   planName?: string;
   pairedPlanName?: string;
-  soa?: {
-    signedAt: number;
-    typedName: string;
-    products: string[];
-    appointmentDate?: string;
-    appointmentWindow?: string;
-  };
   info?: {
     legalName?: string;
     dob?: string;
