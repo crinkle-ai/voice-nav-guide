@@ -4,6 +4,8 @@ import emblemAsset from "@/assets/chc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 import { useSession } from "@/lib/v4/session-store";
 import { UserMenu } from "./user-menu";
+import { EnrollmentDialog } from "@/components/v4/enrollment-dialog";
+import { useEnrollmentDialogOpen } from "@/lib/v4/enrollment-dialog-store";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
