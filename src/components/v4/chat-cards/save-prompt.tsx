@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ShieldCheck, X, ArrowRight, Sparkles } from "lucide-react";
+import { ShieldCheck, X, ArrowRight, Sparkles, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/v4/auth-store";
-import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
+import { UhcSsoDialog, type SsoMode } from "@/components/v4/uhc-sso-dialog";
 
 /**
  * Inline chat card that offers to save the workspace to a CHC account.
