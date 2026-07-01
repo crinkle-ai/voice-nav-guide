@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/v4/auth-store";
 import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
 
 /**
- * Inline chat card that offers to save the workspace to a UHC account.
+ * Inline chat card that offers to save the workspace to a CHC account.
  * Fires once per anonymous session at meaningful progress moments; the
  * caller decides when to insert this into the transcript.
  */
@@ -26,11 +26,11 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
             <Sparkles className="h-3 w-3" /> Save your progress
           </div>
           <div className="font-serif text-[17px] text-[#131F69] leading-snug mt-0.5">
-            Want me to save this to your UHC account?
+            Want me to save this to your CHC account?
           </div>
           <p className="text-sm text-ink/75 mt-1 leading-relaxed">
             {trigger} Sign in and I'll keep your doctors, medications and favorite
-            plans safe — protected by UHC's HIPAA-secure member systems.
+            plans safe — protected by CHC's HIPAA-secure member systems.
           </p>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -38,7 +38,7 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
               onClick={() => setSsoOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-full bg-[#131F69] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#0d1650]"
             >
-              Sign in with UHC <ArrowRight className="h-3.5 w-3.5" />
+              Sign in with CHC <ArrowRight className="h-3.5 w-3.5" />
             </button>
             <button
               type="button"
