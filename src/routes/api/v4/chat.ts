@@ -89,7 +89,16 @@ export const Route = createFileRoute("/api/v4/chat")({
             description:
               "Render a confident plan recommendation: ONE recommended plan plus 1-3 runners-up, with per-plan rationale tied to intake. Only call when confidence is at least 80.",
             inputSchema: z.object({
-              recommendedPlanId: z.string().describe("The single plan id you are recommending. Must match an id in plans[]."),
+              strategy: z
+                .enum(["medicare-advantage", "medigap-plus-partd", "dsnp"])
+                .describe(
+                  "The overall coverage strategy. 'medigap-plus-partd' MUST include a pairedPlanId Part D plan.",
+                ),
+              recommendedPlanId: z.string().describe("The single plan id you are recommending. Must match an id in plans[]. For 'medigap-plus-partd', this is the Medigap plan."),
+              pairedPlanId: z.string().optional().describe("REQUIRED when strategy = 'medigap-plus-partd': the standalone Part D plan id that pairs with the Medigap plan. Must also appear in plans[]."),
+              strategyRationale: z
+                .string()
+                .describe("1-2 short sentences in plain English explaining WHY this coverage strategy fits the caller's stated needs."),
               confidence: z.number().min(0).max(100).describe("Your confidence in this recommendation, 0-100. Must be >= 80 to call this tool."),
               plans: z.array(
                 z.object({
