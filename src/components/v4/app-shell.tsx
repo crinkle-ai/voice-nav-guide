@@ -4,6 +4,8 @@ import emblemAsset from "@/assets/chc-emblem-white.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 import { useSession } from "@/lib/v4/session-store";
 import { UserMenu } from "./user-menu";
+import { EnrollmentDialog } from "@/components/v4/enrollment-dialog";
+import { useEnrollmentDialogOpen } from "@/lib/v4/enrollment-dialog-store";
 
 export type StepKey = "intake" | "summary" | "priorities" | "matches" | "next";
 
@@ -72,8 +74,14 @@ export function AppShell({
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
         © Crinkle Health. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
+      <EnrollmentMount />
     </div>
   );
+}
+
+function EnrollmentMount() {
+  const [open, setOpen] = useEnrollmentDialogOpen();
+  return <EnrollmentDialog open={open} onOpenChange={setOpen} />;
 }
 
 export function Stepper({ current }: { current: StepKey }) {

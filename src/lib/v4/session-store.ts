@@ -15,6 +15,68 @@ export type PermanentAgent = {
   avatar: string;
 };
 
+export type EnrollmentStep =
+  | "intro"
+  | "soa"
+  | "info"
+  | "disclosures"
+  | "signature"
+  | "review"
+  | "handed_off";
+
+export type EnrollmentApplication = {
+  planId: string;
+  pairedPlanId?: string;
+  strategy?: "medicare-advantage" | "medigap-plus-partd" | "dsnp";
+  status: "draft" | "packaged" | "handed_off";
+  step: EnrollmentStep;
+  startedAt: number;
+  planName?: string;
+  pairedPlanName?: string;
+  soa?: { signedAt: number; typedName: string; products: string[] };
+  info?: {
+    legalName?: string;
+    dob?: string;
+    sex?: "F" | "M" | "X";
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    county?: string;
+    phone?: string;
+    email?: string;
+    mbi?: string;
+    partAEffective?: string;
+    partBEffective?: string;
+    enrollmentPeriod?: "IEP" | "AEP" | "MA-OEP" | "SEP";
+    sepReason?: string;
+    requestedEffective?: string;
+    payment?: {
+      method?: "monthly_bill" | "eft" | "card" | "ssa";
+      accountLast4?: string;
+    };
+    tobacco?: boolean;
+    ssnLast4?: string;
+  };
+  attestations?: {
+    tpmo?: boolean;
+    sob?: boolean;
+    stars?: boolean;
+    preEnrollment?: boolean;
+    maVsMedigap?: boolean;
+    releaseInfo?: boolean;
+    truthful?: boolean;
+  };
+  signature?: {
+    signedAt: number;
+    typedName: string;
+    ip: string;
+    onBehalfOf?: { repName: string; relationship: string; authorityType: string };
+  };
+  handoff?: { agentName: string; agentNpn: string; at: number };
+};
+
 export type SessionState = {
   mode: IntakeMode | null;
   path?: HybridPath;
@@ -27,6 +89,7 @@ export type SessionState = {
   favoritePlans?: RecommendedPlan[];
   cardOrder?: string[];
   enabledCards?: string[];
+  enrollment?: EnrollmentApplication;
   caregiver?: {
     name?: string;
     relationship?: string;

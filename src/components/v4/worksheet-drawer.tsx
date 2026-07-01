@@ -11,7 +11,8 @@ import { SaveChip } from "@/components/v4/save-chip";
 import { YourDataPanel } from "@/components/v4/your-data-panel";
 import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
 import { useAuth } from "@/lib/v4/auth-store";
-import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail } from "lucide-react";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail, FileSignature } from "lucide-react";
+import { useStartEnrollment, openEnrollment } from "@/lib/v4/enrollment-dialog-store";
 
 import {
   Bookmark,
@@ -212,6 +213,7 @@ const OPTIONAL_DESCRIPTIONS: Record<CardKey, string> = {
 
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
+  const startEnrollment = useStartEnrollment();
   const auth = useAuth();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
@@ -415,6 +417,7 @@ function WorksheetDrawerInner() {
 
     if (card === "favorites") {
       const favs = state.favoritePlans ?? [];
+      const pdpFav = favs.find((f) => f.type === "PDP");
       return (
         <DetailWrap title="Favorite plans" onBack={() => setCard(null)}>
           {favs.length === 0 ? (
@@ -437,6 +440,19 @@ function WorksheetDrawerInner() {
                     <div className="text-xs text-muted-2 mt-1">
                       ${p.monthlyPremium}/mo · MOOP ${p.maxOOP.toLocaleString()}
                     </div>
+                    {p.type !== "PDP" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          startEnrollment(p, p.type === "Medigap" ? pdpFav : undefined)
+                        }
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#131F69] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0d1650]"
+                      >
+                        <FileSignature className="h-3.5 w-3.5" />
+                        Enroll
+                        {p.type === "Medigap" && pdpFav ? " (bundle Part D)" : ""}
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -515,6 +531,32 @@ function WorksheetDrawerInner() {
         {card ? (
           renderDetail()
         ) : (
+          <>
+            {state.enrollment && (
+              <button
+                type="button"
+                onClick={() => openEnrollment()}
+                className={`mb-3 w-full rounded-xl border p-3 text-left transition ${
+                  state.enrollment.status === "handed_off"
+                    ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100"
+                    : "border-[#131F69]/25 bg-[#131F69]/[0.04] hover:bg-[#131F69]/[0.08]"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#131F69]/70">
+                  <FileSignature className="h-3.5 w-3.5" />
+                  Enrollment {state.enrollment.status === "handed_off" ? "· submitted" : "· in progress"}
+                </div>
+                <div className="font-serif text-base text-[#131F69] leading-tight mt-0.5">
+                  {state.enrollment.planName ?? state.enrollment.planId}
+                  {state.enrollment.pairedPlanName ? ` + ${state.enrollment.pairedPlanName}` : ""}
+                </div>
+                <div className="text-xs text-ink/70 mt-0.5">
+                  {state.enrollment.status === "handed_off"
+                    ? `Queued with ${state.enrollment.handoff?.agentName ?? "your advisor"}`
+                    : `Next: ${state.enrollment.step}`}
+                </div>
+              </button>
+            )}
           <div className={size === "full" ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
             {order.map((key) => {
               const props: { status: string; primary: string; secondary?: string; onClick: () => void } =
@@ -678,6 +720,7 @@ function WorksheetDrawerInner() {
               );
             })()}
           </div>
+          </>
         )}
       </div>
 
