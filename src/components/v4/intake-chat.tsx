@@ -151,7 +151,7 @@ export function IntakeChat({ mode, path, initialMessages, onMessagesChange, inta
 
   // ---- Save prompt + returning-user recap ------------------------------
   const auth = useAuth();
-  const { state: sessionState, markSavePromptShown: _unused } = { ..._authBridge(useSession(), useAuth()), markSavePromptShown: () => {} };
+  const { state: sessionState } = useSession();
   const [savePromptTrigger, setSavePromptTrigger] = useState<string | null>(null);
   const [recapDismissed, setRecapDismissed] = useState(false);
 
