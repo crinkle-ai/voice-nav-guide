@@ -74,8 +74,14 @@ export function AppShell({
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
         © Crinkle Health. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
+      <EnrollmentMount />
     </div>
   );
+}
+
+function EnrollmentMount() {
+  const [open, setOpen] = useEnrollmentDialogOpen();
+  return <EnrollmentDialog open={open} onOpenChange={setOpen} />;
 }
 
 export function Stepper({ current }: { current: StepKey }) {
