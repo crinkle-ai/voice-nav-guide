@@ -7,7 +7,11 @@ import { AutoVerifyProvider } from "@/components/v4/auto-verify-context";
 import { formatMedication } from "@/lib/v3/intake-types";
 import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
 import { CallDialog } from "@/components/v4/call-dialog";
-import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users } from "lucide-react";
+import { SaveChip } from "@/components/v4/save-chip";
+import { YourDataPanel } from "@/components/v4/your-data-panel";
+import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
+import { useAuth } from "@/lib/v4/auth-store";
+import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail } from "lucide-react";
 
 import {
   Bookmark,
