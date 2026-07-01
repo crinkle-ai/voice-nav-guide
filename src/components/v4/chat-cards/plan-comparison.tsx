@@ -33,6 +33,7 @@ export type RecommendPlansInput = {
 
 export function PlanComparisonCard({ data }: { data: RecommendPlansInput }) {
   const { state, update } = useSession();
+  const startEnrollment = useStartEnrollment();
   const favorites = state.favoritePlans ?? [];
   const recommendedId = data.recommendedPlanId ?? data.plans[0]?.id;
   const pairedId = data.pairedPlanId;
