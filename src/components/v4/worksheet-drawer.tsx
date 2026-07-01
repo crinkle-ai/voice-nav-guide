@@ -82,6 +82,14 @@ const PALETTE: Record<
     icon: Heart,
     label: "Favorite plans",
   },
+  caregiver: {
+    bg: "bg-[#0891B2]",
+    ring: "ring-[#0891B2]/30",
+    text: "text-white",
+    chip: "bg-white/20 text-white",
+    icon: Users,
+    label: "Caregiver",
+  },
 };
 
 function WorkspaceCard({
