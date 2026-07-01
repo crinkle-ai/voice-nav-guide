@@ -183,11 +183,20 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
+const DEFAULT_ORDER: CardKey[] = ["personal", "doctors", "meds", "budget", "agent", "favorites"];
+
 function WorksheetDrawerInner() {
   const { state, update, ready } = useSession();
   const [size, setSize] = useState<Size>("min");
   const [card, setCard] = useState<CardKey | null>(null);
   const [callAgent, setCallAgent] = useState<DirectoryAgent | null>(null);
+  const [draggingKey, setDraggingKey] = useState<CardKey | null>(null);
+  const [order, setOrder] = useState<CardKey[]>(() => {
+    const saved = state.cardOrder as CardKey[] | undefined;
+    return saved && saved.length === DEFAULT_ORDER.length && new Set(saved).size === DEFAULT_ORDER.length
+      ? saved
+      : [...DEFAULT_ORDER];
+  });
   useAutoVerifyIntake();
 
   if (!ready) return null;
