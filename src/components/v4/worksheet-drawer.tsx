@@ -458,81 +458,15 @@ function WorksheetDrawerInner() {
       );
     }
     if (card === "caregiver") {
-      const cg = state.caregiver ?? {};
       return (
         <DetailWrap title="Caregiver" onBack={() => setCard(null)}>
-          <p className="text-xs text-muted-2">
-            Add a family member or trusted helper. They'll be able to see what you see and help
-            manage your plan selections.
-          </p>
-          <div className="grid grid-cols-1 gap-2">
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Name</div>
-              <input
-                type="text"
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                placeholder="e.g. Sarah Johnson"
-                value={cg.name ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, name: e.target.value } })}
-              />
-            </label>
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Relationship</div>
-              <input
-                type="text"
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                placeholder="e.g. Daughter, spouse, friend"
-                value={cg.relationship ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, relationship: e.target.value } })}
-              />
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="rounded-lg border border-line bg-paper p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-2">Email</div>
-                <input
-                  type="email"
-                  className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                  placeholder="name@example.com"
-                  value={cg.email ?? ""}
-                  onChange={(e) => update({ caregiver: { ...cg, email: e.target.value } })}
-                />
-              </label>
-              <label className="rounded-lg border border-line bg-paper p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-2">Phone</div>
-                <input
-                  type="tel"
-                  className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
-                  placeholder="(555) 555-5555"
-                  value={cg.phone ?? ""}
-                  onChange={(e) => update({ caregiver: { ...cg, phone: e.target.value } })}
-                />
-              </label>
-            </div>
-            <label className="rounded-lg border border-line bg-paper p-3">
-              <div className="text-[10px] uppercase tracking-wider text-muted-2">Notes</div>
-              <textarea
-                className="mt-1 w-full bg-transparent text-sm text-ink outline-none resize-none"
-                rows={3}
-                placeholder="What should they be able to help with?"
-                value={cg.notes ?? ""}
-                onChange={(e) => update({ caregiver: { ...cg, notes: e.target.value } })}
-              />
-            </label>
-          </div>
-          {cg.name && (
-            <button
-              type="button"
-              onClick={() => update({ caregiver: undefined })}
-              className="text-xs text-rose-600 hover:underline"
-            >
-              Remove caregiver
-            </button>
-          )}
+          <CaregiverPanel />
         </DetailWrap>
       );
     }
     return null;
   };
+
 
 
   return (
