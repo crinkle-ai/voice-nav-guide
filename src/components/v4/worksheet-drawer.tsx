@@ -9,7 +9,7 @@ import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
 import { CallDialog } from "@/components/v4/call-dialog";
 import { SaveChip } from "@/components/v4/save-chip";
 import { YourDataPanel } from "@/components/v4/your-data-panel";
-import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
+import { VerifiedSignInDialog as UhcSsoDialog } from "@/components/v4/verified-signin-dialog";
 import { useAuth } from "@/lib/v4/auth-store";
 import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail, FileSignature } from "lucide-react";
 import { useStartEnrollment, openEnrollment } from "@/lib/v4/enrollment-dialog-store";
