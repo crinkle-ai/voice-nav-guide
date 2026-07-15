@@ -185,6 +185,7 @@ function IntakePage() {
           </div>
         </div>
         <CallDialog open={landingCallOpen} onOpenChange={setLandingCallOpen} />
+        <VerifiedSignInDialog open={verifiedOpen} onOpenChange={setVerifiedOpen} />
       </AppShell>
     );
   }
