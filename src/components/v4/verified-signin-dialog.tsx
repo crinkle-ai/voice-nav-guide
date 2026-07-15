@@ -84,13 +84,11 @@ export function VerifiedSignInDialog({
   onOpenChange,
   onSignedIn,
   defaultMode = "signin",
-  debugTag,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSignedIn?: () => void;
   defaultMode?: VerifiedSignInMode;
-  debugTag?: string;
 }) {
   const { signIn, signUp } = useAuth();
   const { state, update } = useSession();
@@ -101,14 +99,12 @@ export function VerifiedSignInDialog({
 
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line no-console
-      console.log("[VerifiedSignInDialog] opened tag=", debugTag);
       setStep({ kind: "choose" });
       setBusy(null);
       setSources({ mychart: true, cms: true, pharmacy: true });
       setRemembered(readRememberedProvider());
     }
-  }, [open, debugTag]);
+  }, [open]);
 
 
   const doHealthSafeSignIn = async () => {
