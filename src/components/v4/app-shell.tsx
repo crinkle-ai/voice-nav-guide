@@ -60,8 +60,9 @@ export function AppShell({
         </div>
       </header>
       <main className="mx-auto max-w-6xl w-full px-6 py-3">{children}</main>
-      <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
-        Prototype • Mock Data Only | Fictional consumers, providers, medications, plans, pricing, and recommendations. No production systems, live APIs, or real consumer data are used.&nbsp;&nbsp;
+      <footer className="mx-auto max-w-6xl px-6 py-4 text-[11px] leading-relaxed opacity-60" style={{ color: V4_INK }}>
+        <p className="font-semibold mb-1">Innovation Prototype • Mock Data</p>
+        <p>This experience uses fictional consumers, providers, plans, medications, and recommendations for demonstration purposes only. Generative AI may be used to simulate conversations, but no production business systems or real consumer data are accessed.</p>
       </footer>
       <EnrollmentMount />
     </div>
