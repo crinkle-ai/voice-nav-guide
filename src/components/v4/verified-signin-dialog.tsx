@@ -298,6 +298,7 @@ function ChooseStep({
   onVerified,
   onHealthSafeSignIn,
   onHealthSafeSignUp,
+  onForgetVerified,
 }: {
   defaultMode: VerifiedSignInMode;
   busy: null | "signin" | "signup";
@@ -305,7 +306,9 @@ function ChooseStep({
   onVerified: (p: ImportProvider) => void;
   onHealthSafeSignIn: () => void;
   onHealthSafeSignUp: () => void;
+  onForgetVerified: () => void;
 }) {
+
   const anyBusy = busy !== null;
   return (
     <div className="px-6 py-5 space-y-5">
