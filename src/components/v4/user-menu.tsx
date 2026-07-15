@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { UserCircle2, LogOut, ChevronDown, Check } from "lucide-react";
 import { useAuth } from "@/lib/v4/auth-store";
 import { VerifiedSignInDialog as UhcSsoDialog } from "./verified-signin-dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSession } from "@/lib/v4/session-store";
 
 const HEADER_TEXT = "#131F69";
@@ -12,7 +11,6 @@ export function UserMenu() {
   const { reset: resetSession } = useSession();
   const [ssoOpen, setSsoOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [confirmOut, setConfirmOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
