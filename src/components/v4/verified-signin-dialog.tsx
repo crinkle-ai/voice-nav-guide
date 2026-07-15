@@ -20,8 +20,10 @@ import {
 } from "lucide-react";
 import {
   buildImportedRecord,
+  buildResyncRecord,
   importMilestones,
   type ImportProvider,
+  type ImportMilestone,
 } from "@/lib/v4/mock-verified-import";
 
 export type VerifiedSignInMode = "signin" | "signup";
@@ -30,7 +32,9 @@ type Step =
   | { kind: "choose" }
   | { kind: "consent"; provider: ImportProvider }
   | { kind: "importing"; provider: ImportProvider }
-  | { kind: "done"; provider: ImportProvider };
+  | { kind: "resyncing"; provider: ImportProvider }
+  | { kind: "done"; provider: ImportProvider }
+  | { kind: "resynced"; provider: ImportProvider };
 
 const IDME_MARK = (
   <div className="h-6 w-6 rounded-md bg-[#0F753C] text-white text-[11px] font-bold grid place-items-center">
