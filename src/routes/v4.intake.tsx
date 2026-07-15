@@ -38,6 +38,7 @@ function IntakePage() {
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
   const [landingInput, setLandingInput] = useState("");
   const [landingCallOpen, setLandingCallOpen] = useState(false);
+  const [verifiedOpen, setVerifiedOpen] = useState(false);
   const extractTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUserCount = useRef(0);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
