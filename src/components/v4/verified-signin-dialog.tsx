@@ -164,6 +164,7 @@ export function VerifiedSignInDialog({
       email: record.user.email,
       memberId: record.user.memberId,
     });
+    rememberProvider(provider);
 
     setStep({ kind: "done", provider });
   };
@@ -174,23 +175,38 @@ export function VerifiedSignInDialog({
     const totalDelay = record.milestones.reduce((a, m) => a + m.delayMs, 0) + 400;
     await new Promise((r) => setTimeout(r, totalDelay));
 
+    // If the session was cleared on sign-out, re-seed the Workspace from the
+    // original imported record so doctors/meds/CMS claims come back too.
+    const baseline = buildImportedRecord(provider);
+    const nextIntake = mergeIntake(state.intake ?? emptyIntake(), {
+      ...emptyIntake(),
+      ...baseline.intakePatch,
+    });
     const prior = state.verifiedImport;
     update({
-      verifiedImport: prior
-        ? {
-            ...prior,
-            provider,
-            resyncedAt: Date.now(),
-            summary: record.summary,
-            newSinceLastVisit: record.newSinceLastVisit,
-            cardDismissed: false,
-          }
-        : undefined,
+      intake: nextIntake,
+      verifiedImport: {
+        provider,
+        importedAt: prior?.importedAt ?? Date.now(),
+        summary: record.summary,
+        notableEvent: prior?.notableEvent ?? baseline.notableEvent,
+        doctorNpis: prior?.doctorNpis ?? baseline.importedDoctorNpis,
+        medRxcuis: prior?.medRxcuis ?? baseline.importedMedRxcuis,
+        medNames: prior?.medNames ?? baseline.importedMedNames,
+        resyncedAt: Date.now(),
+        newSinceLastVisit: record.newSinceLastVisit,
+        cardDismissed: false,
+      },
     });
-    // Re-establish auth session on this device.
-    signIn();
+    signIn({
+      name: baseline.user.name,
+      email: baseline.user.email,
+      memberId: baseline.user.memberId,
+    });
+    rememberProvider(provider);
     setStep({ kind: "resynced", provider });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
