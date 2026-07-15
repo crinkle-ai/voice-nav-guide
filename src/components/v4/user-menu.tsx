@@ -22,6 +22,13 @@ export function UserMenu() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [menuOpen]);
 
+  // When the user becomes signed-in the dialog is unmounted before it can
+  // fire onOpenChange(false). Reset it here so a later sign-out doesn't
+  // re-mount the dialog in an already-open state (Welcome-back popup bug).
+  useEffect(() => {
+    if (user) setSsoOpen(false);
+  }, [user]);
+
   if (!ready) {
     return <span className="text-sm opacity-60" style={{ color: HEADER_TEXT }}>…</span>;
   }
