@@ -20,8 +20,10 @@ import {
 } from "lucide-react";
 import {
   buildImportedRecord,
+  buildResyncRecord,
   importMilestones,
   type ImportProvider,
+  type ImportMilestone,
 } from "@/lib/v4/mock-verified-import";
 
 export type VerifiedSignInMode = "signin" | "signup";
@@ -30,7 +32,9 @@ type Step =
   | { kind: "choose" }
   | { kind: "consent"; provider: ImportProvider }
   | { kind: "importing"; provider: ImportProvider }
-  | { kind: "done"; provider: ImportProvider };
+  | { kind: "resyncing"; provider: ImportProvider }
+  | { kind: "done"; provider: ImportProvider }
+  | { kind: "resynced"; provider: ImportProvider };
 
 const IDME_MARK = (
   <div className="h-6 w-6 rounded-md bg-[#0F753C] text-white text-[11px] font-bold grid place-items-center">
@@ -93,7 +97,14 @@ export function VerifiedSignInDialog({
     onSignedIn?.();
   };
 
+  const hasPriorImport = !!state.verifiedImport;
+
   const startVerified = (provider: ImportProvider) => {
+    // Returning user — skip consent and silently re-sync claims.
+    if (hasPriorImport) {
+      runResync(provider);
+      return;
+    }
     setStep({ kind: "consent", provider });
   };
 
@@ -132,11 +143,35 @@ export function VerifiedSignInDialog({
     setStep({ kind: "done", provider });
   };
 
+  const runResync = async (provider: ImportProvider) => {
+    setStep({ kind: "resyncing", provider });
+    const record = buildResyncRecord(provider);
+    const totalDelay = record.milestones.reduce((a, m) => a + m.delayMs, 0) + 400;
+    await new Promise((r) => setTimeout(r, totalDelay));
+
+    const prior = state.verifiedImport;
+    update({
+      verifiedImport: prior
+        ? {
+            ...prior,
+            provider,
+            resyncedAt: Date.now(),
+            summary: record.summary,
+            newSinceLastVisit: record.newSinceLastVisit,
+            cardDismissed: false,
+          }
+        : undefined,
+    });
+    // Re-establish auth session on this device.
+    signIn();
+    setStep({ kind: "resynced", provider });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
         <div className="bg-[#131F69] px-6 py-4 text-white flex items-center gap-3">
-          {step.kind !== "choose" && step.kind !== "done" && (
+          {step.kind === "consent" && (
             <button
               type="button"
               onClick={() => setStep({ kind: "choose" })}
@@ -148,7 +183,7 @@ export function VerifiedSignInDialog({
           )}
           <div className="leading-tight">
             <div style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }} className="text-base">
-              Sign in to Hello Medicare
+              {hasPriorImport ? "Welcome back to Hello Medicare" : "Sign in to Hello Medicare"}
             </div>
             <div className="text-xs opacity-80">Verified identity · HIPAA-secure</div>
           </div>
@@ -161,6 +196,7 @@ export function VerifiedSignInDialog({
           <ChooseStep
             defaultMode={defaultMode}
             busy={busy}
+            hasPriorImport={hasPriorImport}
             onVerified={startVerified}
             onHealthSafeSignIn={doHealthSafeSignIn}
             onHealthSafeSignUp={doHealthSafeSignUp}
@@ -178,8 +214,20 @@ export function VerifiedSignInDialog({
         {step.kind === "importing" && (
           <ImportingStep provider={step.provider} sources={sources} />
         )}
+        {step.kind === "resyncing" && (
+          <ResyncingStep provider={step.provider} />
+        )}
         {step.kind === "done" && (
           <DoneStep
+            provider={step.provider}
+            onClose={() => {
+              onOpenChange(false);
+              onSignedIn?.();
+            }}
+          />
+        )}
+        {step.kind === "resynced" && (
+          <ResyncedStep
             provider={step.provider}
             onClose={() => {
               onOpenChange(false);
@@ -197,12 +245,14 @@ export function VerifiedSignInDialog({
 function ChooseStep({
   defaultMode,
   busy,
+  hasPriorImport,
   onVerified,
   onHealthSafeSignIn,
   onHealthSafeSignUp,
 }: {
   defaultMode: VerifiedSignInMode;
   busy: null | "signin" | "signup";
+  hasPriorImport: boolean;
   onVerified: (p: ImportProvider) => void;
   onHealthSafeSignIn: () => void;
   onHealthSafeSignUp: () => void;
@@ -213,13 +263,14 @@ function ChooseStep({
       {/* Verified identity — primary */}
       <div>
         <DialogTitle className="font-serif text-[19px] text-[#131F69]">
-          Bring your health history with you
+          {hasPriorImport ? "Sync your latest claims and refills" : "Bring your health history with you"}
         </DialogTitle>
         <DialogDescription className="text-sm text-ink/70 mt-1 leading-relaxed">
-          Sign in with a verified identity to pull your doctors, medications, and CMS
-          claims into your Workspace — so your plan match is based on what you already
-          use, not what you remember.
+          {hasPriorImport
+            ? "Sign back in with your verified identity and we'll silently pull anything new from MyChart, CMS Blue Button, and your pharmacy since your last visit."
+            : "Sign in with a verified identity to pull your doctors, medications, and CMS claims into your Workspace — so your plan match is based on what you already use, not what you remember."}
         </DialogDescription>
+
 
         <div className="mt-3 grid grid-cols-1 gap-2">
           <button
@@ -507,6 +558,105 @@ function DoneStep({ provider, onClose }: { provider: ImportProvider; onClose: ()
         Your Workspace has been filled in. Head back to chat and I'll walk through what
         this changes about your plan match.
       </div>
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0d1650]"
+      >
+        Continue <ArrowRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function ResyncingStep({ provider }: { provider: ImportProvider }) {
+  const record = useMemo(() => buildResyncRecord(provider), [provider]);
+  const milestones: ImportMilestone[] = record.milestones;
+  const [done, setDone] = useState(0);
+
+  useEffect(() => {
+    setDone(0);
+    let cancelled = false;
+    let acc = 0;
+    milestones.forEach((m, i) => {
+      acc += m.delayMs;
+      setTimeout(() => {
+        if (!cancelled) setDone(i + 1);
+      }, acc);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [milestones]);
+
+  return (
+    <div className="px-6 py-6 space-y-4">
+      <DialogTitle className="font-serif text-[18px] text-[#131F69]">
+        Syncing your latest claims…
+      </DialogTitle>
+      <DialogDescription className="text-sm text-ink/70">
+        You've connected before — we're just checking what's changed since your last
+        visit. No consent needed.
+      </DialogDescription>
+      <ul className="space-y-2.5">
+        {milestones.map((m, i) => {
+          const isDone = i < done;
+          const isActive = i === done;
+          return (
+            <li
+              key={m.key + i}
+              className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 transition ${
+                isDone
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : isActive
+                  ? "border-[#033592]/25 bg-[#E5F5F8]/60"
+                  : "border-[#033592]/10 bg-white opacity-70"
+              }`}
+            >
+              <div className="mt-0.5 h-5 w-5 grid place-items-center rounded-full bg-white border border-current/20">
+                {isDone ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                ) : isActive ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#131F69]" />
+                ) : (
+                  <div className="h-1.5 w-1.5 rounded-full bg-ink/25" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-[#131F69]">{m.label}</div>
+                <div className="text-[12px] text-ink/65">{m.detail}</div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function ResyncedStep({ provider, onClose }: { provider: ImportProvider; onClose: () => void }) {
+  const record = useMemo(() => buildResyncRecord(provider), [provider]);
+  return (
+    <div className="px-6 py-6 space-y-4">
+      <div className="mx-auto h-12 w-12 rounded-full bg-emerald-100 grid place-items-center">
+        <Check className="h-6 w-6 text-emerald-700" />
+      </div>
+      <div className="text-center">
+        <DialogTitle className="font-serif text-[19px] text-[#131F69]">
+          What's new since your last visit
+        </DialogTitle>
+        <DialogDescription className="text-sm text-ink/70 mt-1">
+          {record.summary}
+        </DialogDescription>
+      </div>
+      <ul className="rounded-lg bg-[#E5F5F8] border border-[#033592]/15 px-3 py-2 text-[12px] text-[#131F69] leading-snug space-y-1.5">
+        {record.newSinceLastVisit.map((item, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#131F69] shrink-0" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
       <button
         type="button"
         onClick={onClose}

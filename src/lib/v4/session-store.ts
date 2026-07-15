@@ -134,6 +134,9 @@ export type VerifiedImport = {
   medRxcuis: string[];
   medNames: string[];
   cardDismissed?: boolean;
+  // Set when the user signs in a second time and we silently re-pull claims.
+  resyncedAt?: number;
+  newSinceLastVisit?: string[];
 };
 
 export type SessionState = {

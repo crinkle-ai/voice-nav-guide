@@ -536,14 +536,27 @@ function WorksheetDrawerInner() {
               <div className="mb-3 rounded-xl border border-emerald-300/70 bg-emerald-50/70 p-3">
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-emerald-800/80">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Imported via {state.verifiedImport.provider === "idme" ? "ID.me" : "CLEAR"}
+                  {state.verifiedImport.resyncedAt
+                    ? `Re-synced via ${state.verifiedImport.provider === "idme" ? "ID.me" : "CLEAR"}`
+                    : `Imported via ${state.verifiedImport.provider === "idme" ? "ID.me" : "CLEAR"}`}
                 </div>
                 <div className="mt-0.5 text-sm text-emerald-900 leading-snug">
                   {state.verifiedImport.summary}
                 </div>
-                <div className="mt-1 text-[11px] text-emerald-900/70 leading-snug">
-                  {state.verifiedImport.notableEvent}
-                </div>
+                {state.verifiedImport.newSinceLastVisit && state.verifiedImport.newSinceLastVisit.length > 0 ? (
+                  <ul className="mt-1.5 space-y-1 text-[11px] text-emerald-900/85 leading-snug">
+                    {state.verifiedImport.newSinceLastVisit.map((item, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="mt-1 h-1 w-1 rounded-full bg-emerald-800/70 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="mt-1 text-[11px] text-emerald-900/70 leading-snug">
+                    {state.verifiedImport.notableEvent}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() =>

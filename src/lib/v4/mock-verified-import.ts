@@ -203,3 +203,56 @@ export function importMilestones(record: ImportedRecord): ImportMilestone[] {
     },
   ];
 }
+
+// -------- Returning-visit resync --------
+// On subsequent sign-ins we don't re-ask for consent — we silently re-pull
+// each connection and surface a short "what's new since your last visit"
+// recap. All mocked; no real network calls.
+
+export type ResyncRecord = {
+  provider: ImportProvider;
+  summary: string;
+  newSinceLastVisit: string[];
+  milestones: ImportMilestone[];
+};
+
+export function buildResyncRecord(provider: ImportProvider): ResyncRecord {
+  const providerName = provider === "idme" ? "ID.me" : "CLEAR";
+  const newSinceLastVisit = [
+    "New claim: Cardiology follow-up with Dr. Priya Patel (Jun 12)",
+    "New Rx fill: Metformin 500 mg — 90-day refill (Jun 8)",
+    "New lab result: A1C 6.8 (down from 7.2)",
+    "Care team update: PCP Dr. Robert Kim added to your Baptist Health record",
+  ];
+  return {
+    provider,
+    summary: `Re-synced with ${providerName} · 3 new claims and 1 new Rx fill since your last visit.`,
+    newSinceLastVisit,
+    milestones: [
+      {
+        key: "identity",
+        label: `Re-verified identity via ${providerName}`,
+        detail: "Signed in with passkey · no consent required",
+        delayMs: 500,
+      },
+      {
+        key: "cms",
+        label: "Checked CMS Blue Button for new claims",
+        detail: "3 new claims since last visit",
+        delayMs: 800,
+      },
+      {
+        key: "pharmacy",
+        label: "Checked pharmacy for new fills",
+        detail: "1 new fill · 0 discontinued",
+        delayMs: 700,
+      },
+      {
+        key: "mychart",
+        label: "Checked MyChart for care-team changes",
+        detail: "1 update to your care team",
+        delayMs: 700,
+      },
+    ],
+  };
+}
