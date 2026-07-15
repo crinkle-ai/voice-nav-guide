@@ -125,7 +125,7 @@ export function VerifiedSignInDialog({
     onSignedIn?.();
   };
 
-  const hasPriorImport = !!state.verifiedImport || !!readRememberedProvider();
+  const hasPriorImport = !!state.verifiedImport || !!remembered;
 
   const startVerified = (provider: ImportProvider) => {
     // Returning user — skip consent and silently re-sync claims.
