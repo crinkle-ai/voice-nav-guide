@@ -171,7 +171,7 @@ export function VerifiedSignInDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
         <div className="bg-[#131F69] px-6 py-4 text-white flex items-center gap-3">
-          {step.kind !== "choose" && step.kind !== "done" && (
+          {step.kind === "consent" && (
             <button
               type="button"
               onClick={() => setStep({ kind: "choose" })}
@@ -183,7 +183,7 @@ export function VerifiedSignInDialog({
           )}
           <div className="leading-tight">
             <div style={{ fontFamily: '"Source Serif Pro", Georgia, serif' }} className="text-base">
-              Sign in to Hello Medicare
+              {hasPriorImport ? "Welcome back to Hello Medicare" : "Sign in to Hello Medicare"}
             </div>
             <div className="text-xs opacity-80">Verified identity · HIPAA-secure</div>
           </div>
@@ -196,6 +196,7 @@ export function VerifiedSignInDialog({
           <ChooseStep
             defaultMode={defaultMode}
             busy={busy}
+            hasPriorImport={hasPriorImport}
             onVerified={startVerified}
             onHealthSafeSignIn={doHealthSafeSignIn}
             onHealthSafeSignUp={doHealthSafeSignUp}
@@ -213,8 +214,20 @@ export function VerifiedSignInDialog({
         {step.kind === "importing" && (
           <ImportingStep provider={step.provider} sources={sources} />
         )}
+        {step.kind === "resyncing" && (
+          <ResyncingStep provider={step.provider} />
+        )}
         {step.kind === "done" && (
           <DoneStep
+            provider={step.provider}
+            onClose={() => {
+              onOpenChange(false);
+              onSignedIn?.();
+            }}
+          />
+        )}
+        {step.kind === "resynced" && (
+          <ResyncedStep
             provider={step.provider}
             onClose={() => {
               onOpenChange(false);
