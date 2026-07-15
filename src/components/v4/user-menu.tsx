@@ -49,7 +49,6 @@ export function UserMenu() {
     signOut();
     // Local copy is cleared so the next visitor on this device starts fresh.
     resetSession();
-    setConfirmOut(false);
     setMenuOpen(false);
   };
 
@@ -82,7 +81,7 @@ export function UserMenu() {
             </div>
             <button
               type="button"
-              onClick={() => setConfirmOut(true)}
+              onClick={doSignOut}
               className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left hover:bg-[#E5F5F8] border-t border-[#033592]/10"
             >
               <LogOut className="h-4 w-4" /> Sign out
@@ -90,22 +89,6 @@ export function UserMenu() {
           </div>
         )}
       </div>
-
-      <AlertDialog open={confirmOut} onOpenChange={setConfirmOut}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sign out?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your workspace stays saved to your CH account. This device will start fresh
-              on your next visit until you sign in again.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Stay signed in</AlertDialogCancel>
-            <AlertDialogAction onClick={doSignOut}>Sign out</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
