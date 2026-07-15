@@ -97,7 +97,14 @@ export function VerifiedSignInDialog({
     onSignedIn?.();
   };
 
+  const hasPriorImport = !!state.verifiedImport;
+
   const startVerified = (provider: ImportProvider) => {
+    // Returning user — skip consent and silently re-sync claims.
+    if (hasPriorImport) {
+      runResync(provider);
+      return;
+    }
     setStep({ kind: "consent", provider });
   };
 
@@ -134,6 +141,30 @@ export function VerifiedSignInDialog({
     });
 
     setStep({ kind: "done", provider });
+  };
+
+  const runResync = async (provider: ImportProvider) => {
+    setStep({ kind: "resyncing", provider });
+    const record = buildResyncRecord(provider);
+    const totalDelay = record.milestones.reduce((a, m) => a + m.delayMs, 0) + 400;
+    await new Promise((r) => setTimeout(r, totalDelay));
+
+    const prior = state.verifiedImport;
+    update({
+      verifiedImport: prior
+        ? {
+            ...prior,
+            provider,
+            resyncedAt: Date.now(),
+            summary: record.summary,
+            newSinceLastVisit: record.newSinceLastVisit,
+            cardDismissed: false,
+          }
+        : undefined,
+    });
+    // Re-establish auth session on this device.
+    signIn();
+    setStep({ kind: "resynced", provider });
   };
 
   return (
