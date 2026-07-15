@@ -353,7 +353,24 @@ function ChooseStep({
             <span className="font-medium">Your data</span> anytime.
           </div>
         </div>
+        {hasPriorImport && (
+          <button
+            type="button"
+            onClick={() => {
+              forgetRememberedVerifiedProvider();
+              // Force re-render by toggling a source (cheap) — parent effect
+              // resets on next open; but we're already open, so reload state
+              // via a location no-op isn't needed: hasPriorImport is derived
+              // from localStorage read on each render.
+              window.dispatchEvent(new Event("storage"));
+            }}
+            className="mt-2 text-[11px] text-ink/55 hover:text-[#131F69] hover:underline"
+          >
+            Not you? Start fresh as a new user
+          </button>
+        )}
       </div>
+
 
       {/* HealthSafe ID — secondary */}
       <div className="pt-3 border-t border-[#033592]/10">
