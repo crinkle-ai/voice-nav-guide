@@ -79,7 +79,7 @@ export function SavePromptCard({ trigger }: { trigger: string }) {
       </div>
       <UhcSsoDialog
         open={ssoOpen}
-        debugTag="save-prompt-card" onOpenChange={setSsoOpen}
+        onOpenChange={setSsoOpen}
         defaultMode={ssoMode}
         onSignedIn={() => setHidden(true)}
       />

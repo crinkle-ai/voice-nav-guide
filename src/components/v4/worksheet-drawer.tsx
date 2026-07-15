@@ -784,7 +784,7 @@ function WorksheetDrawerInner() {
         onOpenChange={(v) => { if (!v) setCallAgent(null); }}
         agent={callAgent ?? undefined}
       />
-      <UhcSsoDialog debugTag="worksheet-drawer" open={ssoOpen} onOpenChange={setSsoOpen} />
+      <UhcSsoDialog open={ssoOpen} onOpenChange={setSsoOpen} />
       <YourDataPanel open={dataPanelOpen} onOpenChange={setDataPanelOpen} />
     </aside>
   );

@@ -45,7 +45,7 @@ export function UserMenu() {
           <UserCircle2 className="h-5 w-5" style={{ color: HEADER_TEXT }} />
           <span>Sign in</span>
         </button>
-        <UhcSsoDialog debugTag="user-menu" open={ssoOpen} onOpenChange={setSsoOpen} />
+        <UhcSsoDialog open={ssoOpen} onOpenChange={setSsoOpen} />
       </>
     );
   }
