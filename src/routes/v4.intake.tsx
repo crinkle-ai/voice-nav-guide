@@ -15,6 +15,8 @@ import { mergeIntake } from "@/lib/v4/intake-merge";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { HeaderIndicators } from "@/components/v4/header-indicators";
+import { VerifiedSignInDialog } from "@/components/v4/verified-signin-dialog";
+import { ShieldCheck } from "lucide-react";
 
 
 export const Route = createFileRoute("/v4/intake")({
@@ -36,6 +38,7 @@ function IntakePage() {
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
   const [landingInput, setLandingInput] = useState("");
   const [landingCallOpen, setLandingCallOpen] = useState(false);
+  const [verifiedOpen, setVerifiedOpen] = useState(false);
   const extractTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUserCount = useRef(0);
   const latestMessagesRef = useRef<UIMessage[]>(state.messages);
@@ -150,8 +153,18 @@ function IntakePage() {
           <div className="pt-8">
             <LandingHero />
             <PathCards onPick={startWith} />
-            <div className="mt-2 mb-6">
+            <div className="mt-2 mb-3">
               <PromptChips onPick={startWith} />
+            </div>
+            <div className="mb-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVerifiedOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-50 px-3.5 py-1.5 text-sm text-emerald-800 hover:bg-emerald-100 transition"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Import my health history (ID.me / CLEAR)
+              </button>
             </div>
           </div>
           <div className="flex-1" />
@@ -172,6 +185,7 @@ function IntakePage() {
           </div>
         </div>
         <CallDialog open={landingCallOpen} onOpenChange={setLandingCallOpen} />
+        <VerifiedSignInDialog open={verifiedOpen} onOpenChange={setVerifiedOpen} />
       </AppShell>
     );
   }

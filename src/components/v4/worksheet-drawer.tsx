@@ -9,7 +9,7 @@ import { AGENT_DIRECTORY, type DirectoryAgent } from "@/lib/v4/agent-directory";
 import { CallDialog } from "@/components/v4/call-dialog";
 import { SaveChip } from "@/components/v4/save-chip";
 import { YourDataPanel } from "@/components/v4/your-data-panel";
-import { UhcSsoDialog } from "@/components/v4/uhc-sso-dialog";
+import { VerifiedSignInDialog as UhcSsoDialog } from "@/components/v4/verified-signin-dialog";
 import { useAuth } from "@/lib/v4/auth-store";
 import { Phone, Pin, MapPin, Check, BadgeCheck, Sparkles, Users, ShieldCheck, Send, Mail, FileSignature } from "lucide-react";
 import { useStartEnrollment, openEnrollment } from "@/lib/v4/enrollment-dialog-store";
@@ -532,6 +532,33 @@ function WorksheetDrawerInner() {
           renderDetail()
         ) : (
           <>
+            {state.verifiedImport && !state.verifiedImport.cardDismissed && (
+              <div className="mb-3 rounded-xl border border-emerald-300/70 bg-emerald-50/70 p-3">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-emerald-800/80">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Imported via {state.verifiedImport.provider === "idme" ? "ID.me" : "CLEAR"}
+                </div>
+                <div className="mt-0.5 text-sm text-emerald-900 leading-snug">
+                  {state.verifiedImport.summary}
+                </div>
+                <div className="mt-1 text-[11px] text-emerald-900/70 leading-snug">
+                  {state.verifiedImport.notableEvent}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    update({
+                      verifiedImport: state.verifiedImport
+                        ? { ...state.verifiedImport, cardDismissed: true }
+                        : undefined,
+                    })
+                  }
+                  className="mt-1.5 text-[11px] text-emerald-900/80 hover:underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
             {state.enrollment && (
               <button
                 type="button"

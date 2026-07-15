@@ -125,6 +125,17 @@ export type EnrollmentApplication = {
 };
 
 
+export type VerifiedImport = {
+  provider: "idme" | "clear";
+  importedAt: number;
+  summary: string;
+  notableEvent: string;
+  doctorNpis: string[];
+  medRxcuis: string[];
+  medNames: string[];
+  cardDismissed?: boolean;
+};
+
 export type SessionState = {
   mode: IntakeMode | null;
   path?: HybridPath;
@@ -138,6 +149,7 @@ export type SessionState = {
   cardOrder?: string[];
   enabledCards?: string[];
   enrollment?: EnrollmentApplication;
+  verifiedImport?: VerifiedImport;
   caregiver?: {
     name?: string;
     relationship?: string;

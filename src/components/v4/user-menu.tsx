@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { UserCircle2, LogOut, ChevronDown, Check } from "lucide-react";
 import { useAuth } from "@/lib/v4/auth-store";
-import { UhcSsoDialog } from "./uhc-sso-dialog";
+import { VerifiedSignInDialog as UhcSsoDialog } from "./verified-signin-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSession } from "@/lib/v4/session-store";
 
