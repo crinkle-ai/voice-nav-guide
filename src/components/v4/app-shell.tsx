@@ -61,7 +61,7 @@ export function AppShell({
       </header>
       <main className="mx-auto max-w-6xl w-full px-6 py-3">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
-        © Hello Medicare. Medicare Advantage plans. Plan availability and benefits vary by region.
+        © Hello Medicare is for DEMO purposes only.&nbsp; All provider, medication and plans are mock data.&nbsp;
       </footer>
       <EnrollmentMount />
     </div>
