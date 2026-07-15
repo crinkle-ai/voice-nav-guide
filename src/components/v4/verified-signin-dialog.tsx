@@ -368,11 +368,12 @@ function ChooseStep({
           <button
             type="button"
             onClick={onForgetVerified}
-            className="mt-2 text-[11px] text-ink/55 hover:text-[#131F69] hover:underline"
+            className="mt-3 w-full rounded-lg border border-[#033592]/20 bg-white px-3 py-2 text-sm font-medium text-[#131F69] hover:bg-[#E5F5F8] hover:border-[#033592]/40 transition"
           >
             Not you? Start fresh as a new user
           </button>
         )}
+
 
       </div>
 
