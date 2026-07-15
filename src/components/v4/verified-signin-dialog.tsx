@@ -95,14 +95,17 @@ export function VerifiedSignInDialog({
   const [step, setStep] = useState<Step>({ kind: "choose" });
   const [busy, setBusy] = useState<null | "signin" | "signup">(null);
   const [sources, setSources] = useState({ mychart: true, cms: true, pharmacy: true });
+  const [remembered, setRemembered] = useState<ImportProvider | null>(null);
 
   useEffect(() => {
     if (open) {
       setStep({ kind: "choose" });
       setBusy(null);
       setSources({ mychart: true, cms: true, pharmacy: true });
+      setRemembered(readRememberedProvider());
     }
   }, [open]);
+
 
   const doHealthSafeSignIn = async () => {
     setBusy("signin");
