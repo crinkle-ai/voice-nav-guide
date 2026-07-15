@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { HeaderIndicators } from "@/components/v4/header-indicators";
 import { VerifiedSignInDialog } from "@/components/v4/verified-signin-dialog";
-import { ShieldCheck } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/v4/intake")({
