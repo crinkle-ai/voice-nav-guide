@@ -5,7 +5,7 @@ import { UhcSsoDialog } from "./uhc-sso-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSession } from "@/lib/v4/session-store";
 
-const HEADER_TEXT = "#ffffff";
+const HEADER_TEXT = "#131F69";
 
 export function UserMenu() {
   const { user, ready, signOut } = useAuth();

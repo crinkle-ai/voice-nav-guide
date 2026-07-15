@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import emblemAsset from "@/assets/chc-emblem-white.png.asset.json";
+import helloMedicareLogo from "@/assets/hello-medicare.png.asset.json";
 import { useDemoCheatsheet } from "./demo-cheatsheet";
 import { useSession } from "@/lib/v4/session-store";
 import { UserMenu } from "./user-menu";
@@ -17,8 +17,8 @@ const STEPS: { key: StepKey; label: string; pct: number }[] = [
   { key: "next", label: "Next step", pct: 100 },
 ];
 
-const V4_HEADER_BG = "#131F69";
-const V4_HEADER_TEXT = "#ffffff";
+const V4_HEADER_BG = "#ffffff";
+const V4_HEADER_TEXT = "#131F69";
 const V4_INK = "#131F69";
 
 export function AppShell({
@@ -42,26 +42,15 @@ export function AppShell({
           aria-hidden="true"
         />
       )}
-      <header className="sticky top-0 z-30 backdrop-blur" style={{ backgroundColor: V4_HEADER_BG }}>
+      <header className="sticky top-0 z-30 backdrop-blur border-b border-black/10" style={{ backgroundColor: V4_HEADER_BG }}>
         <div className="mx-auto max-w-6xl px-6 h-11 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/v4" className="flex items-center gap-1.5">
+            <Link to="/v4" className="flex items-center">
               <img
-                src={emblemAsset.url}
-                alt="Crinkle Health"
-                className="h-7 w-auto object-contain"
+                src={helloMedicareLogo.url}
+                alt="Hello Medicare"
+                className="h-8 w-auto object-contain"
               />
-              <div className="flex flex-col leading-none -ml-1">
-                <span
-                  className="text-[1.05rem]"
-                  style={{ fontFamily: '"Source Serif Pro", Georgia, serif', color: V4_HEADER_TEXT }}
-                >
-                  Crinkle Health
-                </span>
-                <span className="text-[0.95rem] tracking-tight" style={{ color: `${V4_HEADER_TEXT}cc` }}>
-                  Medicare
-                </span>
-              </div>
             </Link>
           </div>
           <div className="flex items-center gap-5 text-sm" style={{ color: V4_HEADER_TEXT }}>
@@ -72,7 +61,7 @@ export function AppShell({
       </header>
       <main className="mx-auto max-w-6xl w-full px-6 py-3">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
-        © Crinkle Health. Medicare Advantage plans. Plan availability and benefits vary by region.
+        © Hello Medicare. Medicare Advantage plans. Plan availability and benefits vary by region.
       </footer>
       <EnrollmentMount />
     </div>
