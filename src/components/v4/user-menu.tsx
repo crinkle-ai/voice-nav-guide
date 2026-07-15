@@ -5,7 +5,7 @@ import { UhcSsoDialog } from "./uhc-sso-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSession } from "@/lib/v4/session-store";
 
-const HEADER_TEXT = "#ffffff";
+const HEADER_TEXT = "#131F69";
 
 export function UserMenu() {
   const { user, ready, signOut } = useAuth();
@@ -64,7 +64,7 @@ export function UserMenu() {
           className="inline-flex items-center gap-1.5 transition hover:opacity-80"
           style={{ color: HEADER_TEXT }}
         >
-          <div className="h-6 w-6 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-[11px] font-medium">
+          <div className="h-6 w-6 rounded-full bg-[#131F69]/10 border border-[#131F69]/20 flex items-center justify-center text-[11px] font-medium">
             {firstName[0]}
           </div>
           <span className="text-sm">{firstName}</span>
