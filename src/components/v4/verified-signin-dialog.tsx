@@ -245,12 +245,14 @@ export function VerifiedSignInDialog({
 function ChooseStep({
   defaultMode,
   busy,
+  hasPriorImport,
   onVerified,
   onHealthSafeSignIn,
   onHealthSafeSignUp,
 }: {
   defaultMode: VerifiedSignInMode;
   busy: null | "signin" | "signup";
+  hasPriorImport: boolean;
   onVerified: (p: ImportProvider) => void;
   onHealthSafeSignIn: () => void;
   onHealthSafeSignUp: () => void;
@@ -261,13 +263,14 @@ function ChooseStep({
       {/* Verified identity — primary */}
       <div>
         <DialogTitle className="font-serif text-[19px] text-[#131F69]">
-          Bring your health history with you
+          {hasPriorImport ? "Sync your latest claims and refills" : "Bring your health history with you"}
         </DialogTitle>
         <DialogDescription className="text-sm text-ink/70 mt-1 leading-relaxed">
-          Sign in with a verified identity to pull your doctors, medications, and CMS
-          claims into your Workspace — so your plan match is based on what you already
-          use, not what you remember.
+          {hasPriorImport
+            ? "Sign back in with your verified identity and we'll silently pull anything new from MyChart, CMS Blue Button, and your pharmacy since your last visit."
+            : "Sign in with a verified identity to pull your doctors, medications, and CMS claims into your Workspace — so your plan match is based on what you already use, not what you remember."}
         </DialogDescription>
+
 
         <div className="mt-3 grid grid-cols-1 gap-2">
           <button
