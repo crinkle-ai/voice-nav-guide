@@ -244,7 +244,12 @@ export function VerifiedSignInDialog({
             onVerified={startVerified}
             onHealthSafeSignIn={doHealthSafeSignIn}
             onHealthSafeSignUp={doHealthSafeSignUp}
+            onForgetVerified={() => {
+              forgetRememberedVerifiedProvider();
+              setRemembered(null);
+            }}
           />
+
         )}
         {step.kind === "consent" && (
           <ConsentStep
