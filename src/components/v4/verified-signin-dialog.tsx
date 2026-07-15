@@ -99,6 +99,8 @@ export function VerifiedSignInDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line no-console
+      console.log("[VerifiedSignInDialog] opened", new Error().stack);
       setStep({ kind: "choose" });
       setBusy(null);
       setSources({ mychart: true, cms: true, pharmacy: true });
