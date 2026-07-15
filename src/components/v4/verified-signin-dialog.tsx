@@ -568,3 +568,102 @@ function DoneStep({ provider, onClose }: { provider: ImportProvider; onClose: ()
     </div>
   );
 }
+
+function ResyncingStep({ provider }: { provider: ImportProvider }) {
+  const record = useMemo(() => buildResyncRecord(provider), [provider]);
+  const milestones: ImportMilestone[] = record.milestones;
+  const [done, setDone] = useState(0);
+
+  useEffect(() => {
+    setDone(0);
+    let cancelled = false;
+    let acc = 0;
+    milestones.forEach((m, i) => {
+      acc += m.delayMs;
+      setTimeout(() => {
+        if (!cancelled) setDone(i + 1);
+      }, acc);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [milestones]);
+
+  return (
+    <div className="px-6 py-6 space-y-4">
+      <DialogTitle className="font-serif text-[18px] text-[#131F69]">
+        Syncing your latest claims…
+      </DialogTitle>
+      <DialogDescription className="text-sm text-ink/70">
+        You've connected before — we're just checking what's changed since your last
+        visit. No consent needed.
+      </DialogDescription>
+      <ul className="space-y-2.5">
+        {milestones.map((m, i) => {
+          const isDone = i < done;
+          const isActive = i === done;
+          return (
+            <li
+              key={m.key + i}
+              className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 transition ${
+                isDone
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : isActive
+                  ? "border-[#033592]/25 bg-[#E5F5F8]/60"
+                  : "border-[#033592]/10 bg-white opacity-70"
+              }`}
+            >
+              <div className="mt-0.5 h-5 w-5 grid place-items-center rounded-full bg-white border border-current/20">
+                {isDone ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                ) : isActive ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#131F69]" />
+                ) : (
+                  <div className="h-1.5 w-1.5 rounded-full bg-ink/25" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-[#131F69]">{m.label}</div>
+                <div className="text-[12px] text-ink/65">{m.detail}</div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function ResyncedStep({ provider, onClose }: { provider: ImportProvider; onClose: () => void }) {
+  const record = useMemo(() => buildResyncRecord(provider), [provider]);
+  return (
+    <div className="px-6 py-6 space-y-4">
+      <div className="mx-auto h-12 w-12 rounded-full bg-emerald-100 grid place-items-center">
+        <Check className="h-6 w-6 text-emerald-700" />
+      </div>
+      <div className="text-center">
+        <DialogTitle className="font-serif text-[19px] text-[#131F69]">
+          What's new since your last visit
+        </DialogTitle>
+        <DialogDescription className="text-sm text-ink/70 mt-1">
+          {record.summary}
+        </DialogDescription>
+      </div>
+      <ul className="rounded-lg bg-[#E5F5F8] border border-[#033592]/15 px-3 py-2 text-[12px] text-[#131F69] leading-snug space-y-1.5">
+        {record.newSinceLastVisit.map((item, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#131F69] shrink-0" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#131F69] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0d1650]"
+      >
+        Continue <ArrowRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
