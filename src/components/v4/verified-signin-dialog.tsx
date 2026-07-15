@@ -48,6 +48,31 @@ const CLEAR_MARK = (
   </div>
 );
 
+// Remembered across sign-out so the returning-user resync flow can trigger
+// even after the local session state has been wiped. Demo-only; a real impl
+// would key this off the identity provider's stored refresh token.
+const REMEMBER_KEY = "v4.verifiedProvider";
+function rememberProvider(p: ImportProvider) {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(REMEMBER_KEY, p);
+  } catch {}
+}
+function readRememberedProvider(): ImportProvider | null {
+  try {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(REMEMBER_KEY);
+    return v === "idme" || v === "clear" ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function forgetRememberedVerifiedProvider() {
+  try {
+    if (typeof window !== "undefined") window.localStorage.removeItem(REMEMBER_KEY);
+  } catch {}
+}
+
+
 /**
  * Two-in-one sign-in dialog. Primary path is verified identity via
  * ID.me / CLEAR, which imports mock MyChart + CMS Blue Button + pharmacy
@@ -70,14 +95,17 @@ export function VerifiedSignInDialog({
   const [step, setStep] = useState<Step>({ kind: "choose" });
   const [busy, setBusy] = useState<null | "signin" | "signup">(null);
   const [sources, setSources] = useState({ mychart: true, cms: true, pharmacy: true });
+  const [remembered, setRemembered] = useState<ImportProvider | null>(null);
 
   useEffect(() => {
     if (open) {
       setStep({ kind: "choose" });
       setBusy(null);
       setSources({ mychart: true, cms: true, pharmacy: true });
+      setRemembered(readRememberedProvider());
     }
   }, [open]);
+
 
   const doHealthSafeSignIn = async () => {
     setBusy("signin");
@@ -97,7 +125,7 @@ export function VerifiedSignInDialog({
     onSignedIn?.();
   };
 
-  const hasPriorImport = !!state.verifiedImport;
+  const hasPriorImport = !!state.verifiedImport || !!remembered;
 
   const startVerified = (provider: ImportProvider) => {
     // Returning user — skip consent and silently re-sync claims.
@@ -139,6 +167,7 @@ export function VerifiedSignInDialog({
       email: record.user.email,
       memberId: record.user.memberId,
     });
+    rememberProvider(provider);
 
     setStep({ kind: "done", provider });
   };
@@ -149,23 +178,38 @@ export function VerifiedSignInDialog({
     const totalDelay = record.milestones.reduce((a, m) => a + m.delayMs, 0) + 400;
     await new Promise((r) => setTimeout(r, totalDelay));
 
+    // If the session was cleared on sign-out, re-seed the Workspace from the
+    // original imported record so doctors/meds/CMS claims come back too.
+    const baseline = buildImportedRecord(provider);
+    const nextIntake = mergeIntake(state.intake ?? emptyIntake(), {
+      ...emptyIntake(),
+      ...baseline.intakePatch,
+    });
     const prior = state.verifiedImport;
     update({
-      verifiedImport: prior
-        ? {
-            ...prior,
-            provider,
-            resyncedAt: Date.now(),
-            summary: record.summary,
-            newSinceLastVisit: record.newSinceLastVisit,
-            cardDismissed: false,
-          }
-        : undefined,
+      intake: nextIntake,
+      verifiedImport: {
+        provider,
+        importedAt: prior?.importedAt ?? Date.now(),
+        summary: record.summary,
+        notableEvent: prior?.notableEvent ?? baseline.notableEvent,
+        doctorNpis: prior?.doctorNpis ?? baseline.importedDoctorNpis,
+        medRxcuis: prior?.medRxcuis ?? baseline.importedMedRxcuis,
+        medNames: prior?.medNames ?? baseline.importedMedNames,
+        resyncedAt: Date.now(),
+        newSinceLastVisit: record.newSinceLastVisit,
+        cardDismissed: false,
+      },
     });
-    // Re-establish auth session on this device.
-    signIn();
+    signIn({
+      name: baseline.user.name,
+      email: baseline.user.email,
+      memberId: baseline.user.memberId,
+    });
+    rememberProvider(provider);
     setStep({ kind: "resynced", provider });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -200,7 +244,12 @@ export function VerifiedSignInDialog({
             onVerified={startVerified}
             onHealthSafeSignIn={doHealthSafeSignIn}
             onHealthSafeSignUp={doHealthSafeSignUp}
+            onForgetVerified={() => {
+              forgetRememberedVerifiedProvider();
+              setRemembered(null);
+            }}
           />
+
         )}
         {step.kind === "consent" && (
           <ConsentStep
@@ -249,6 +298,7 @@ function ChooseStep({
   onVerified,
   onHealthSafeSignIn,
   onHealthSafeSignUp,
+  onForgetVerified,
 }: {
   defaultMode: VerifiedSignInMode;
   busy: null | "signin" | "signup";
@@ -256,7 +306,9 @@ function ChooseStep({
   onVerified: (p: ImportProvider) => void;
   onHealthSafeSignIn: () => void;
   onHealthSafeSignUp: () => void;
+  onForgetVerified: () => void;
 }) {
+
   const anyBusy = busy !== null;
   return (
     <div className="px-6 py-5 space-y-5">
@@ -312,7 +364,18 @@ function ChooseStep({
             <span className="font-medium">Your data</span> anytime.
           </div>
         </div>
+        {hasPriorImport && (
+          <button
+            type="button"
+            onClick={onForgetVerified}
+            className="mt-2 text-[11px] text-ink/55 hover:text-[#131F69] hover:underline"
+          >
+            Not you? Start fresh as a new user
+          </button>
+        )}
+
       </div>
+
 
       {/* HealthSafe ID — secondary */}
       <div className="pt-3 border-t border-[#033592]/10">
