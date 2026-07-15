@@ -48,6 +48,31 @@ const CLEAR_MARK = (
   </div>
 );
 
+// Remembered across sign-out so the returning-user resync flow can trigger
+// even after the local session state has been wiped. Demo-only; a real impl
+// would key this off the identity provider's stored refresh token.
+const REMEMBER_KEY = "v4.verifiedProvider";
+function rememberProvider(p: ImportProvider) {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(REMEMBER_KEY, p);
+  } catch {}
+}
+function readRememberedProvider(): ImportProvider | null {
+  try {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(REMEMBER_KEY);
+    return v === "idme" || v === "clear" ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function forgetRememberedVerifiedProvider() {
+  try {
+    if (typeof window !== "undefined") window.localStorage.removeItem(REMEMBER_KEY);
+  } catch {}
+}
+
+
 /**
  * Two-in-one sign-in dialog. Primary path is verified identity via
  * ID.me / CLEAR, which imports mock MyChart + CMS Blue Button + pharmacy
