@@ -61,7 +61,7 @@ export function AppShell({
       </header>
       <main className="mx-auto max-w-6xl w-full px-6 py-3">{children}</main>
       <footer className="mx-auto max-w-6xl px-6 py-2 text-[11px]" style={{ color: `${V4_INK}99` }}>
-        © Hello Medicare is for DEMO purposes only.&nbsp; All consumer, provider, medication and plans are mock data.&nbsp;
+        Prototype • Mock Data Only | Fictional consumers, providers, medications, plans, pricing, and recommendations. No production systems, live APIs, or real consumer data are used.&nbsp;&nbsp;
       </footer>
       <EnrollmentMount />
     </div>
