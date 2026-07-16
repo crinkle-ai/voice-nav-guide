@@ -33,6 +33,7 @@ const PATH_LABELS: Record<HybridPath, string> = {
 
 function IntakePage() {
   const { state, update, ready, resetKey } = useSession();
+  const mode = state.mode ?? "ramble";
   const navigate = useNavigate();
   const [extracting, setExtracting] = useState(false);
   const [autoSend, setAutoSend] = useState<string | undefined>(undefined);
@@ -85,16 +86,8 @@ function IntakePage() {
 
 
 
-  if (!ready || !state.mode) {
-    return (
-      <AppShell step="intake">
-        <p className="text-[#131F69]/70">Loading…</p>
-      </AppShell>
-    );
-  }
-
   // STRUCTURED MODE — full wizard, no chat, no extraction
-  if (state.mode === "structured") {
+  if (mode === "structured") {
     return (
       <AppShell
         step="intake"
@@ -123,7 +116,7 @@ function IntakePage() {
   }
 
   // HYBRID MODE — show path picker first, then chat with path
-  if (state.mode === "hybrid" && !state.path) {
+  if (mode === "hybrid" && !state.path) {
     return (
       <AppShell
         step="intake"
@@ -190,7 +183,7 @@ function IntakePage() {
             <h1 className="font-serif text-2xl text-[#131F69] leading-none">Let's talk Medicare</h1>
             <p className="text-xs text-[#131F69]/70 mt-0.5 leading-tight">
               Type, dictate, or have a live voice conversation.{" "}
-              {state.mode === "hybrid" && (
+              {mode === "hybrid" && (
                 <button onClick={() => update({ path: undefined, messages: [] })} className="underline">
                   Switch path
                 </button>
@@ -202,7 +195,7 @@ function IntakePage() {
         <div className="flex-1 flex flex-col min-h-0">
           <IntakeChat
             key={`chat-${resetKey}`}
-            mode={state.mode}
+            mode={mode}
             path={state.path}
             initialMessages={state.messages}
             onMessagesChange={onMessagesChange}
