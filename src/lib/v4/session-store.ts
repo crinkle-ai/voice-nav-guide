@@ -263,8 +263,11 @@ export function useSession() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureHydrated();
-    setReady(true);
+    try {
+      ensureHydrated();
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   const update = useCallback(setState, []);
