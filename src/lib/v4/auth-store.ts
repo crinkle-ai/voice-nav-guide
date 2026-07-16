@@ -47,7 +47,11 @@ function read(): AuthState {
 
 function write(s: AuthState) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(s));
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    // localStorage may be blocked in cross-site iframes (e.g. Pastel).
+  }
 }
 
 let current: AuthState = initial;
