@@ -194,7 +194,12 @@ function read(): SessionState {
 
 function write(s: SessionState) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(s));
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    // localStorage may be blocked (e.g. cross-site iframe like Pastel,
+    // Safari private mode). Session persists in memory for this tab only.
+  }
 }
 
 // Module-level shared store so every useSession() consumer stays in sync.
@@ -209,7 +214,11 @@ function emit() {
 
 function ensureHydrated() {
   if (hydrated || typeof window === "undefined") return;
-  current = read();
+  try {
+    current = read();
+  } catch {
+    current = initial;
+  }
   hydrated = true;
 }
 
@@ -254,8 +263,11 @@ export function useSession() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureHydrated();
-    setReady(true);
+    try {
+      ensureHydrated();
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   const update = useCallback(setState, []);
